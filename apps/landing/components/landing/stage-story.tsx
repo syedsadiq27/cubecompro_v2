@@ -1,4 +1,4 @@
-import { graphNodes, stageBeats, stageOutcomes } from '../../lib/content';
+import { howItWorksFlow, howItWorksSteps } from '../../lib/content';
 
 export function StageStory() {
   return (
@@ -6,61 +6,71 @@ export function StageStory() {
       <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-8 lg:py-28">
         <p className="text-sm text-[var(--text-muted)]">How CubeCom works</p>
         <h2 className="type-page mt-3 max-w-2xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
-          One product graph. The Stage and the cart agree.
+          One product. Every choice stays connected.
         </h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--text-secondary)]">
-          Catalog data becomes a product graph. The Stage shows it. Commerce
-          sells it. Change the object — the sellable state follows.
+          When a shopper changes the product in 3D, CubeCom keeps the product
+          data behind it in sync.
         </p>
 
-        <div className="mt-16 grid gap-14 lg:grid-cols-[1fr_1.05fr] lg:items-start lg:gap-20">
+        <div className="mt-16 grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-20">
           <ol className="space-y-10">
-            {stageBeats.map((beat, index) => (
-              <li key={beat.label}>
+            {howItWorksSteps.map((step, index) => (
+              <li key={step.label}>
                 <p className="font-mono text-[11px] tracking-[0.06em] text-[var(--stage-violet)]">
                   {String(index + 1).padStart(2, '0')}
                 </p>
-                <h3 className="type-section mt-2 text-[20px]">{beat.label}</h3>
+                <h3 className="type-section mt-2 text-[20px]">{step.label}</h3>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
-                  {beat.detail}
+                  {step.detail}
                 </p>
               </li>
             ))}
           </ol>
 
-          <div className="font-mono text-sm text-[var(--ink)]">
-            <div className="border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4">
-              Catalog / PIM
-            </div>
-            <div className="flex justify-center py-2 text-[var(--text-muted)]">
-              ↓
-            </div>
-            <div className="border border-[var(--ink)] bg-[var(--ink)] px-5 py-4 text-white">
-              Product graph · on Stage
-            </div>
-            <ul className="border border-t-0 border-[var(--border-strong)] bg-[var(--surface-pure)]">
-              {graphNodes.map((node) => (
-                <li
-                  key={node}
-                  className="border-t border-[var(--line)] px-5 py-3 text-[var(--text-secondary)]"
+          <div className="text-sm text-[var(--ink)]">
+            {howItWorksFlow.map((layer, index) => (
+              <div key={layer.title}>
+                {index > 0 ? (
+                  <div className="flex justify-center py-2.5 text-[var(--text-muted)]">
+                    ↓
+                  </div>
+                ) : null}
+                <div
+                  className={
+                    layer.emphasized
+                      ? 'border border-[var(--ink)] bg-[var(--ink)] px-5 py-4 text-white'
+                      : 'border border-[var(--border-strong)] bg-[var(--surface-pure)] px-5 py-4'
+                  }
                 >
-                  ├── {node}
-                </li>
-              ))}
-            </ul>
+                  <p
+                    className={`text-[11px] font-medium tracking-[0.06em] uppercase ${
+                      layer.emphasized
+                        ? 'text-white/55'
+                        : 'text-[var(--text-muted)]'
+                    }`}
+                  >
+                    {layer.title}
+                  </p>
+                  <p
+                    className={`mt-2 leading-relaxed ${
+                      layer.emphasized
+                        ? 'text-white'
+                        : 'text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    {layer.items.join(' · ')}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="mt-20 grid gap-10 border-t border-[var(--line)] pt-14 md:grid-cols-3">
-          {stageOutcomes.map((outcome) => (
-            <div key={outcome.title}>
-              <h3 className="type-card text-[17px]">{outcome.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-                {outcome.body}
-              </p>
-            </div>
-          ))}
-        </div>
+        <p className="mt-14 max-w-2xl border-t border-[var(--line)] pt-10 text-base leading-relaxed text-[var(--text-secondary)]">
+          No duplicate configuration logic. No guessing between the 3D
+          experience and your commerce system.
+        </p>
       </div>
     </section>
   );

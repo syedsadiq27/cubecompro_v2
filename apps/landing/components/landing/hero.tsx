@@ -41,9 +41,9 @@ export function Hero() {
           <h1 className="type-hero mt-4 max-w-[16ch] text-[clamp(2.35rem,5vw,3.6rem)]">
             Stage the product. Sell the state.
           </h1>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-[var(--text-secondary)] md:text-[17px]">
-            Change the object on Stage — fabric, frame, finish — and CubeCom
-            keeps SKU, price, inventory, and cart in the same breath.
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-[var(--text-secondary)] md:text-[17px]">
+            Turn product data into interactive, rule-bound 3D experiences where
+            every configuration resolves to SKU, price, inventory, and cart.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -51,7 +51,7 @@ export function Hero() {
               href="/demo"
               className="rounded-lg bg-[var(--ink)] px-5 py-3 text-sm font-medium text-white transition hover:bg-[var(--ink)]/90"
             >
-              Open the sofa on Stage
+              Open live demo
             </Link>
             <Link
               href="/#contact"
@@ -63,7 +63,7 @@ export function Hero() {
 
           <div className="mt-12 max-w-md border-t border-[var(--line)] pt-6">
             <p className="text-[11px] font-medium tracking-[0.04em] text-[var(--text-muted)]">
-              Live on Stage — this sofa
+              Live proof — this sofa
             </p>
             <dl className="mt-3 space-y-2 font-mono text-sm">
               <div className="flex justify-between gap-4">
@@ -160,7 +160,7 @@ export function Hero() {
                 href="/demo"
                 className="pointer-events-auto rounded-lg bg-[var(--ink)] px-3 py-1.5 text-[11px] font-medium text-white transition hover:bg-[var(--ink)]/90"
               >
-                Full Stage demo
+                Full demo
               </Link>
             </div>
           </div>

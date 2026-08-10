@@ -41,7 +41,7 @@ export function ConfiguratorShell({
             <Wordmark size="nav" showPro />
           </Link>
           <p className="mt-1 text-xs tracking-wide text-[var(--text-muted)]">
-            Sofa on Stage
+            Sofa · live configurator
           </p>
         </div>
         <Link
@@ -69,7 +69,7 @@ export function ConfiguratorShell({
         <section className="flex flex-col gap-8 bg-[var(--surface)] px-5 py-6 md:px-8 md:py-8">
           <div>
             <h1 className="type-page text-[clamp(1.75rem,3vw,2.5rem)]">
-              Change the Stage. Watch commerce follow.
+              Change the product. Watch commerce follow.
             </h1>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
               Options, constraints, shareable state, and cart resolution — the

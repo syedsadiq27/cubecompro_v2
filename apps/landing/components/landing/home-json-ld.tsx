@@ -45,7 +45,7 @@ export function HomeJsonLd() {
         priceCurrency: 'USD',
         priceValidUntil: '2027-01-01',
         description:
-          'Founding price for one product graph, Stage viewer + configurator, SKU/price mapping.',
+          'Founding price for one product graph, 3D viewer + configurator, SKU/price mapping.',
         url: `${SITE_URL}/?interest=starter#contact`,
       },
       {

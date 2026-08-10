@@ -9,11 +9,11 @@ export function Solutions() {
       <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-8 lg:py-28">
         <p className="text-sm text-[var(--text-muted)]">Surfaces</p>
         <h2 className="type-page mt-3 max-w-2xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
-          Everything that touches the product stays on Stage.
+          The tools behind purchasable 3D experiences.
         </h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--text-secondary)]">
-          From catalog setup to storefront embed — one graph, many surfaces.
-          Not five disconnected tools.
+          From catalog setup to storefront embed — one product graph, many
+          surfaces. Not five disconnected tools.
         </p>
 
         <ol className="mt-14 divide-y divide-[var(--line)] border-y border-[var(--line)]">

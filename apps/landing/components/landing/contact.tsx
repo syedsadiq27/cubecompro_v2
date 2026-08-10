@@ -28,10 +28,10 @@ const initial: FormState = {
 };
 
 const interestLabels: Record<Interest, string> = {
-  'solution-session': 'CubeCom session — map our catalog to Stage',
+  'solution-session': 'CubeCom session — map our catalog',
   starter: 'Starter — founding plan',
   pro: 'Pro — founding plan',
-  enterprise: 'Enterprise / custom Stage',
+  enterprise: 'Enterprise / custom',
   addons: 'Add-ons (decoration / image generation)',
 };
 
@@ -63,7 +63,7 @@ async function submitForm(values: FormState) {
     body.set(
       ENTRIES.message,
       values.message ||
-        'I’d like a CubeCom session to map our catalog, option rules, and commerce path onto Stage.'
+        'I’d like a CubeCom session to map our catalog, option rules, and commerce path.'
     );
 
     await fetch(FORM_ACTION, {
@@ -88,7 +88,7 @@ async function submitForm(values: FormState) {
       `Interest: ${interestLabels[values.interest]}`,
       '',
       values.message ||
-        'I’d like a CubeCom session to map our catalog, option rules, and commerce path onto Stage.',
+        'I’d like a CubeCom session to map our catalog, option rules, and commerce path.',
     ].join('\n')
   );
   window.location.href = `mailto:${SITE_EMAIL}?subject=${subject}&body=${body}`;
@@ -231,7 +231,7 @@ export function Contact() {
           </h2>
           <p className="mt-4 max-w-md text-base leading-relaxed text-[var(--text-secondary)]">
             Bring a catalog slice, your option rules, and how you sell today.
-            We map what belongs on Stage and which surface you start with.
+            We map the right surfaces and where the product graph should sit.
           </p>
         </div>
         <Suspense fallback={<div className="mt-10 h-64 animate-pulse rounded-lg bg-[var(--surface)]" />}>

@@ -14,7 +14,7 @@ export function SiteFooter() {
               <Wordmark size="lg" showPro />
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/55">
-              The Digital Product Stage — configure the object, sell the state.
+              The Digital Product Stage — configure the product, sell the state.
             </p>
           </div>
 
@@ -33,7 +33,7 @@ export function SiteFooter() {
                 ))}
                 <li>
                   <Link href="/demo" className="hover:text-white">
-                    Stage demo
+                    Live demo
                   </Link>
                 </li>
               </ul>

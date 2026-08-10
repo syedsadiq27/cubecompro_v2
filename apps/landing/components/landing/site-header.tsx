@@ -29,7 +29,7 @@ export function SiteHeader() {
             href="/demo"
             className="rounded-lg bg-[var(--ink)] px-3.5 py-2 text-xs font-medium tracking-[0.04em] text-white transition hover:bg-[var(--ink)]/90"
           >
-            Stage demo
+            Live demo
           </Link>
         </nav>
 
@@ -65,7 +65,7 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
               className="mt-2 py-2 text-sm font-medium text-[var(--ink)]"
             >
-              Stage demo
+              Live demo
             </Link>
             <Link
               href="/#contact"

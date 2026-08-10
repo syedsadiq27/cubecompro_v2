@@ -3,7 +3,7 @@ export const SITE_NAME = 'CubeCom Pro';
 export const SITE_EMAIL = 'hello@cubecompro.com';
 
 export const SITE_DESCRIPTION =
-  'CubeCom Pro is the Digital Product Stage — configure physical products in 3D and resolve every state to SKU, price, inventory, and cart.';
+  'CubeCom Pro is the Digital Product Stage — turn product data into interactive, rule-bound 3D experiences where every configuration resolves to SKU, price, inventory, and cart.';
 
 export const marketingRoutes = [
   {
@@ -62,7 +62,7 @@ export const marketingRoutes = [
   },
   {
     path: '/demo',
-    title: 'Sofa on Stage — live demo',
+    title: 'Live sofa demo',
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   },

@@ -49,13 +49,13 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'bullets',
         eyebrow: 'What shoppers need',
-        title: 'Configure on Stage. Buy the exact configuration.',
+        title: 'Configure in 3D. Buy the exact configuration.',
         description:
           'Merchants search for 3D product configurators because static pages cannot show finish and combination. The ecommerce requirement is that every visual choice remains a sellable product state.',
         bullets: [
           'Interactive materials, finishes, and components in a 3D scene',
           'Option changes that update the shopper-facing product state immediately',
-          'Shareable Stage views for sales, PDPs, and support',
+          'Shareable configuration views for sales, PDPs, and support',
           'AR placement on supported devices using the same configuration state',
         ],
       },
@@ -79,7 +79,7 @@ export const seoBodies: SeoBody[] = [
             title: 'CubeCom Pro adds',
             items: [
               'Configuration rules that block invalid states',
-              'Stage state → SKU / variant resolution',
+              'Configuration state → SKU / variant resolution',
               'Price and inventory synced to the same state',
               'Cart-ready outcomes for ecommerce checkout',
             ],
@@ -89,17 +89,17 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'links',
         eyebrow: 'Proof',
-        title: 'Live Stage demo',
+        title: 'Live demo',
         description:
           'Change options and watch SKU, price, and inventory update — the loop a production 3D product configurator needs.',
-        links: [{ href: '/demo', label: 'Sofa on Stage' }],
+        links: [{ href: '/demo', label: 'Sofa demo' }],
       },
     ],
     faqs: [
       {
         question: 'What is a 3D product configurator for ecommerce?',
         answer:
-          'An interactive experience that lets shoppers change product options in 3D and purchase a specific configuration. In CubeCom Pro, that Stage state must resolve to SKU, price, and inventory before checkout.',
+          'An interactive experience that lets shoppers change product options in 3D and purchase a specific configuration. In CubeCom Pro, that configuration state must resolve to SKU, price, and inventory before checkout.',
       },
       {
         question: 'Is CubeCom Pro only a 3D viewer?',
@@ -121,7 +121,7 @@ export const seoBodies: SeoBody[] = [
     faqDescription:
       'Answers for merchants evaluating 3D configurators for ecommerce storefronts.',
     cta: {
-      title: 'See a Stage configuration resolve to commerce data.',
+      title: 'See a configuration resolve to commerce data.',
       description: 'Book a CubeCom session or open the live sofa demo first.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
@@ -137,11 +137,11 @@ export const seoBodies: SeoBody[] = [
         eyebrow: 'Configuration as commerce',
         title: 'Rules first. Pretty UI second.',
         description:
-          'A product configurator only helps if invalid combinations never become orders. CubeCom encodes constraints on the product graph, then exposes Stage or custom UI on top.',
+          'A product configurator only helps if invalid combinations never become orders. CubeCom encodes constraints on the product graph, then exposes 3D or custom UI on top.',
         bullets: [
           'Material, size, accessory, and region rules in one graph',
           'Valid states resolve to SKU, price, and inventory',
-          'Works with 3D Stage, 2D decoration, or headless UI',
+          'Works with 3D, 2D decoration, or headless UI',
           'Shareable configuration state for sales and support',
         ],
       },
@@ -162,7 +162,7 @@ export const seoBodies: SeoBody[] = [
           {
             title: 'With CubeCom',
             items: [
-              'One graph for Stage and commerce',
+              'One graph for experience and commerce',
               'Blocked options before cart',
               'Same state restored from a share link',
             ],
@@ -174,7 +174,7 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Do I need 3D to use a CubeCom product configurator?',
         answer:
-          'No. 3D is a Stage surface. The same product graph can power 2D UI, embeds, and APIs — with optional 3D when the category needs it.',
+          'No. 3D is optional. The same product graph can power 2D UI, embeds, and APIs — with optional 3D when the category needs it.',
       },
       {
         question: 'How is this different from Shopify options or variant matrices?',
@@ -189,13 +189,13 @@ export const seoBodies: SeoBody[] = [
     ],
     faqTitle: 'Product configurator FAQ',
     cta: {
-      title: 'Map your catalog rules onto Stage.',
+      title: 'Map your catalog rules onto the product graph.',
       description:
         'Bring one product family. We show what belongs in the graph versus the storefront.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
       secondaryHref: '/demo',
-      secondaryLabel: 'See Stage demo',
+      secondaryLabel: 'See live demo',
     },
   },
   {
@@ -204,12 +204,12 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'bullets',
         eyebrow: 'Composable commerce',
-        title: 'Keep your frontend. Stage the product graph behind it.',
+        title: 'Keep your frontend. Run the product graph behind it.',
         description:
           'Headless teams need configuration without adopting a closed theme plugin. CubeCom exposes rules and resolution as infrastructure.',
         bullets: [
           'Product graph and constraints as a service layer',
-          'Render Stage, custom React, or another UI',
+          'Render CubeCom UI, custom React, or another surface',
           'Sync resolved SKU and price into your cart adapter',
           'Same truth for web, sales tools, and agents',
         ],
@@ -243,24 +243,24 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Is CubeCom a headless CMS?',
         answer:
-          'No. It is Stage and configuration infrastructure for purchasable product state — not a content CMS or full ecommerce platform.',
+          'No. It is configuration infrastructure for purchasable product state — not a content CMS or full ecommerce platform.',
       },
       {
         question: 'Can we use Next.js or a custom storefront?',
         answer:
-          'Yes. Embed Stage or call the configuration API from your app while checkout stays on your commerce platform.',
+          'Yes. Embed the experience or call the configuration API from your app while checkout stays on your commerce platform.',
       },
       {
         question: 'Does headless mean we must build our own 3D viewer?',
         answer:
-          'No. You can use CubeCom Stage surfaces or bring your own renderer against the same graph.',
+          'No. You can use CubeCom surfaces or bring your own renderer against the same graph.',
       },
     ],
     faqTitle: 'Headless configurator FAQ',
     cta: {
       title: 'Walk your architecture with CubeCom.',
       description:
-        'Storefront, PIM, cart, and where Stage should sit — mapped in one session.',
+        'Storefront, PIM, cart, and where configuration should sit — mapped in one session.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
       secondaryHref: '/product-configuration-api',
@@ -275,7 +275,7 @@ export const seoBodies: SeoBody[] = [
         eyebrow: 'For engineers',
         title: 'Resolve configuration to commerce payloads.',
         description:
-          'Call the same product graph shoppers see on Stage — valid options, blocked combinations, SKU, price, inventory, and cart-ready lines.',
+          'Call the same product graph shoppers see — valid options, blocked combinations, SKU, price, inventory, and cart-ready lines.',
         bullets: [
           'Validate and advance configuration state',
           'Read resolved commerce outcomes for a state',
@@ -319,9 +319,9 @@ export const seoBodies: SeoBody[] = [
           'CubeCom exposes an agent-readable product interface for assistants. Prefer structured product tools over scraping marketing HTML.',
       },
       {
-        question: 'Do we need Stage UI to use the API?',
+        question: 'Do we need CubeCom UI to use the API?',
         answer:
-          'No. Stage is optional. The graph and resolution layer can power custom UIs.',
+          'No. The UI is optional. The graph and resolution layer can power custom UIs.',
       },
     ],
     faqTitle: 'Configuration API FAQ',
@@ -341,21 +341,21 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'bullets',
         eyebrow: 'Shopify merchants',
-        title: 'Stage experiences that still check out on Shopify.',
+        title: '3D configuration that still checks out on Shopify.',
         description:
           'Add 3D configuration without replacing Shopify cart, checkout, or inventory.',
         bullets: [
-          'Configure on Stage inside or beside the PDP',
+          'Configure in 3D inside or beside the PDP',
           'Resolve to Shopify variants or line items you can sell',
           'Keep Shopify as checkout system of record',
-          'Share Stage links that restore the same merchandising state',
+          'Share configuration links that restore the same merchandising state',
         ],
       },
       {
         kind: 'columns',
         tone: 'muted',
         eyebrow: 'Division of labor',
-        title: 'Shopify sells. CubeCom stages the product decision.',
+        title: 'Shopify sells. CubeCom resolves the product decision.',
         columns: [
           {
             title: 'Shopify keeps',
@@ -365,7 +365,7 @@ export const seoBodies: SeoBody[] = [
             title: 'CubeCom adds',
             items: [
               'Configuration rules',
-              '3D / decoration Stage',
+              '3D / decoration experiences',
               'State → sellable variant resolution',
             ],
           },
@@ -381,7 +381,7 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Can we use Shopify themes?',
         answer:
-          'Yes. Embed Stage or host the experience and hand off to Shopify cart with the resolved variant.',
+          'Yes. Embed or host the experience and hand off to Shopify cart with the resolved variant.',
       },
       {
         question: 'What about Shopify’s native options?',
@@ -391,12 +391,12 @@ export const seoBodies: SeoBody[] = [
     ],
     faqTitle: 'Shopify configurator FAQ',
     cta: {
-      title: 'Map your Shopify catalog to Stage.',
+      title: 'Map your Shopify catalog.',
       description: 'Bring a product family and how you sell variants today.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
       secondaryHref: '/demo',
-      secondaryLabel: 'Open Stage demo',
+      secondaryLabel: 'Open live demo',
     },
   },
   {
@@ -407,10 +407,10 @@ export const seoBodies: SeoBody[] = [
         eyebrow: 'Composable stacks',
         title: 'Configuration for commercetools storefronts.',
         description:
-          'Keep commercetools for catalog and cart. Use CubeCom for Stage configuration and sellable-state resolution.',
+          'Keep commercetools for catalog and cart. Use CubeCom for configuration and sellable-state resolution.',
         bullets: [
           'Headless-friendly configuration graph',
-          'Optional 3D Stage on your storefront',
+          'Optional 3D on your storefront',
           'Resolved SKU and price for commercetools cart handoff',
           'Fits Next.js and custom composable frontends',
         ],
@@ -432,7 +432,7 @@ export const seoBodies: SeoBody[] = [
           {
             title: 'You add',
             items: [
-              'Stage product experiences',
+              '3D product experiences',
               'Constraint-aware configuration',
               'Shareable configuration state',
             ],
@@ -444,18 +444,18 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Is this a commercetools plugin marketplace app?',
         answer:
-          'CubeCom integrates as configuration and Stage infrastructure beside commercetools — not as a replacement commerce platform.',
+          'CubeCom integrates as configuration infrastructure beside commercetools — not as a replacement commerce platform.',
       },
       {
         question: 'Can we use CubeCom headless with commercetools?',
         answer:
-          'Yes. That is a primary pattern: commercetools for commerce primitives, CubeCom for configuration truth and Stage UI.',
+          'Yes. That is a primary pattern: commercetools for commerce primitives, CubeCom for configuration truth and experience UI.',
       },
     ],
     faqTitle: 'commercetools FAQ',
     cta: {
       title: 'Talk through your commercetools architecture.',
-      description: 'Frontend, catalog modeling, and where Stage should attach.',
+      description: 'Frontend, catalog modeling, and where configuration should attach.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
       secondaryHref: '/headless-product-configurator',
@@ -470,7 +470,7 @@ export const seoBodies: SeoBody[] = [
         eyebrow: 'Furniture brands',
         title: 'Sofas and furniture that shoppers can change — and you can fulfill.',
         description:
-          'Frame, fabric, and legs explode photography budgets. Stage shows every valid look and still resolves commerce.',
+          'Frame, fabric, and legs explode photography budgets. Interactive 3D shows every valid look and still resolves commerce.',
         bullets: [
           'Live sofa demo with SKU, price, and inventory',
           'Material and component constraints on the product graph',
@@ -482,7 +482,7 @@ export const seoBodies: SeoBody[] = [
         kind: 'links',
         tone: 'muted',
         eyebrow: 'Proof',
-        title: 'Configure a sofa on Stage now.',
+        title: 'Configure a sofa now.',
         links: [{ href: '/demo', label: 'Open sofa demo' }],
       },
     ],
@@ -490,17 +490,17 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Is CubeCom only for sofas?',
         answer:
-          'No. Sofas are the live proof. The same Stage model fits chairs, tables, modular systems, and other configurable hard goods.',
+          'No. Sofas are the live proof. The same model fits chairs, tables, modular systems, and other configurable hard goods.',
       },
       {
         question: 'Can salespeople share a configured sofa?',
         answer:
-          'Yes. Shareable Stage links restore the same graph state used for price and inventory.',
+          'Yes. Shareable links restore the same graph state used for price and inventory.',
       },
     ],
     faqTitle: 'Furniture configurator FAQ',
     cta: {
-      title: 'Put your furniture catalog on Stage.',
+      title: 'Put your furniture catalog on CubeCom.',
       description: 'Start with one hero SKU family and map rules to commerce.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
@@ -519,7 +519,7 @@ export const seoBodies: SeoBody[] = [
           'Apparel options and 2D decoration need the same product truth as hard goods — especially when logos and prints change the SKU story.',
         bullets: [
           'Configuration rules for color, material, and style',
-          'Logo Editor for 2D decoration on Stage',
+          'Logo Editor for 2D decoration',
           'SKU-aligned outcomes for cart and inventory',
           'Commerce SDK for storefront embeds',
         ],
@@ -537,7 +537,7 @@ export const seoBodies: SeoBody[] = [
           {
             title: 'Sell',
             items: [
-              'Stage embed on PDP',
+              'Configurator embed on PDP',
               'Shareable configuration links',
               'Resolved cart handoff',
             ],
@@ -554,17 +554,17 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Can apparel work without full 3D?',
         answer:
-          'Yes. Use Stage where 3D helps, and keep rules plus decoration for categories that stay mostly 2D.',
+          'Yes. Use 3D where it helps, and keep rules plus decoration for categories that stay mostly 2D.',
       },
     ],
     faqTitle: 'Apparel configurator FAQ',
     cta: {
-      title: 'Stage your apparel configuration flow.',
+      title: 'Map your apparel configuration flow.',
       description: 'Bring colorways, decoration rules, and how you sell today.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a CubeCom session',
       secondaryHref: '/demo',
-      secondaryLabel: 'See Stage demo',
+      secondaryLabel: 'See live demo',
     },
   },
 ];

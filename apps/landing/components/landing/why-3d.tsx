@@ -4,7 +4,7 @@ export function Why3d() {
   return (
     <section id="why" className="border-t border-[var(--line)] bg-[var(--surface)]">
       <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-8 lg:py-28">
-        <p className="text-sm text-[var(--text-muted)]">Why brands use Stage</p>
+        <p className="text-sm text-[var(--text-muted)]">Why brands need this</p>
         <h2 className="type-page mt-3 max-w-2xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
           Photos freeze one look. Your product does not.
         </h2>

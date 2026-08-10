@@ -68,8 +68,8 @@ export default function OpenGraphImage() {
           >
             Stage the product. Sell the state.
           </div>
-          <div style={{ fontSize: 28, lineHeight: 1.35, color: '#5c5c59' }}>
-            Configure in 3D. Resolve to SKU, price, inventory, and cart.
+          <div style={{ fontSize: 26, lineHeight: 1.35, color: '#5c5c59' }}>
+            Turn product data into interactive, rule-bound 3D experiences.
           </div>
         </div>
       </div>

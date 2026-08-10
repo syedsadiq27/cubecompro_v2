@@ -10,7 +10,7 @@ export function Pricing() {
       <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-8 lg:py-28">
         <p className="text-sm text-[var(--text-muted)]">Pricing</p>
         <h2 className="type-page mt-3 max-w-2xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
-          Founding rates while Stage is still early.
+          Founding rates while we’re still early.
         </h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--text-secondary)]">
           Lock in early. Decoration and image generation stay modular — compute
@@ -37,7 +37,7 @@ export function Pricing() {
                 </h3>
                 {plan.featured ? (
                   <span className="text-[10px] font-medium tracking-[0.12em] text-white/55 uppercase">
-                    Most Stage brands
+                    Most popular
                   </span>
                 ) : null}
               </div>
