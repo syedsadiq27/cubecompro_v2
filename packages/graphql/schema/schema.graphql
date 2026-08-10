@@ -1,0 +1,480 @@
+scalar Date
+scalar JSON
+scalar Upload
+
+type Query {
+  me: User
+  allUsers: [User!]
+  userProfile(id: Int!): UserProfile
+  getProject: [Project!]
+  getProjectByuserID(userId: ID!): [Project!]
+  getOrganization: [Organization!]
+  getOrganizationByUserId(id: ID!): [Organization!]
+  getUserByOrganizationId(id: ID!): [User!]
+  getUsergroup: [UserGroup!]
+  getUsergroupByOrganizationId(id: ID!): [UserGroup!]
+  getUsergroupByGroupName(name: String!): UserGroup
+  getUsersByUserGroupId(id: ID!): [User!]
+  searchUsersByEmail(email: String!): [User!]
+  getProductDetails(status: [ID!]!): [Product!]
+  getProductDetail(id: ID!): Product
+  getCategory: [Category!]
+  getCategoryByProjectId(projectId: ID!): [Category!]
+  getSubCategoryByCategoriesId(id: ID!): [SubCategory!]
+  getStatusDetails: [Status!]
+  getStatusDetail(id: ID!): Status
+  getWorkflows: [Workflow!]
+  getWorkflow(id: Int!): Workflow
+  getWorkflowByProductId(ProductId: ID!): [Workflow!]
+  gettexture: [Texture!]
+  getTextureByProjectId(projectId: ID!): [Texture!]
+  getTextureByProductID(ProductId: ID!): [Texture!]
+  getObject: [Object!]
+  getObjectByProjectId(projectId: ID!): [Object!]
+  getcmsconfigByprojectID(projectId: ID!): [CmsConfig!]
+  getcommerceconfigByPID(projectId: ID!): [CommerceConfig!]
+  getclientapiByID(id: ID!): ClientApi
+  getThreedUserList: [User!]
+  getModelBySku(sku: String!): Model
+  getVarientByModelId(modelId: Int!): [ModelVariant!]
+  getPermissionsByProjectId(projectId: ID!): [Permission!]
+  getPermissionsByProjectIdAndUsergroupId(
+    projectId: ID!
+    usergroupId: ID!
+  ): [Permission!]
+  getAllPermissions: [Permission!]
+}
+
+type Mutation {
+  login(email: String!, password: String!): AuthPayload
+  registerUser(
+    email: String!
+    password: String!
+    firstname: String!
+    lastname: String!
+    role: String!
+    active: Boolean!
+    authorization: String
+  ): AuthPayload
+  forgotPassword(email: String!): Boolean
+  updatePassword(
+    password: String!
+    confirmPassword: String!
+    authorization: String!
+  ): Boolean
+  verifyToken(authorization: String!): Boolean
+  registerProject(ProductId: ID!): ProjectToken
+  registerProjectwithCMS(ProductId: ID!): ProjectTokenWithCms
+  SoftDeleteProductById(id: ID!): Boolean
+  deleteProductById(id: ID!): Boolean
+  UpdateProductById(
+    id: ID!
+    Name: String
+    Description: String
+    Category: [Int]
+    StatusId: Int
+    files: [Upload!]
+    property: [propertyUpdateInput]
+    active: Boolean!
+    Department: String
+    Manufacture: String
+    code: String
+    projectId: Int!
+    userId: Int!
+    subCategory: [Int]
+  ): Boolean
+  addProduct(
+    Name: String!
+    Description: String!
+    Category: [Int]!
+    StatusId: Int!
+    files: [Upload!]!
+    property: [propertyInput!]!
+    active: Boolean!
+    Department: String
+    Manufacture: String
+    code: String!
+    textureId: [Int]
+    projectId: Int!
+    camera: JSON
+    light: JSON
+    userId: Int!
+    rendererSetting: JSON
+    subCategory: [Int]
+  ): Boolean
+  addCategory(
+    name: String!
+    projectId: ID!
+    productId: ID
+    description: String
+    createdBy: ID
+  ): Boolean
+  UpdateCategoryById(
+    id: ID!
+    name: String
+    description: String
+    createdBy: ID
+  ): Boolean
+  deleteCategoryById(id: ID!): Boolean
+  addSubCategory(
+    name: String!
+    description: String
+    createdBy: ID
+    categoryId: ID!
+  ): Boolean
+  UpdateSubCategoryById(
+    id: ID!
+    name: String
+    description: String
+    createdBy: ID
+  ): Boolean
+  deleteSubCategoryById(id: ID!): Boolean
+  updateWorkflowById(
+    id: Int!
+    statusId: Int!
+    userId: Int!
+    assignedTo: Int!
+    eta: Int
+    comments: JSON
+    priority: String
+    productId: Int!
+    projectId: ID!
+  ): Boolean
+  addtexture(
+    name: String!
+    code: String
+    thumbnail: Upload
+    description: String
+    image: Upload!
+    createdby: String
+    projectId: ID!
+    productId: ID
+  ): Boolean
+  deleteTextureById(id: ID!): Boolean
+  addObject(
+    name: String!
+    code: String
+    ismeshable: Boolean
+    image: Upload
+    projectId: ID!
+    productId: ID
+  ): Boolean
+  deleteObjectById(id: ID!): Boolean
+  addUsergroup(organizationId: ID!, name: String!, userId: ID!): Boolean
+  deleteUsergroupById(id: ID!): Boolean
+  inviteUser(
+    id: ID!
+    email: String!
+    organizationId: ID!
+    userGroupId: ID!
+  ): UserGroup
+  deleteUserFromUserGroupById(userId: ID!, usergroupId: ID!): Boolean
+  deleteUserById(id: ID!): Boolean
+  updateUserProfile(
+    id: ID!
+    firstname: String
+    lastname: String
+    role: String
+  ): Boolean
+  addcmsconfig(name: String!, cmsconfigid: String!, projectId: Int!): Boolean
+  updatecmsconfigById(id: ID!, name: String!, cmsconfigid: String!): Boolean
+  deletecmsconfigByprojectId(projectId: ID!): Boolean
+  addCommerceConfig(
+    platform: String!
+    apiurl: String!
+    storeid: String!
+    clientid: String!
+    clientsecert: String!
+    projectId: Int!
+    redirecturl: String!
+  ): Boolean
+  updateCommerceConfigById(
+    id: ID!
+    platform: String!
+    apiurl: String!
+    storeid: String!
+    clientid: String!
+    clientsecert: String!
+    redirecturl: String!
+    projectId: Int
+  ): Boolean
+  deleteCommerceConfigByPId(projectId: ID!): Boolean
+  SoftDeleteImportedModel(projectId: ID!): Boolean
+  addProject(
+    organizationId: ID!
+    name: String!
+    active: Boolean!
+    inProduction: Boolean
+    userId: Int!
+  ): Boolean
+  UpdateProjectById(
+    id: ID!
+    name: String!
+    active: Boolean!
+    organizationId: ID!
+    expireDate: Date
+    inProduction: Boolean
+  ): Boolean
+  deleteProjectById(id: ID!): Boolean
+}
+
+input propertyInput {
+  name: String!
+  PropertyValues: [propertyValueInput!]
+}
+
+input propertyValueInput {
+  name: String!
+  Active: Boolean
+}
+
+input propertyUpdateInput {
+  id: ID
+  name: String
+  PropertyValues: [propertyValueUpdateInput]
+}
+
+input propertyValueUpdateInput {
+  id: ID
+  name: String
+  Active: Boolean
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type ProjectToken {
+  token: String!
+}
+
+type ProjectTokenWithCms {
+  token: String!
+  cmsData: CmsData
+}
+
+type CmsData {
+  id: Int
+  name: String
+}
+
+type User {
+  id: ID!
+  email: String
+  firstname: String
+  lastname: String
+  role: String
+  active: Boolean
+  organization: Organization
+  organizations: [Organization!]
+  projects: [Project!]
+}
+
+type UserProfile {
+  id: ID!
+  createdAt: Date
+  firstname: String
+  lastname: String
+  active: Boolean
+  email: String
+  role: String
+  projects: [Project!]
+  organizations: [Organization!]
+}
+
+type Organization {
+  id: ID!
+  name: String
+  active: Boolean
+  createdAt: Date
+  updatedAt: Date
+  projects: [Project!]
+  usergroups: [UserGroup!]
+  Users: [User!]
+}
+
+type Project {
+  id: ID!
+  name: String
+  active: Boolean
+  expireDate: Date
+  inProduction: Boolean
+  createdAt: Date
+  organization: Organization
+}
+
+type UserGroup {
+  id: ID!
+  name: String
+  organizationId: ID
+  organization: Organization
+  members: [UserGroupMember!]
+}
+
+type UserGroupMember {
+  userId: ID
+  usergroupId: ID
+  user: User
+}
+
+type Product {
+  id: ID!
+  Name: String
+  code: String
+  Description: String
+  Department: String
+  Manufacture: String
+  enableAr: Boolean
+  arDetails: JSON
+  active: Boolean
+  leadtime: Int
+  files: JSON
+  camera: JSON
+  light: JSON
+  environmentmap: JSON
+  orbitalsetting: JSON
+  rendererSetting: JSON
+  modelCount: Int
+  ProductStatus: Status
+  Categories: [Category!]
+  subCategories: [SubCategory!]
+  ProductMedia: [ProductMedia!]
+  Properties: [Property!]
+  models: [Model!]
+  workflow: Workflow
+}
+
+type Property {
+  id: ID!
+  name: String
+  PropertyValues: [PropertyValue!]
+}
+
+type PropertyValue {
+  id: ID!
+  name: String
+  Active: Boolean
+  objects: [Object!]
+  ProductMedium: ProductMedia
+}
+
+type Category {
+  id: ID!
+  name: String
+  description: String
+  createdAt: Date
+  createdby: User
+}
+
+type SubCategory {
+  id: ID!
+  name: String
+  description: String
+}
+
+type Status {
+  id: ID!
+  Status_Name: String
+  Status_Type: String
+  colour: String
+}
+
+type ProductMedia {
+  id: ID
+  Image_URL: String
+  Image_Alternate_Name: String
+  downloadURL: String
+  altText: String
+  mediaFormat: String
+  createdAt: Date
+  updatedAt: Date
+}
+
+type Workflow {
+  id: ID!
+  eta: Int
+  priority: String
+  createdAt: Date
+  workflowStatus: Status
+  assignedTo: User
+  requestedBy: User
+  product: Product
+  comments: [Comment!]
+}
+
+type Comment {
+  id: ID
+  comId: ID
+  text: String
+  createdAt: Date
+  user: User
+}
+
+type Texture {
+  id: ID!
+  name: String
+  code: String
+  description: String
+  createdby: String
+  thumbnails: [ProductMedia!]
+  ProductMedium: ProductMedia
+}
+
+type Object {
+  id: ID!
+  name: String
+  code: String
+  ismeshable: Boolean
+  ProductMedium: ProductMedia
+}
+
+type CmsConfig {
+  id: ID!
+  name: String
+  cmsconfigid: String
+}
+
+type CommerceConfig {
+  id: ID!
+  platform: String
+  apiurl: String
+  storeid: String
+  clientid: String
+  clientsecert: String
+  redirecturl: String
+}
+
+type ClientApi {
+  id: ID!
+  client_secret_key: String
+  projectid: ID
+  client_key: String
+}
+
+type Model {
+  id: ID!
+  name: String
+  sku: String
+  ProductId: ID
+  config: JSON
+  image: String
+  status: String
+  active: Boolean
+  configtoken: String
+  ProductStatus: Status
+}
+
+type ModelVariant {
+  id: ID!
+  varientCode: String
+  varientName: String
+  configuration: JSON
+  media: ProductMedia
+}
+
+type Permission {
+  id: ID!
+  name: String
+  active: Boolean
+}

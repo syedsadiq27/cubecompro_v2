@@ -2,6 +2,16 @@
 
 This Turborepo starter is maintained by the Turborepo core team.
 
+## CubeCom Pro
+
+Product admin UI for this monorepo lives in `apps/backoffice`.
+
+**Design system**
+
+- Product docs (internal + external): [`apps/docs`](apps/docs) (`yarn workspace docs dev` → http://localhost:3000)
+- Design principles section: `/design-principles`
+- Markdown constitution: [`docs/design-system.md`](docs/design-system.md)
+
 ## Using this example
 
 Run the following command:

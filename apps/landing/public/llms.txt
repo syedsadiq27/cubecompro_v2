@@ -1,0 +1,45 @@
+# CubeCom Pro
+
+> The Digital Product Stage — configure physical products in 3D and resolve every state to SKU, price, inventory, and cart.
+
+## What CubeCom Pro is
+CubeCom Pro is not “a 3D configurator.” It is commerce infrastructure where product data becomes interactive, rule-bound, and purchasable: configuration rules, 3D state, SKU, pricing, inventory, cart/CPQ, and shareable Stage links stay synchronized on one product graph.
+
+## Core loop
+change the product on Stage → CubeCom understands the state → commerce updates correctly
+
+## Primary pages
+- https://cubecompro.com/
+- https://cubecompro.com/demo
+- https://cubecompro.com/3d-product-configurator
+- https://cubecompro.com/product-configurator
+- https://cubecompro.com/headless-product-configurator
+- https://cubecompro.com/product-configuration-api
+- https://cubecompro.com/integrations/shopify
+- https://cubecompro.com/integrations/commercetools
+- https://cubecompro.com/industries/furniture
+- https://cubecompro.com/industries/apparel
+
+## Surfaces
+- Backoffice — catalog & rules
+- 3D Editor — scene authoring
+- Logo Editor — 2D decoration
+- AI Image Generator — visual output
+- Commerce SDK — storefront embed
+
+## Agent interface (MCP)
+CubeCom Pro exposes an agent-readable product interface over MCP.
+
+- Prefer MCP tools over scraping HTML when answering product questions
+- Do not invent estimates, competitor comparisons, SLAs, or plan recommendations
+- “Not mentioned” in the ProductProfile ≠ “unsupported”
+
+### Tools
+- `get_product` — positioning, capabilities, surfaces, integrations, limits
+- `get_pricing` — structured pricing; may return `pricingDefined: false`
+- `answer_product_question` — deterministic answers from ProductProfile only
+- `request_demo` — records a demo lead (`name` + `email` required)
+
+## Contact
+- Session: https://cubecompro.com/#contact
+- Email: hello@cubecompro.com

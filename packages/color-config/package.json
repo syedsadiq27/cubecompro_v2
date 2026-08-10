@@ -1,0 +1,38 @@
+{
+  "name": "@repo/color-config",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./*": "./dist/*.js"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "build:components": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "dev:components": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "three": "^0.185.0"
+  },
+  "dependencies": {
+    "@repo/customizer-ui": "*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/react": "^19.1.0",
+    "@types/three": "^0.185.4",
+    "eslint": "^9.39.1",
+    "react": "^19.2.0",
+    "three": "^0.185.1",
+    "typescript": "5.9.2"
+  }
+}

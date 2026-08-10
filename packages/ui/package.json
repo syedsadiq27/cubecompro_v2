@@ -9,7 +9,26 @@
   ],
   "exports": {
     "./styles.css": "./dist/index.css",
-    "./*": "./dist/*.js"
+    "./cn": "./dist/lib/cn.js",
+    "./button": "./dist/primitives/button.js",
+    "./label": "./dist/primitives/label.js",
+    "./input": "./dist/primitives/input.js",
+    "./field": "./dist/primitives/field.js",
+    "./textarea": "./dist/primitives/textarea.js",
+    "./select": "./dist/primitives/select.js",
+    "./checkbox": "./dist/primitives/checkbox.js",
+    "./switch": "./dist/primitives/switch.js",
+    "./badge": "./dist/primitives/badge.js",
+    "./status-pill": "./dist/primitives/status-pill.js",
+    "./surface": "./dist/primitives/surface.js",
+    "./panel": "./dist/primitives/panel.js",
+    "./empty-state": "./dist/primitives/empty-state.js",
+    "./spinner": "./dist/primitives/spinner.js",
+    "./typography": "./dist/primitives/typography.js",
+    "./tabs": "./dist/primitives/tabs.js",
+    "./tooltip": "./dist/primitives/tooltip.js",
+    "./stage": "./dist/brand/stage.js",
+    "./wordmark": "./dist/brand/wordmark.js"
   },
   "license": "MIT",
   "scripts": {

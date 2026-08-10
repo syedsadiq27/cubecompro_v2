@@ -1,0 +1,13 @@
+fragment TextureFields on Texture {
+  id
+  name
+  code
+  description
+  thumbnails {
+    ...ProductMediaFields
+  }
+  ProductMedium {
+    ...ProductMediaFields
+  }
+  createdby
+}

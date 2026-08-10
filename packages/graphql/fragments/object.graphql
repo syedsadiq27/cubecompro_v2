@@ -1,0 +1,9 @@
+fragment ObjectFields on Object {
+  id
+  name
+  code
+  ismeshable
+  ProductMedium {
+    ...ProductMediaFields
+  }
+}

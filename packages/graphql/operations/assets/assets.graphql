@@ -1,0 +1,30 @@
+query GetProjectTextures {
+  gettexture {
+    id
+    name
+    code
+    description
+    ProductMedium {
+      Image_URL
+    }
+  }
+}
+
+query GetProjectObjects {
+  getObject {
+    id
+    name
+    code
+    ProductMedium {
+      Image_URL
+    }
+  }
+}
+
+mutation DeleteTexture($id: ID!) {
+  deleteTextureById(id: $id)
+}
+
+mutation DeleteObject($id: ID!) {
+  deleteObjectById(id: $id)
+}

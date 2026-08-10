@@ -1,0 +1,10 @@
+fragment ProductMediaFields on ProductMedia {
+  id
+  Image_URL
+  Image_Alternate_Name
+  downloadURL
+  altText
+  mediaFormat
+  createdAt
+  updatedAt
+}

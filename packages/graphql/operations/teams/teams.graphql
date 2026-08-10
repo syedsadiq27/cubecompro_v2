@@ -1,0 +1,133 @@
+query GetOrganizationsByUserId($id: ID!) {
+  getOrganizationByUserId(id: $id) {
+    id
+    name
+    active
+    createdAt
+    updatedAt
+    usergroups {
+      id
+      name
+    }
+  }
+}
+
+query GetUserGroupsByOrganizationId($id: ID!) {
+  getUsergroupByOrganizationId(id: $id) {
+    id
+    name
+    organizationId
+    members {
+      userId
+      usergroupId
+    }
+  }
+}
+
+query GetUsersByUserGroupId($id: ID!) {
+  getUsersByUserGroupId(id: $id) {
+    id
+    email
+    firstname
+    lastname
+    role
+  }
+}
+
+query GetUserProfile($id: Int!) {
+  userProfile(id: $id) {
+    id
+    createdAt
+    firstname
+    lastname
+    active
+    email
+    role
+    projects {
+      id
+      name
+      active
+      inProduction
+      createdAt
+    }
+    organizations {
+      id
+      name
+      active
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+query GetAllUsers {
+  allUsers {
+    id
+    email
+    firstname
+    lastname
+    role
+  }
+}
+
+query SearchUsersByEmail($email: String!) {
+  searchUsersByEmail(email: $email) {
+    id
+    email
+    firstname
+    lastname
+    role
+  }
+}
+
+mutation AddUserGroup($organizationId: ID!, $name: String!, $userId: ID!) {
+  addUsergroup(organizationId: $organizationId, name: $name, userId: $userId)
+}
+
+mutation DeleteUserGroup($id: ID!) {
+  deleteUsergroupById(id: $id)
+}
+
+mutation InviteUser(
+  $id: ID!
+  $email: String!
+  $organizationId: ID!
+  $userGroupId: ID!
+) {
+  inviteUser(
+    id: $id
+    email: $email
+    organizationId: $organizationId
+    userGroupId: $userGroupId
+  ) {
+    id
+    name
+    organizationId
+    members {
+      userId
+      usergroupId
+      user {
+        id
+        firstname
+      }
+    }
+  }
+}
+
+mutation RemoveUserFromGroup($userId: ID!, $usergroupId: ID!) {
+  deleteUserFromUserGroupById(userId: $userId, usergroupId: $usergroupId)
+}
+
+mutation UpdateUserProfile(
+  $id: ID!
+  $firstname: String
+  $lastname: String
+  $role: String
+) {
+  updateUserProfile(
+    id: $id
+    firstname: $firstname
+    lastname: $lastname
+    role: $role
+  )
+}

@@ -1,3 +1,195 @@
-/* Component-level styles for the UI package */
 @import "tailwindcss" prefix(ui);
 @import "@repo/tailwind-config";
+
+@source "../../customizer-ui/src";
+@source "../../color-config/src";
+@source "../../colorways/src";
+
+:root {
+  --stage-bg: #f2f1ed;
+  --stage-ink: #101010;
+  --stage-violet: #5f57f7;
+  --stage-violet-light: #a69fff;
+  --stage-shadow:
+    0 28px 56px rgba(16, 16, 16, 0.09), 0 10px 20px rgba(16, 16, 16, 0.04);
+
+  --ink: #101010;
+  --canvas: #f2f1ed;
+  --surface: #f7f6f3;
+  --surface-pure: #ffffff;
+
+  --line: #e4e3de;
+  --text: var(--ink);
+  --text-secondary: #5c5c59;
+  --text-muted: #8a8a84;
+
+  --success: #167a5b;
+  --success-soft: #e7f5ef;
+  --warning: #a76712;
+  --warning-soft: #fbf1df;
+  --danger: #c44848;
+  --danger-soft: #fceaea;
+  --info: #3d68c9;
+  --info-soft: #eaf0fd;
+
+  --background: var(--canvas);
+  --border: var(--line);
+  --border-strong: #d2d1cb;
+  --brand: var(--stage-violet);
+  --brand-hover: #4e47d4;
+  --brand-soft: #eeedff;
+  --shadow: var(--stage-shadow);
+
+  --font-display:
+    var(--font-inter-tight), "Inter Tight", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-ui: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+}
+
+.ui-type-display {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 0.96;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+}
+
+.ui-type-page {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1.05;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.ui-type-section {
+  font-family: var(--font-ui);
+  font-size: 21px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.ui-type-body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--text-secondary);
+  max-width: 34rem;
+}
+
+.ui-type-meta {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 450;
+  color: var(--text-muted);
+}
+
+.ui-stage {
+  position: relative;
+  overflow: hidden;
+  background: #f4f3ef;
+}
+
+.ui-stage--full {
+  min-height: 420px;
+}
+
+.ui-stage--cover {
+  min-height: 280px;
+}
+
+.ui-stage--thumb {
+  min-height: 140px;
+  border-radius: 10px;
+}
+
+.ui-stage-field {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      70% 55% at 50% 38%,
+      rgba(95, 87, 247, 0.18) 0%,
+      rgba(166, 159, 255, 0.08) 28%,
+      transparent 58%
+    ),
+    radial-gradient(
+      120% 70% at 50% 100%,
+      rgba(16, 16, 16, 0.05) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #f8f7f4 0%, #f2f1ed 48%, #ebeae5 100%);
+  pointer-events: none;
+}
+
+.ui-stage-field::after {
+  content: "";
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  width: 72%;
+  height: 48%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(95, 87, 247, 0.12) 35%,
+    transparent 70%
+  );
+  filter: blur(28px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.ui-stage--plane-off .ui-stage-field {
+  background:
+    radial-gradient(
+      120% 70% at 50% 100%,
+      rgba(16, 16, 16, 0.05) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #f8f7f4 0%, #f2f1ed 48%, #ebeae5 100%);
+}
+
+.ui-stage--plane-off .ui-stage-field::after {
+  display: none;
+}
+
+.ui-stage-ground {
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  width: 46%;
+  height: 28px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(16, 16, 16, 0.16),
+    transparent 72%
+  );
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.ui-stage--thumb .ui-stage-ground {
+  bottom: 12%;
+  width: 52%;
+  height: 18px;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ui-spinner {
+  animation: ui-spin 0.7s linear infinite;
+}

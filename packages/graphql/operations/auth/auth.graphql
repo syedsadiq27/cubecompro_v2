@@ -1,0 +1,57 @@
+mutation LoginMutation($email: String!, $password: String!) {
+  login(email: $email, password: $password) {
+    token
+    user {
+      id
+      firstname
+      lastname
+      role
+      email
+    }
+  }
+}
+
+mutation RegisterUser(
+  $email: String!
+  $password: String!
+  $firstname: String!
+  $lastname: String!
+  $role: String!
+  $active: Boolean!
+  $authorization: String
+) {
+  registerUser(
+    email: $email
+    password: $password
+    firstname: $firstname
+    lastname: $lastname
+    role: $role
+    active: $active
+    authorization: $authorization
+  ) {
+    token
+    user {
+      id
+      firstname
+      lastname
+      role
+      email
+    }
+  }
+}
+
+mutation ForgotPassword($email: String!) {
+  forgotPassword(email: $email)
+}
+
+mutation UpdatePassword(
+  $password: String!
+  $confirmPassword: String!
+  $authorization: String!
+) {
+  updatePassword(
+    password: $password
+    confirmPassword: $confirmPassword
+    authorization: $authorization
+  )
+}

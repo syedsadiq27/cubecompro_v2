@@ -1,0 +1,125 @@
+query GetWorkflows {
+  getWorkflows {
+    id
+    eta
+    priority
+    createdAt
+    workflowStatus {
+      id
+      Status_Name
+      Status_Type
+      colour
+    }
+    assignedTo {
+      id
+      email
+      firstname
+      lastname
+      role
+    }
+    requestedBy {
+      id
+      email
+      firstname
+      lastname
+      role
+    }
+    product {
+      id
+      Name
+      ProductMedia {
+        Image_URL
+        downloadURL
+        altText
+      }
+    }
+    comments {
+      id
+      text
+      createdAt
+      user {
+        id
+        firstname
+        lastname
+      }
+    }
+  }
+}
+
+query GetWorkflowById($id: Int!) {
+  getWorkflow(id: $id) {
+    id
+    eta
+    priority
+    createdAt
+    workflowStatus {
+      id
+      Status_Name
+      Status_Type
+    }
+    assignedTo {
+      id
+      email
+      firstname
+      lastname
+      role
+    }
+    requestedBy {
+      id
+      email
+      firstname
+      lastname
+      role
+    }
+    product {
+      id
+      Name
+      Description
+      code
+      leadtime
+      Department
+      Manufacture
+      active
+      modelCount
+      ProductMedia {
+        Image_URL
+        downloadURL
+        altText
+      }
+    }
+    comments {
+      id
+      text
+      createdAt
+      user {
+        id
+        firstname
+        lastname
+      }
+    }
+  }
+}
+
+mutation UpdateWorkflow(
+  $id: Int!
+  $statusId: Int!
+  $userId: Int!
+  $assignedTo: Int!
+  $eta: Int
+  $comments: JSON
+  $priority: String
+  $productId: Int!
+  $projectId: ID!
+) {
+  updateWorkflowById(
+    id: $id
+    statusId: $statusId
+    userId: $userId
+    assignedTo: $assignedTo
+    comments: $comments
+    eta: $eta
+    priority: $priority
+    productId: $productId
+    projectId: $projectId
+  )
+}

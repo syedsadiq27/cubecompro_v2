@@ -1,0 +1,22 @@
+query GetModelBySku($sku: String!) {
+  getModelBySku(sku: $sku) {
+    id
+    name
+    sku
+    ProductId
+    config
+  }
+}
+
+query GetVariantsByModelId($modelId: Int!) {
+  getVarientByModelId(modelId: $modelId) {
+    id
+    varientCode
+    varientName
+    configuration
+    media {
+      id
+      Image_URL
+    }
+  }
+}

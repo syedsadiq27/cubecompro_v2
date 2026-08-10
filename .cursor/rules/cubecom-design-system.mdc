@@ -1,0 +1,39 @@
+---
+description: CubeCom Digital Product Stage brand — docs and backoffice
+globs: apps/{docs,backoffice}/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# CubeCom = The Digital Product Stage
+
+Full constitution: `docs/design-system.md` · living: `apps/docs/design-principles`
+
+## Signature (four things only)
+
+1. Mineral-white digital stage (perspective horizon + soft light — not a flat card)
+2. Physical product as hero on that stage
+3. Violet spatial plane / light (transformation — same logic on stage, nav glow, surfaces)
+4. Very large, tight black typography
+
+Hero, sidebar active state, and content surfaces must speak the same spatial language.
+
+## Do this
+
+- Product surfaces use `.cube-stage` with perspective horizon, dimensional violet plane, product hero, grounded shadow
+- Repeat the same spatial violet lightly on: sidebar active (edge + glow), `.cube-surface` cards (corner light)
+- UI chrome: white / black / neutral gray, excellent type, generous whitespace
+- Wordmark: simple `cubecom` (+ `Pro` as tier) — fixed lockup, not UI type
+- Type locked: Hero 56/0.96/700 · Page 32/1.05/650 · H2 21/600 · Card 16/600 · Body 14/1.55/#555
+- Tight display only for major statements; stop iterating fonts — refine surfaces/spacing
+- Cards: quiet borders, more padding, subtler directional light, natural height
+
+## Never do this
+
+- Technical grids, square nodes, diagonal cuts, sci-fi metadata
+- Dark cyber sidebars, violet nav rails/pills as brand
+- Flooding UI with purple or decorating every control
+
+## Ecosystem
+
+Backoffice thumbs / 3D / Customizer / Logo editor / docs covers / marketing = Stage.  
+Tables, forms, filters = neutral working UI.

@@ -1,0 +1,90 @@
+query GetCmsConfig($projectId: ID!) {
+  getcmsconfigByprojectID(projectId: $projectId) {
+    id
+    name
+    cmsconfigid
+  }
+}
+
+query GetCommerceConfig($projectId: ID!) {
+  getcommerceconfigByPID(projectId: $projectId) {
+    id
+    platform
+    apiurl
+    storeid
+    clientid
+    clientsecert
+    redirecturl
+  }
+}
+
+query GetClientApi($id: ID!) {
+  getclientapiByID(id: $id) {
+    id
+    client_secret_key
+    projectid
+    client_key
+  }
+}
+
+mutation AddCmsConfig(
+  $name: String!
+  $cmsconfigid: String!
+  $projectId: Int!
+) {
+  addcmsconfig(name: $name, cmsconfigid: $cmsconfigid, projectId: $projectId)
+}
+
+mutation UpdateCmsConfig($id: ID!, $name: String!, $cmsconfigid: String!) {
+  updatecmsconfigById(id: $id, name: $name, cmsconfigid: $cmsconfigid)
+}
+
+mutation DeleteCmsConfig($projectId: ID!) {
+  deletecmsconfigByprojectId(projectId: $projectId)
+}
+
+mutation AddCommerceConfig(
+  $platform: String!
+  $apiurl: String!
+  $storeid: String!
+  $clientid: String!
+  $clientsecert: String!
+  $projectId: Int!
+  $redirecturl: String!
+) {
+  addCommerceConfig(
+    platform: $platform
+    apiurl: $apiurl
+    storeid: $storeid
+    clientid: $clientid
+    clientsecert: $clientsecert
+    projectId: $projectId
+    redirecturl: $redirecturl
+  )
+}
+
+mutation UpdateCommerceConfig(
+  $id: ID!
+  $platform: String!
+  $apiurl: String!
+  $storeid: String!
+  $clientid: String!
+  $clientsecert: String!
+  $redirecturl: String!
+  $projectId: Int
+) {
+  updateCommerceConfigById(
+    id: $id
+    platform: $platform
+    apiurl: $apiurl
+    storeid: $storeid
+    clientid: $clientid
+    clientsecert: $clientsecert
+    redirecturl: $redirecturl
+    projectId: $projectId
+  )
+}
+
+mutation DeleteCommerceConfig($projectId: ID!) {
+  deleteCommerceConfigByPId(projectId: $projectId)
+}

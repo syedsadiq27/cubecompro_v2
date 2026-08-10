@@ -1,0 +1,182 @@
+query GetProducts($status: [ID!]!) {
+  getProductDetails(status: $status) {
+    id
+    Name
+    code
+    Description
+    enableAr
+    arDetails
+    ProductStatus {
+      id
+      Status_Name
+      colour
+    }
+    Categories {
+      id
+      name
+    }
+    subCategories {
+      id
+      name
+    }
+    ProductMedia {
+      id
+      Image_URL
+      downloadURL
+      altText
+    }
+    models {
+      id
+      name
+      ProductStatus {
+        id
+        Status_Name
+      }
+    }
+    workflow {
+      workflowStatus {
+        id
+        Status_Name
+      }
+    }
+  }
+}
+
+query GetProductDetail($prodId: ID!) {
+  getProductDetail(id: $prodId) {
+    id
+    Name
+    Description
+    ProductStatus {
+      id
+      Status_Name
+      colour
+    }
+    Department
+    Manufacture
+    code
+    camera
+    light
+    rendererSetting
+    modelCount
+    environmentmap
+    orbitalsetting
+    models {
+      id
+      name
+      ProductStatus {
+        id
+        Status_Name
+      }
+    }
+    Categories {
+      id
+      name
+    }
+    subCategories {
+      id
+      name
+    }
+    ProductMedia {
+      id
+      Image_URL
+      altText
+      downloadURL
+    }
+    Properties {
+      id
+      name
+      PropertyValues {
+        id
+        name
+        Active
+        ProductMedium {
+          id
+          Image_URL
+          altText
+          downloadURL
+        }
+      }
+    }
+  }
+}
+
+query GetCustomizerProductDetail($productId: ID!) {
+  getProductDetail(id: $productId) {
+    id
+    Name
+    code
+    camera
+    Properties {
+      id
+      name
+      PropertyValues {
+        id
+        name
+        objects {
+          id
+          name
+          code
+          ProductMedium {
+            Image_URL
+          }
+        }
+      }
+    }
+  }
+  getTextureByProductID(ProductId: $productId) {
+    id
+    name
+    code
+    description
+    ProductMedium {
+      Image_URL
+    }
+  }
+}
+
+query GetStatusDetails {
+  getStatusDetails {
+    id
+    Status_Name
+    Status_Type
+  }
+}
+
+mutation SoftDeleteProduct($id: ID!) {
+  SoftDeleteProductById(id: $id)
+}
+
+mutation DeleteProduct($id: ID!) {
+  deleteProductById(id: $id)
+}
+
+mutation UpdateProductMetadata(
+  $id: ID!
+  $Name: String
+  $Description: String
+  $Category: [Int]
+  $StatusId: Int
+  $active: Boolean!
+  $Department: String
+  $Manufacture: String
+  $code: String
+  $projectId: Int!
+  $userId: Int!
+  $subCategory: [Int]
+) {
+  UpdateProductById(
+    id: $id
+    Name: $Name
+    Description: $Description
+    Category: $Category
+    StatusId: $StatusId
+    active: $active
+    Department: $Department
+    Manufacture: $Manufacture
+    code: $code
+    projectId: $projectId
+    userId: $userId
+    subCategory: $subCategory
+  )
+}

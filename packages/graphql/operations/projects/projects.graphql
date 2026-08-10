@@ -1,0 +1,76 @@
+mutation RegisterProject($ProductId: ID!) {
+  registerProject(ProductId: $ProductId) {
+    token
+  }
+}
+
+mutation RegisterProjectWithCms($ProductId: ID!) {
+  registerProjectwithCMS(ProductId: $ProductId) {
+    token
+    cmsData {
+      id
+      name
+    }
+  }
+}
+
+query GetProjectsByUserId($userId: ID!) {
+  getProjectByuserID(userId: $userId) {
+    id
+    name
+    active
+    expireDate
+    organization {
+      id
+      name
+    }
+    inProduction
+    createdAt
+  }
+}
+
+query GetProjects {
+  getProject {
+    id
+    name
+    active
+  }
+}
+
+mutation AddProject(
+  $organizationId: ID!
+  $name: String!
+  $active: Boolean!
+  $inProduction: Boolean
+  $userId: Int!
+) {
+  addProject(
+    organizationId: $organizationId
+    name: $name
+    active: $active
+    userId: $userId
+    inProduction: $inProduction
+  )
+}
+
+mutation UpdateProject(
+  $id: ID!
+  $name: String!
+  $active: Boolean!
+  $organizationId: ID!
+  $expireDate: Date
+  $inProduction: Boolean
+) {
+  UpdateProjectById(
+    id: $id
+    name: $name
+    active: $active
+    organizationId: $organizationId
+    expireDate: $expireDate
+    inProduction: $inProduction
+  )
+}
+
+mutation DeleteProject($id: ID!) {
+  deleteProjectById(id: $id)
+}

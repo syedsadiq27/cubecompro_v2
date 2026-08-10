@@ -1,0 +1,94 @@
+query GetCategories {
+  getCategory {
+    id
+    name
+  }
+}
+
+query GetCategoriesByProjectId($projectId: ID!) {
+  getCategoryByProjectId(projectId: $projectId) {
+    id
+    name
+    description
+    createdby {
+      id
+      firstname
+      lastname
+    }
+    createdAt
+  }
+}
+
+query GetSubCategoriesByCategoryId($id: ID!) {
+  getSubCategoryByCategoriesId(id: $id) {
+    id
+    name
+    description
+  }
+}
+
+mutation AddCategory(
+  $name: String!
+  $projectId: ID!
+  $productId: ID
+  $description: String
+  $createdBy: ID
+) {
+  addCategory(
+    name: $name
+    projectId: $projectId
+    productId: $productId
+    description: $description
+    createdBy: $createdBy
+  )
+}
+
+mutation UpdateCategory(
+  $id: ID!
+  $name: String
+  $description: String
+  $createdBy: ID
+) {
+  UpdateCategoryById(
+    id: $id
+    name: $name
+    description: $description
+    createdBy: $createdBy
+  )
+}
+
+mutation DeleteCategory($id: ID!) {
+  deleteCategoryById(id: $id)
+}
+
+mutation AddSubCategory(
+  $name: String!
+  $description: String
+  $createdBy: ID
+  $categoryId: ID!
+) {
+  addSubCategory(
+    name: $name
+    description: $description
+    createdBy: $createdBy
+    categoryId: $categoryId
+  )
+}
+
+mutation UpdateSubCategory(
+  $id: ID!
+  $name: String
+  $description: String
+  $createdBy: ID
+) {
+  UpdateSubCategoryById(
+    id: $id
+    name: $name
+    description: $description
+    createdBy: $createdBy
+  )
+}
+
+mutation DeleteSubCategory($id: ID!) {
+  deleteSubCategoryById(id: $id)
+}
