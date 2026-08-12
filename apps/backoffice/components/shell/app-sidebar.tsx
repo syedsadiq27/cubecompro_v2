@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Wordmark } from '@repo/ui/wordmark';
-import { logoutAction } from '../../actions/auth';
+import { logoutAction } from '@/actions/auth';
 
 type NavItem = { href: string; label: string };
 

@@ -1,11 +1,11 @@
-import { CubeStage } from '../../components/brand';
+import { CubeStage } from '@/components/brand';
 import {
   Callout,
   PageHeader,
   Prose,
   Section,
   SpecTable,
-} from '../../components/docs-ui';
+} from '@/components/docs-ui';
 
 export const metadata = { title: 'Design principles' };
 

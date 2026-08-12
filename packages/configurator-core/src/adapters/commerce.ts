@@ -5,7 +5,7 @@ export function createStubCommerceAdapter(): CommerceAdapter {
     async addToCart(selection): Promise<AddToCartResult> {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
-          new CustomEvent('cubecom:add-to-cart', { detail: selection })
+          new CustomEvent('product-graph:add-to-cart', { detail: selection })
         );
       }
       return {

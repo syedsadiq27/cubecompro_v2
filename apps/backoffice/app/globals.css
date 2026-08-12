@@ -64,27 +64,38 @@
   --bo-brand-soft: var(--brand-soft);
 }
 
-html,
-body {
-  height: 100%;
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--canvas);
+    font-family: var(--font-ui);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
 }
 
-body {
-  margin: 0;
-  color: var(--ink);
-  background: var(--canvas);
-  font-family: var(--font-ui);
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
+.bo-btn-primary {
+  background: var(--bo-ink);
+  color: #fff;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
+.bo-btn-primary:hover {
+  background: #000;
 }
 
 .type-page {

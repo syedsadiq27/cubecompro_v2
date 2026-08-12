@@ -1,5 +1,5 @@
-import { CubeStage, CubeSurface } from '../components/brand';
-import { PageHeader, Section } from '../components/docs-ui';
+import { CubeStage, CubeSurface } from '@/components/brand';
+import { PageHeader, Section } from '@/components/docs-ui';
 
 const PRODUCTS = [
   {

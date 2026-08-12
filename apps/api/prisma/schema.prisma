@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GraphVersionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum AttributeType {
+  SELECT
+  MULTI_SELECT
+  BOOLEAN
+  NUMBER
+  TEXT
+}
+
+enum VisualOperation {
+  SET_MATERIAL
+  SET_VISIBILITY
+  SET_MODEL
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entitlements        OrganizationEntitlement[]
+  memberships         OrganizationMembership[]
+  roles               Role[]
+  projects            Project[]
+  products            Product[]
+  graphVersions       ProductGraphVersion[]
+  libraryFolders      LibraryFolder[]
+  mediaAssets         MediaAsset[]
+  materialAssets      MaterialAsset[]
+  textureAssets       TextureAsset[]
+  objectAssets        ObjectAsset[]
+  savedConfigurations SavedConfiguration[]
+}
+
+model OrganizationEntitlement {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  value          Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships OrganizationMembership[]
+}
+
+model OrganizationMembership {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  roleId         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model Role {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions  RolePermission[]
+  memberships  OrganizationMembership[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Permission {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  description String?
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products            Product[]
+  libraryFolders      LibraryFolder[]
+  mediaAssets         MediaAsset[]
+  materialAssets      MaterialAsset[]
+  textureAssets       TextureAsset[]
+  objectAssets        ObjectAsset[]
+  savedConfigurations SavedConfiguration[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+}
+
+model Product {
+  id                   String        @id @default(cuid())
+  organizationId       String
+  projectId            String
+  key                  String
+  name                 String
+  description          String?
+  status               ProductStatus @default(DRAFT)
+  activeGraphVersionId String?       @unique
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  organization        Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project             Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activeGraphVersion  ProductGraphVersion?  @relation("ActiveGraphVersion", fields: [activeGraphVersionId], references: [id], onDelete: SetNull)
+  graphVersions       ProductGraphVersion[] @relation("ProductVersions")
+  savedConfigurations SavedConfiguration[]
+
+  @@unique([projectId, key])
+  @@index([organizationId])
+  @@index([projectId])
+}
+
+model ProductGraphVersion {
+  id             String             @id @default(cuid())
+  organizationId String
+  productId      String
+  version        Int
+  status         GraphVersionStatus @default(DRAFT)
+  graphUri       String?
+  graphSha256    String?
+  createdAt      DateTime           @default(now())
+  publishedAt    DateTime?
+
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product             Product              @relation("ProductVersions", fields: [productId], references: [id], onDelete: Cascade)
+  activeFor           Product?             @relation("ActiveGraphVersion")
+  attributes          ProductAttribute[]
+  rules               ConfigurationRule[]
+  models              ProductModel[]
+  variants            ProductVariant[]
+  savedConfigurations SavedConfiguration[]
+
+  @@unique([productId, version])
+  @@index([organizationId])
+  @@index([productId, status])
+}
+
+model ProductAttribute {
+  id               String        @id @default(cuid())
+  graphVersionId   String
+  key              String
+  name             String
+  type             AttributeType
+  required         Boolean       @default(true)
+  sortOrder        Int           @default(0)
+  defaultValueId   String?       @unique
+
+  graphVersion     ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
+  defaultValue     AttributeValue?     @relation("AttributeDefault", fields: [defaultValueId], references: [id], onDelete: SetNull)
+  values           AttributeValue[]    @relation("AttributeValues")
+  variantSelections VariantSelection[]
+
+  @@unique([graphVersionId, key])
+  @@index([graphVersionId])
+}
+
+model AttributeValue {
+  id          String @id @default(cuid())
+  attributeId String
+  key         String
+  name        String
+  sortOrder   Int    @default(0)
+  metadata    Json?
+
+  attribute         ProductAttribute   @relation("AttributeValues", fields: [attributeId], references: [id], onDelete: Cascade)
+  defaultFor        ProductAttribute?  @relation("AttributeDefault")
+  visualEffects     VisualEffect[]
+  variantSelections VariantSelection[]
+
+  @@unique([attributeId, key])
+  @@index([attributeId])
+}
+
+model ConfigurationRule {
+  id             String @id @default(cuid())
+  graphVersionId String
+  condition      Json
+  effect         Json
+
+  graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
+
+  @@index([graphVersionId])
+}
+
+model ProductModel {
+  id             String @id @default(cuid())
+  graphVersionId String
+  assetId        String
+  key            String
+  name           String
+
+  graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
+  asset        ObjectAsset         @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  targets      ModelTarget[]
+
+  @@unique([graphVersionId, key])
+  @@index([graphVersionId])
+  @@index([assetId])
+}
+
+model ModelTarget {
+  id             String  @id @default(cuid())
+  productModelId String
+  key            String
+  targetType     String
+  nodePath       String?
+  materialSlot   String?
+  metadata       Json?
+
+  productModel  ProductModel   @relation(fields: [productModelId], references: [id], onDelete: Cascade)
+  visualEffects VisualEffect[]
+
+  @@unique([productModelId, key])
+  @@index([productModelId])
+}
+
+model VisualEffect {
+  id               String          @id @default(cuid())
+  attributeValueId String
+  modelTargetId    String
+  operation        VisualOperation
+  value            Json
+
+  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id], onDelete: Cascade)
+  modelTarget    ModelTarget    @relation(fields: [modelTargetId], references: [id], onDelete: Cascade)
+
+  @@index([attributeValueId])
+  @@index([modelTargetId])
+}
+
+model ProductVariant {
+  id             String  @id @default(cuid())
+  graphVersionId String
+  provider       String
+  externalId     String
+  sku            String?
+
+  graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
+  selections   VariantSelection[]
+
+  @@index([graphVersionId])
+  @@unique([graphVersionId, provider, externalId])
+}
+
+model VariantSelection {
+  id               String @id @default(cuid())
+  variantId        String
+  attributeId      String
+  attributeValueId String
+
+  variant        ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  attribute      ProductAttribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeValue AttributeValue  @relation(fields: [attributeValueId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, attributeId])
+  @@index([variantId])
+  @@index([attributeValueId])
+}
+
+model LibraryFolder {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  parentId       String?
+  name           String
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent         LibraryFolder?   @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children       LibraryFolder[]  @relation("FolderTree")
+  mediaAssets    MediaAsset[]
+  materialAssets MaterialAsset[]
+  textureAssets  TextureAsset[]
+  objectAssets   ObjectAsset[]
+
+  @@index([organizationId, projectId])
+  @@index([parentId])
+}
+
+model MediaAsset {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  folderId       String?
+  name           String
+  fileUri        String
+  fileSha256     String
+  mimeType       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId])
+  @@index([folderId])
+}
+
+model MaterialAsset {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  folderId       String?
+  name           String
+  code           String?
+  documentUri    String
+  documentSha256 String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId])
+  @@index([folderId])
+}
+
+model TextureAsset {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  folderId       String?
+  name           String
+  code           String?
+  fileUri        String
+  fileSha256     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId])
+  @@index([folderId])
+}
+
+model ObjectAsset {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  folderId       String?
+  name           String
+  code           String?
+  fileUri        String
+  fileSha256     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  productModels ProductModel[]
+
+  @@index([organizationId, projectId])
+  @@index([folderId])
+}
+
+model SavedConfiguration {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  projectId             String
+  productId             String
+  productGraphVersionId String
+  stateUri              String
+  stateSha256           String
+  metadata              Json?
+  createdAt             DateTime  @default(now())
+  expiresAt             DateTime?
+
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project             Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  product             Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productGraphVersion ProductGraphVersion @relation(fields: [productGraphVersionId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([productId])
+  @@index([productGraphVersionId])
+}

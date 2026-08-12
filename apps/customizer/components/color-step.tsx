@@ -12,10 +12,10 @@ import {
   ExperiencePanel,
   SignatureLookGrid,
 } from '@repo/customizer-ui';
-import { getImageBaseUrl } from '../lib/env';
-import type { ModelVariant, ProductObjectAsset } from '../lib/api/model';
-import type { ParsedModelMaterials } from '../lib/materials';
-import { useConfiguration } from '../providers/configuration-provider';
+import { getImageBaseUrl } from '@/lib/env';
+import type { ModelVariant, ProductObjectAsset } from '@/lib/api/model';
+import type { ParsedModelMaterials } from '@/lib/materials';
+import { useConfiguration } from '@/providers/configuration-provider';
 import type { ModelSceneApi } from './model-canvas';
 
 export function ColorStep({

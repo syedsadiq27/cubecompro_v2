@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import type { MutationResult } from '../../actions/products';
+import type { MutationResult } from '@/actions/products';
 
 export function ProductMetadataForm({
   projectId,
@@ -13,11 +13,7 @@ export function ProductMetadataForm({
   productId: string;
   defaults: {
     Name: string;
-    Description: string;
-    code: string;
-    Department: string;
-    Manufacture: string;
-    active: boolean;
+    key: string;
   };
   action: (
     projectId: string,
@@ -44,45 +40,27 @@ export function ProductMetadataForm({
         });
       }}
     >
-      {(
-        [
-          ['Name', 'Name'],
-          ['code', 'Code'],
-          ['Department', 'Department'],
-          ['Manufacture', 'Manufacture'],
-        ] as const
-      ).map(([name, label]) => (
-        <label key={name} className="block space-y-1.5">
-          <span className="text-sm font-medium">{label}</span>
-          <input
-            name={name}
-            defaultValue={defaults[name]}
-            className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
-          />
-        </label>
-      ))}
-      <label className="block space-y-1.5 md:col-span-2">
-        <span className="text-sm font-medium">Description</span>
-        <textarea
-          name="Description"
-          rows={4}
-          defaultValue={defaults.Description}
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium">Name</span>
+        <input
+          name="Name"
+          defaultValue={defaults.Name}
           className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
         />
       </label>
-      <label className="flex items-center gap-2 text-sm md:col-span-2">
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium">Key</span>
         <input
-          type="checkbox"
-          name="active"
-          defaultChecked={defaults.active}
+          name="key"
+          defaultValue={defaults.key}
+          className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
         />
-        Active
       </label>
       <div className="md:col-span-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-xl bg-[var(--bo-ink)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
         >
           {pending ? 'Saving…' : 'Save metadata'}
         </button>

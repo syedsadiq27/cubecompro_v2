@@ -1,64 +1,98 @@
-import Link from 'next/link';
-import { GetProductDetailDocument } from '@repo/graphql/generated';
-import { updateProductMetadataAction } from '../../../../../actions/products';
+import { ProductWorkspace } from '@/components/products/workspace/product-workspace';
+import { ErrorState } from '@/components/ui';
 import {
-  ErrorState,
-  PageHeader,
-  Panel,
-} from '../../../../../components/ui';
-import { createProjectClient } from '../../../../../lib/graphql';
-import { getProjectSession } from '../../../../../lib/session-server';
-import { ProductMetadataForm } from '../../../../../components/products/product-metadata-form';
+  OBJECT_ASSETS_QUERY,
+  PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
+  PRODUCT_GRAPH_VERSIONS_QUERY,
+  PRODUCT_QUERY,
+  graphRequest,
+  pickGraphVersionId,
+} from '@repo/product-graph';
+import {
+  parseWorkspaceTab,
+  type GraphDetail,
+} from '@/lib/product-workspace';
+import { getProjectSession } from '@/lib/session-server';
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string; id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { projectId, id } = await params;
+  const { tab } = await searchParams;
   const project = await getProjectSession();
   if (!project) return null;
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    const data = await client.project(GetProductDetailDocument, {
-      prodId: id,
-    });
-    const product = data.getProductDetail;
-    if (!product) {
-      return <ErrorState message="Product not found." />;
+    const [productData, versionsData, objectsData] = await Promise.all([
+      graphRequest<{
+        product: {
+          id: string;
+          name: string;
+          key: string;
+          description?: string | null;
+          status: string;
+        };
+      }>(PRODUCT_QUERY, { id }, project.projectToken),
+      graphRequest<{
+        productGraphVersions: Array<{
+          id: string;
+          version: number;
+          status: string;
+          publishedAt?: string | null;
+        }>;
+      }>(
+        PRODUCT_GRAPH_VERSIONS_QUERY,
+        { productId: id },
+        project.projectToken
+      ),
+      graphRequest<{
+        objectAssets: Array<{
+          id: string;
+          name: string;
+          code?: string | null;
+          fileUrl?: string | null;
+        }>;
+      }>(OBJECT_ASSETS_QUERY, { projectId }, project.projectToken).catch(() => ({
+        objectAssets: [],
+      })),
+    ]);
+
+    const versions = versionsData.productGraphVersions;
+    const publishedVersions = versions
+      .filter(
+        (version) =>
+          version.status === 'PUBLISHED' || version.status === 'ARCHIVED'
+      )
+      .sort((a, b) => b.version - a.version)
+      .map((version) => ({ id: version.id, version: version.version }));
+
+    let detail: GraphDetail | null = null;
+    if (versions.length > 0) {
+      const selectedId = pickGraphVersionId(versions);
+      const detailData = await graphRequest<{
+        productGraphVersionDetail: GraphDetail;
+      }>(
+        PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
+        { id: selectedId },
+        project.projectToken
+      );
+      detail = detailData.productGraphVersionDetail;
     }
 
     return (
-      <div>
-        <PageHeader
-          title={product.Name || 'Product'}
-          description="Update product metadata. Configuration and commerce live in the product workspace."
-          actions={
-            <Link
-              href={`/${projectId}/products/${id}/edit`}
-              className="rounded-lg border border-[var(--bo-line)] bg-white px-3.5 py-2 text-[13px] font-medium"
-            >
-              Open product
-            </Link>
-          }
-        />
-        <Panel>
-          <ProductMetadataForm
-            projectId={projectId}
-            productId={id}
-            defaults={{
-              Name: product.Name ?? '',
-              Description: product.Description ?? '',
-              code: product.code ?? '',
-              Department: product.Department ?? '',
-              Manufacture: product.Manufacture ?? '',
-              active: true,
-            }}
-            action={updateProductMetadataAction}
-          />
-        </Panel>
-      </div>
+      <ProductWorkspace
+        projectId={projectId}
+        productId={id}
+        product={productData.product}
+        detail={detail}
+        objectAssets={objectsData.objectAssets}
+        publishedVersions={publishedVersions}
+        initialTab={parseWorkspaceTab(tab)}
+      />
     );
   } catch (error) {
     return (

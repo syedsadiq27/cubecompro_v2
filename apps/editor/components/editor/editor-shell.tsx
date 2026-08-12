@@ -1,13 +1,13 @@
 'use client';
 
 import { Stage } from '@repo/ui/stage';
-import { useEditorProductLoad } from '../../hooks/use-editor-product-load';
-import { useEditorStore } from '../../lib/editor-store';
-import { ConfigurePanel } from './configure-panel';
+import { useEditorProductLoad } from '@/hooks/use-editor-product-load';
+import { useEditorStore } from '@/lib/editor-store';
 import { DrawerHost } from './drawer-host';
 import { EditorViewport } from './editor-viewport';
-import { InspectorPanel } from './inspector/inspector-panel';
+import { StudioInspector } from './inspector/studio-inspector';
 import { ModalHost } from './modal-host';
+import { ScenePanel } from './scene-panel';
 import { TopChrome } from './top-chrome';
 import { ViewportToolbar } from './viewport-toolbar';
 
@@ -23,7 +23,7 @@ export function EditorShell() {
       <TopChrome />
 
       <div className="flex min-h-0 flex-1">
-        <ConfigurePanel />
+        <ScenePanel />
 
         <div className="relative min-w-0 flex-1">
           <Stage
@@ -50,7 +50,7 @@ export function EditorShell() {
           ) : null}
         </div>
 
-        <InspectorPanel />
+        <StudioInspector />
       </div>
 
       <DrawerHost />

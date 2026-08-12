@@ -11,7 +11,7 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@repo/graphql": "*",
+    "@repo/product-graph": "*",
     "@repo/ui": "*",
     "next": "16.3.0",
     "react": "^19.2.0",

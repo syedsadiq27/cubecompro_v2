@@ -1,24 +1,31 @@
-import { GetUserProfileDocument } from '@repo/graphql/generated';
-import { updateProfileAction } from '../../../../actions/teams';
-import { ProfileForm } from '../../../../components/account/profile-form';
+import { updateProfileAction } from '@/actions/teams';
+import { ProfileForm } from '@/components/account/profile-form';
 import {
   ErrorState,
   PageHeader,
   Panel,
-} from '../../../../components/ui';
-import { createGlobalClient } from '../../../../lib/graphql';
-import { getSessionUser } from '../../../../lib/session-server';
+} from '@/components/ui';
+import { graphRequest } from '@repo/product-graph';
+import { ME_QUERY } from '@repo/product-graph';
+import { getSessionUser } from '@/lib/session-server';
 
 export default async function ProfilePage() {
   const user = await getSessionUser();
   if (!user) return null;
 
   try {
-    const client = createGlobalClient(user.token);
-    const data = await client.global(GetUserProfileDocument, {
-      id: Number(user.userId),
-    });
-    const profile = data.userProfile;
+    const data = await graphRequest<{
+      me: {
+        email: string;
+        name?: string | null;
+        role?: string | null;
+      };
+    }>(ME_QUERY, undefined, user.token);
+
+    const name = data.me.name?.trim() ?? '';
+    const [firstname = user.firstName, ...rest] = name
+      ? name.split(/\s+/)
+      : [user.firstName, user.lastName];
 
     return (
       <div>
@@ -29,10 +36,10 @@ export default async function ProfilePage() {
         <Panel>
           <ProfileForm
             defaults={{
-              firstname: profile?.firstname ?? user.firstName,
-              lastname: profile?.lastname ?? user.lastName,
-              role: profile?.role ?? user.role,
-              email: profile?.email ?? user.email,
+              firstname: firstname ?? '',
+              lastname: rest.join(' ') || user.lastName,
+              role: data.me.role ?? user.role,
+              email: data.me.email ?? user.email,
             }}
             action={updateProfileAction}
           />

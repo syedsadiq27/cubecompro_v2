@@ -1,18 +1,13 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import {
-  ForgotPasswordDocument,
-  LoginMutationDocument,
-  RegisterProjectDocument,
-  RegisterUserDocument,
-} from '@repo/graphql/generated';
-import { createAuthClient, createGlobalClient } from '../lib/graphql';
+import { graphRequest } from '@repo/product-graph';
+import { LOGIN_MUTATION } from '@repo/product-graph';
 import {
   clearSession,
   setProjectSession,
   setSessionUser,
-} from '../lib/session-server';
+} from '@/lib/session-server';
 
 export type ActionResult = {
   ok: boolean;
@@ -31,20 +26,27 @@ export async function loginAction(
   }
 
   try {
-    const client = createAuthClient();
-    const data = await client.auth(LoginMutationDocument, { email, password });
-    const payload = data.login;
-    if (!payload?.token || !payload.user) {
-      return { ok: false, error: 'Invalid login response.' };
-    }
+    const data = await graphRequest<{
+      login: {
+        token: string;
+        user: {
+          id: string;
+          email: string;
+          name?: string | null;
+          role?: string | null;
+        };
+      };
+    }>(LOGIN_MUTATION, { input: { email, password } });
 
+    const name = data.login.user.name?.trim() ?? '';
+    const [firstName = '', ...rest] = name.split(/\s+/);
     await setSessionUser({
-      token: payload.token,
-      userId: String(payload.user.id),
-      email: payload.user.email ?? email,
-      firstName: payload.user.firstname ?? '',
-      lastName: payload.user.lastname ?? '',
-      role: payload.user.role ?? '',
+      token: data.login.token,
+      userId: data.login.user.id,
+      email: data.login.user.email ?? email,
+      firstName,
+      lastName: rest.join(' '),
+      role: data.login.user.role ?? 'owner',
     });
   } catch (error) {
     return {
@@ -58,70 +60,23 @@ export async function loginAction(
 
 export async function registerAction(
   _prev: ActionResult,
-  formData: FormData
+  _formData: FormData
 ): Promise<ActionResult> {
-  const email = String(formData.get('email') ?? '').trim();
-  const password = String(formData.get('password') ?? '');
-  const firstname = String(formData.get('firstname') ?? '').trim();
-  const lastname = String(formData.get('lastname') ?? '').trim();
-
-  if (!email || !password || !firstname || !lastname) {
-    return { ok: false, error: 'All fields are required.' };
-  }
-
-  try {
-    const client = createAuthClient();
-    const data = await client.auth(RegisterUserDocument, {
-      email,
-      password,
-      firstname,
-      lastname,
-      role: 'user',
-      active: true,
-    });
-    const payload = data.registerUser;
-    if (!payload?.token || !payload.user) {
-      return { ok: false, error: 'Invalid registration response.' };
-    }
-
-    await setSessionUser({
-      token: payload.token,
-      userId: String(payload.user.id),
-      email: payload.user.email ?? email,
-      firstName: payload.user.firstname ?? firstname,
-      lastName: payload.user.lastname ?? lastname,
-      role: payload.user.role ?? 'user',
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Registration failed.',
-    };
-  }
-
-  redirect('/projects');
+  return {
+    ok: false,
+    error:
+      'Registration is not enabled on the CubeCom API yet. Use the seeded demo user.',
+  };
 }
 
 export async function forgotPasswordAction(
   _prev: ActionResult,
-  formData: FormData
+  _formData: FormData
 ): Promise<ActionResult> {
-  const email = String(formData.get('email') ?? '').trim();
-  if (!email) {
-    return { ok: false, error: 'Email is required.' };
-  }
-
-  try {
-    const client = createAuthClient();
-    await client.auth(ForgotPasswordDocument, { email });
-    return { ok: true };
-  } catch (error) {
-    return {
-      ok: false,
-      error:
-        error instanceof Error ? error.message : 'Could not send reset email.',
-    };
-  }
+  return {
+    ok: false,
+    error: 'Password reset is not enabled on the CubeCom API yet.',
+  };
 }
 
 export async function selectProjectAction(
@@ -135,19 +90,10 @@ export async function selectProjectAction(
   }
 
   try {
-    const client = createGlobalClient(user.token);
-    const data = await client.global(RegisterProjectDocument, {
-      ProductId: projectId,
-    });
-    const token = data.registerProject?.token;
-    if (!token) {
-      return { ok: false, error: 'Project registration failed.' };
-    }
-
     await setProjectSession({
       projectId,
       projectName,
-      projectToken: token,
+      projectToken: user.token,
     });
   } catch (error) {
     return {

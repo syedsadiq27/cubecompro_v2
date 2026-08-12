@@ -1,0 +1,478 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+enum AttributeType {
+  BOOLEAN
+  MULTI_SELECT
+  NUMBER
+  SELECT
+  TEXT
+}
+
+type AttributeValueModel {
+  attributeId: String!
+  id: ID!
+  key: String!
+  metadataJson: String
+  name: String!
+  sortOrder: Float!
+}
+
+type AuthPayloadModel {
+  token: String!
+  user: AuthUserModel!
+}
+
+type AuthUserModel {
+  email: String!
+  id: ID!
+  name: String
+  organizationId: ID
+  organizationName: String
+  role: String
+}
+
+type ConfigurationRuleModel {
+  conditionJson: String!
+  effectJson: String!
+  graphVersionId: String!
+  id: ID!
+}
+
+input ConfigurationStateInput {
+  graphVersionId: String
+  productId: String!
+  selectionsJson: String!
+}
+
+input CreateAttributeValueInput {
+  attributeId: String!
+  key: String!
+  metadataJson: String
+  name: String!
+  sortOrder: Float
+}
+
+input CreateConfigurationRuleInput {
+  conditionJson: String!
+  effectJson: String!
+  graphVersionId: String!
+}
+
+input CreateLibraryFolderInput {
+  name: String!
+  organizationId: String!
+  parentId: ID
+  projectId: String!
+}
+
+input CreateMaterialAssetInput {
+  code: String
+  documentJson: String!
+  folderId: ID
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+input CreateModelTargetInput {
+  key: String!
+  materialSlot: String
+  nodePath: String
+  productModelId: String!
+  targetType: String!
+}
+
+input CreateObjectAssetInput {
+  code: String
+  fileBase64: String
+  fileName: String
+  folderId: ID
+  metadataJson: String
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+input CreateOrganizationInput {
+  name: String!
+  slug: String!
+}
+
+input CreateProductAttributeInput {
+  graphVersionId: String!
+  key: String!
+  name: String!
+  required: Boolean
+  sortOrder: Float
+  type: AttributeType!
+}
+
+input CreateProductInput {
+  description: String
+  key: String!
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+input CreateProductModelInput {
+  assetId: String!
+  graphVersionId: String!
+  key: String!
+  name: String!
+}
+
+input CreateProductVariantInput {
+  externalId: String!
+  graphVersionId: String!
+  provider: String!
+  sku: String
+}
+
+input CreateProjectInput {
+  name: String!
+  organizationId: String!
+  slug: String!
+}
+
+input CreateTextureAssetInput {
+  code: String
+  folderId: ID
+  metadataJson: String
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+input CreateVariantSelectionInput {
+  attributeId: String!
+  attributeValueId: String!
+  variantId: String!
+}
+
+input CreateVisualEffectInput {
+  attributeValueId: String!
+  modelTargetId: String!
+  operation: VisualOperation!
+  valueJson: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum GraphVersionStatus {
+  ARCHIVED
+  DRAFT
+  PUBLISHED
+}
+
+type LibraryFolderModel {
+  id: ID!
+  name: String!
+  organizationId: String!
+  parentId: ID
+  projectId: String!
+  sortOrder: Float!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type MaterialAssetModel {
+  code: String
+  documentSha256: String!
+  documentUri: String!
+  folderId: ID
+  id: ID!
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+type ModelTargetModel {
+  id: ID!
+  key: String!
+  materialSlot: String
+  nodePath: String
+  productModelId: String!
+  targetType: String!
+}
+
+type Mutation {
+  createAttributeValue(input: CreateAttributeValueInput!): AttributeValueModel!
+  createConfigurationRule(input: CreateConfigurationRuleInput!): ConfigurationRuleModel!
+  createDraftGraphVersion(productId: String!, sourceGraphVersionId: String): ProductGraphVersionModel!
+  createLibraryFolder(input: CreateLibraryFolderInput!): LibraryFolderModel!
+  createMaterialAsset(input: CreateMaterialAssetInput!): MaterialAssetModel!
+  createModelTarget(input: CreateModelTargetInput!): ModelTargetModel!
+  createObjectAsset(input: CreateObjectAssetInput!): ObjectAssetModel!
+  createOrganization(input: CreateOrganizationInput!): OrganizationModel!
+  createProduct(input: CreateProductInput!): ProductModel!
+  createProductAttribute(input: CreateProductAttributeInput!): ProductAttributeModel!
+  createProductModel(input: CreateProductModelInput!): ProductModelAssetModel!
+  createProductVariant(input: CreateProductVariantInput!): ProductVariantModel!
+  createProject(input: CreateProjectInput!): ProjectModel!
+  createTextureAsset(input: CreateTextureAssetInput!): TextureAssetModel!
+  createVariantSelection(input: CreateVariantSelectionInput!): VariantSelectionModel!
+  createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!
+  deleteObjectAsset(id: String!): Boolean!
+  deleteProduct(id: String!): Boolean!
+  deleteTextureAsset(id: String!): Boolean!
+  discardDraftGraphVersion(productId: String!): Boolean!
+  login(input: LoginInput!): AuthPayloadModel!
+  publishGraphVersion(id: String!): ProductGraphVersionModel!
+  saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!
+  updateProduct(input: UpdateProductInput!): ProductModel!
+  updateProfile(input: UpdateProfileInput!): AuthUserModel!
+}
+
+type MyProjectModel {
+  id: ID!
+  name: String!
+  organizationId: String!
+  organizationName: String
+  slug: String!
+}
+
+type ObjectAssetModel {
+  code: String
+  fileSha256: String!
+  fileUri: String!
+  fileUrl: String
+  folderId: ID
+  id: ID!
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+type OrganizationEntitlementModel {
+  id: ID!
+  key: String!
+  value: String!
+}
+
+type OrganizationMemberModel {
+  email: String!
+  id: ID!
+  name: String
+  roleName: String!
+  userId: ID!
+}
+
+type OrganizationModel {
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+type ProductAttributeModel {
+  defaultValueId: ID
+  graphVersionId: String!
+  id: ID!
+  key: String!
+  name: String!
+  required: Boolean!
+  sortOrder: Float!
+  type: AttributeType!
+  values: [AttributeValueModel!]
+}
+
+type ProductGraphVersionDetailModel {
+  attributes: [ProductAttributeModel!]!
+  graphSha256: String
+  graphUri: String
+  id: ID!
+  models: [ProductModelAssetModel!]!
+  organizationId: String!
+  productId: String!
+  publishedAt: DateTime
+  rules: [ConfigurationRuleModel!]!
+  status: GraphVersionStatus!
+  variants: [ProductVariantModel!]!
+  version: Float!
+  visualEffects: [VisualEffectModel!]!
+}
+
+type ProductGraphVersionModel {
+  graphSha256: String
+  graphUri: String
+  id: ID!
+  organizationId: String!
+  productId: String!
+  publishedAt: DateTime
+  status: GraphVersionStatus!
+  version: Float!
+}
+
+type ProductModel {
+  activeGraphVersionId: ID
+  description: String
+  id: ID!
+  key: String!
+  name: String!
+  organizationId: String!
+  projectId: String!
+  status: ProductStatus!
+}
+
+type ProductModelAssetModel {
+  assetId: String!
+  graphVersionId: String!
+  id: ID!
+  key: String!
+  name: String!
+  targets: [ModelTargetModel!]
+}
+
+enum ProductStatus {
+  ACTIVE
+  ARCHIVED
+  DRAFT
+}
+
+type ProductVariantModel {
+  externalId: String!
+  graphVersionId: String!
+  id: ID!
+  provider: String!
+  selections: [VariantSelectionModel!]
+  sku: String
+}
+
+type ProjectModel {
+  id: ID!
+  name: String!
+  organizationId: String!
+  slug: String!
+}
+
+type Query {
+  health: String!
+  libraryFolders(parentId: String, projectId: String!): [LibraryFolderModel!]!
+  materialAssets(projectId: String!): [MaterialAssetModel!]!
+  me: AuthUserModel!
+  myProjects: [MyProjectModel!]!
+  objectAssets(projectId: String!): [ObjectAssetModel!]!
+  organization(id: String!): OrganizationModel!
+  organizationEntitlements(organizationId: String!): [OrganizationEntitlementModel!]!
+  organizationMembers(organizationId: String!): [OrganizationMemberModel!]!
+  organizationRoles(organizationId: String!): [RoleModel!]!
+  product(id: String!): ProductModel!
+  productGraphVersion(id: String!): ProductGraphVersionModel!
+  productGraphVersionDetail(id: String!): ProductGraphVersionDetailModel!
+  productGraphVersions(productId: String!): [ProductGraphVersionModel!]!
+  productsByProject(projectId: String!): [ProductModel!]!
+  project(id: String!): ProjectModel!
+  projectsByOrganization(organizationId: String!): [ProjectModel!]!
+  resolveConfiguration(input: ConfigurationStateInput!): ResolvedConfigurationModel!
+  savedConfiguration(id: String!): SavedConfigurationModel!
+  textureAssets(projectId: String!): [TextureAssetModel!]!
+}
+
+type Resolved3DStateModel {
+  effects: [ResolvedVisualEffectModel!]!
+  modelId: String
+}
+
+type ResolvedCommerceStateModel {
+  cartPayloadJson: String
+  productReference: String
+  provider: String
+  sku: String
+  variantReference: String
+}
+
+type ResolvedConfigurationModel {
+  commerce: ResolvedCommerceStateModel!
+  graphVersion: Float!
+  graphVersionId: String!
+  selectionsJson: String!
+  threeD: Resolved3DStateModel!
+  valid: Boolean!
+  violations: [String!]!
+}
+
+type ResolvedVisualEffectModel {
+  nodePath: String
+  operation: VisualOperation!
+  targetKey: String!
+  targetType: String!
+  valueJson: String!
+}
+
+type RoleModel {
+  id: ID!
+  name: String!
+  organizationId: String!
+}
+
+input SaveConfigurationInput {
+  graphVersionId: String!
+  metadataJson: String
+  productId: String!
+  selectionsJson: String!
+}
+
+type SavedConfigurationModel {
+  createdAt: DateTime!
+  expiresAt: DateTime
+  id: ID!
+  organizationId: String!
+  productGraphVersionId: String!
+  productId: String!
+  projectId: String!
+  stateSha256: String!
+  stateUri: String!
+}
+
+type TextureAssetModel {
+  code: String
+  fileSha256: String!
+  fileUri: String!
+  folderId: ID
+  id: ID!
+  name: String!
+  organizationId: String!
+  projectId: String!
+}
+
+input UpdateProductInput {
+  description: String
+  id: ID!
+  key: String
+  name: String
+  status: ProductStatus
+}
+
+input UpdateProfileInput {
+  name: String
+}
+
+type VariantSelectionModel {
+  attributeId: String!
+  attributeValueId: String!
+  id: ID!
+  variantId: String!
+}
+
+type VisualEffectModel {
+  attributeValueId: String!
+  id: ID!
+  modelTargetId: String!
+  operation: VisualOperation!
+  valueJson: String!
+}
+
+enum VisualOperation {
+  SET_MATERIAL
+  SET_MODEL
+  SET_VISIBILITY
+}

@@ -39,7 +39,7 @@ export function InviteForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-[var(--bo-ink)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
       >
         {pending ? 'Inviting…' : 'Invite'}
       </button>

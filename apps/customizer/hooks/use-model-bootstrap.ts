@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import {
   bootstrapModelFromParams,
   type BootstrapModelResult,
-} from '../lib/bootstrap-model';
-import { parseCustomizerSearchParams } from '../lib/url-params';
+} from '@/lib/bootstrap-model';
+import { parseCustomizerSearchParams } from '@/lib/url-params';
 
 export type ModelBootstrapState =
   | { status: 'idle' }

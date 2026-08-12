@@ -8,23 +8,23 @@ import {
   type ColorwayVariant,
 } from '@repo/colorways';
 import { CustomizerLoader } from '@repo/customizer-ui';
-import type { ProductObjectAsset, ProductTexture } from '../lib/api/model';
+import type { ProductObjectAsset, ProductTexture } from '@/lib/api/model';
 import {
   applyCompositionOffset,
   createScene,
   resizeScene,
   type SceneContext,
-} from '../lib/create-scene';
+} from '@/lib/create-scene';
 import {
   applyProductCamera,
   placeGroundUnderObject,
   type ProductCameraConfig,
-} from '../lib/product-camera';
-import { loadModel, disposeModelLoaders } from '../lib/load-model';
+} from '@/lib/product-camera';
+import { loadModel, disposeModelLoaders } from '@/lib/load-model';
 import {
   applyConfigMaterialsToObject,
   type ParsedModelMaterials,
-} from '../lib/materials';
+} from '@/lib/materials';
 
 type CameraConfig = ProductCameraConfig;
 

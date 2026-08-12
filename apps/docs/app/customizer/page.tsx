@@ -1,4 +1,4 @@
-import { ProductPlaceholder } from '../../components/product-placeholder';
+import { ProductPlaceholder } from '@/components/product-placeholder';
 
 export const metadata = { title: 'Customizer' };
 

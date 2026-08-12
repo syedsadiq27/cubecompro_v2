@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import type { CategoryResult } from '../../actions/categories';
+import type { CategoryResult } from '@/actions/categories';
 
 export function CategoryAddForm({
   projectId,
@@ -39,7 +39,7 @@ export function CategoryAddForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-[var(--bo-ink)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
       >
         {pending ? 'Adding…' : 'Add category'}
       </button>

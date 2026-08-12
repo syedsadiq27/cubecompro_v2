@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { CustomizerLoader } from "@repo/customizer-ui";
-import { CustomizerApp } from "../components/customizer-app";
+import { CustomizerApp } from "@/components/customizer-app";
 
 export default function Page() {
   return (

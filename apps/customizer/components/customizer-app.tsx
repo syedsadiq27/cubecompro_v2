@@ -16,12 +16,12 @@ import {
   CustomizerViewerControls,
   type ProgressStep,
 } from '@repo/customizer-ui';
-import { useModelBootstrap } from '../hooks/use-model-bootstrap';
+import { useModelBootstrap } from '@/hooks/use-model-bootstrap';
 import {
   ConfigurationProvider,
   useConfiguration,
-} from '../providers/configuration-provider';
-import { ThemeProvider, useTheme } from '../providers/theme-provider';
+} from '@/providers/configuration-provider';
+import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 import { ColorStep } from './color-step';
 import { DecorateStep } from './decorate-step';
 import { ModelCanvas, type ModelSceneApi } from './model-canvas';

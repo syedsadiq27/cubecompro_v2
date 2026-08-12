@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Inter_Tight } from 'next/font/google';
 import { GeistMono } from 'geist/font/mono';
-import { DocsShell } from '../components/docs-shell';
+import { DocsShell } from '@/components/docs-shell';
 import '@repo/ui/styles.css';
 import './globals.css';
 

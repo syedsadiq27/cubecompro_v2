@@ -6,9 +6,9 @@ import {
   countGeometry,
   objectLabel,
   readMaterialName,
-} from '../../../lib/inspector/context';
-import type { InspectorRuntimeContext } from '../../../lib/inspector/types';
-import { useEditorStore } from '../../../lib/editor-store';
+} from '@/lib/inspector/context';
+import type { InspectorRuntimeContext } from '@/lib/inspector/types';
+import { useEditorStore } from '@/lib/editor-store';
 import {
   FieldLabel,
   KeyValue,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorStore } from '../../lib/editor-store';
+import { useEditorStore } from '@/lib/editor-store';
 
 export function ModalHost() {
   const modal = useEditorStore((state) => state.modal);

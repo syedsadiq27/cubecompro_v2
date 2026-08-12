@@ -8,6 +8,13 @@ export function getEditorStudioPath(
   return `/${projectId}/products/${productId}/edit/${modelId}`;
 }
 
+export function getProduct3DStudioPath(
+  projectId: string,
+  productId: string
+): string {
+  return `/${projectId}/products/${productId}/studio`;
+}
+
 export function getEditorEmbedSrc(
   projectId: string,
   productId: string,

@@ -20,13 +20,28 @@ function createGltfLoader(): GLTFLoader {
   return loader;
 }
 
-export function loadModel(url: string): Promise<THREE.Group> {
-  const task = loadQueue.then(
-    () =>
-      new Promise<THREE.Group>((resolve, reject) => {
+export function loadModel(
+  url: string,
+  headers?: Record<string, string>
+): Promise<THREE.Group> {
+  const task = loadQueue.then(async () => {
+    let loadUrl = url;
+    let revokeUrl: string | null = null;
+    if (headers && Object.keys(headers).length > 0) {
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error(`Failed to load model (${response.status})`);
+      }
+      const blob = await response.blob();
+      loadUrl = URL.createObjectURL(blob);
+      revokeUrl = loadUrl;
+    }
+
+    try {
+      return await new Promise<THREE.Group>((resolve, reject) => {
         const loader = createGltfLoader();
         loader.load(
-          url,
+          loadUrl,
           (gltf) => {
             const root = gltf.scene;
             root.name = 'loaded-model';
@@ -37,8 +52,11 @@ export function loadModel(url: string): Promise<THREE.Group> {
             reject(error);
           }
         );
-      })
-  );
+      });
+    } finally {
+      if (revokeUrl) URL.revokeObjectURL(revokeUrl);
+    }
+  });
 
   loadQueue = task.catch(() => undefined);
   return task;

@@ -1,8 +1,13 @@
-import { GetProductDetailDocument } from '@repo/graphql/generated';
-import { EditorStudioEmbed } from '../../../../../../../components/products/editor-studio-embed';
-import { ErrorState } from '../../../../../../../components/ui';
-import { createProjectClient } from '../../../../../../../lib/graphql';
-import { getProjectSession } from '../../../../../../../lib/session-server';
+import { EditorStudioEmbed } from '@/components/products/editor-studio-embed';
+import { ErrorState } from '@/components/ui';
+import {
+  PRODUCT_GRAPH_VERSIONS_QUERY,
+  PRODUCT_QUERY,
+  getApiBaseUrl,
+  graphRequest,
+  pickGraphVersionId,
+} from '@repo/product-graph';
+import { getProjectSession } from '@/lib/session-server';
 
 export default async function ProductModelEditorPage({
   params,
@@ -14,21 +19,33 @@ export default async function ProductModelEditorPage({
   if (!project) return null;
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    const data = await client.project(GetProductDetailDocument, {
-      prodId: id,
-    });
-    const product = data.getProductDetail;
-    if (!product) {
-      return <ErrorState message="Product not found." />;
-    }
+    const [productData, versionsData] = await Promise.all([
+      graphRequest<{
+        product: { id: string };
+      }>(PRODUCT_QUERY, { id }, project.projectToken),
+      graphRequest<{
+        productGraphVersions: Array<{ id: string; status: string }>;
+      }>(
+        PRODUCT_GRAPH_VERSIONS_QUERY,
+        { productId: id },
+        project.projectToken
+      ),
+    ]);
+
+    void productData;
+    const graphVersionId = pickGraphVersionId(
+      versionsData.productGraphVersions
+    );
 
     return (
       <EditorStudioEmbed
         projectId={projectId}
         productId={id}
         modelId={modelId}
-        returnTo={`/${projectId}/products/${id}`}
+        returnTo={`/${projectId}/products/${id}?tab=3d`}
+        accessToken={project.projectToken}
+        apiUrl={getApiBaseUrl()}
+        graphVersionId={graphVersionId}
       />
     );
   } catch (error) {

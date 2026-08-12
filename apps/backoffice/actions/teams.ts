@@ -1,13 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { graphRequest } from '@repo/product-graph';
+import { UPDATE_PROFILE_MUTATION } from '@repo/product-graph';
 import {
-  AddUserGroupDocument,
-  InviteUserDocument,
-  UpdateUserProfileDocument,
-} from '@repo/graphql/generated';
-import { createGlobalClient } from '../lib/graphql';
-import { getSessionUser } from '../lib/session-server';
+  getSessionUser,
+  setSessionUser,
+} from '@/lib/session-server';
 
 type Result = { ok: boolean; error?: string };
 
@@ -17,14 +16,30 @@ export async function updateProfileAction(
   const user = await getSessionUser();
   if (!user) return { ok: false, error: 'Not authenticated.' };
 
+  const firstname = String(formData.get('firstname') ?? '').trim();
+  const lastname = String(formData.get('lastname') ?? '').trim();
+  const name = [firstname, lastname].filter(Boolean).join(' ');
+
   try {
-    const client = createGlobalClient(user.token);
-    await client.global(UpdateUserProfileDocument, {
-      id: user.userId,
-      firstname: String(formData.get('firstname') ?? ''),
-      lastname: String(formData.get('lastname') ?? ''),
-      role: String(formData.get('role') ?? user.role),
+    const data = await graphRequest<{
+      updateProfile: {
+        id: string;
+        email: string;
+        name?: string | null;
+        role?: string | null;
+      };
+    }>(UPDATE_PROFILE_MUTATION, { input: { name } }, user.token);
+
+    const updatedName = data.updateProfile.name?.trim() ?? name;
+    const [first = '', ...rest] = updatedName.split(/\s+/);
+    await setSessionUser({
+      ...user,
+      firstName: first,
+      lastName: rest.join(' '),
+      email: data.updateProfile.email,
+      role: data.updateProfile.role ?? user.role,
     });
+
     revalidatePath('/accounts/profile');
     return { ok: true };
   } catch (error) {
@@ -35,45 +50,16 @@ export async function updateProfileAction(
   }
 }
 
-export async function addUserGroupAction(formData: FormData): Promise<Result> {
-  const user = await getSessionUser();
-  if (!user) return { ok: false, error: 'Not authenticated.' };
-
-  try {
-    const client = createGlobalClient(user.token);
-    await client.global(AddUserGroupDocument, {
-      organizationId: String(formData.get('organizationId') ?? ''),
-      name: String(formData.get('name') ?? ''),
-      userId: user.userId,
-    });
-    revalidatePath('/accounts/usergroups');
-    return { ok: true };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Could not create team.',
-    };
-  }
+export async function addUserGroupAction(_formData: FormData): Promise<Result> {
+  return {
+    ok: false,
+    error: 'Creating roles/teams is not enabled on CubeCom API yet.',
+  };
 }
 
-export async function inviteUserAction(formData: FormData): Promise<Result> {
-  const user = await getSessionUser();
-  if (!user) return { ok: false, error: 'Not authenticated.' };
-
-  try {
-    const client = createGlobalClient(user.token);
-    await client.global(InviteUserDocument, {
-      id: user.userId,
-      email: String(formData.get('email') ?? ''),
-      organizationId: String(formData.get('organizationId') ?? ''),
-      userGroupId: String(formData.get('userGroupId') ?? ''),
-    });
-    revalidatePath('/accounts/members');
-    return { ok: true };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Invite failed.',
-    };
-  }
+export async function inviteUserAction(_formData: FormData): Promise<Result> {
+  return {
+    ok: false,
+    error: 'Inviting members is not enabled on CubeCom API yet.',
+  };
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { ExperiencePanel } from '@repo/customizer-ui';
-import { useConfiguration } from '../providers/configuration-provider';
+import { useConfiguration } from '@/providers/configuration-provider';
 
 const REGION_LABELS = {
   front: 'Front',

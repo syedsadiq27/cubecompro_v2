@@ -1,5 +1,5 @@
-import { ComponentsGallery } from '../../components/components-gallery';
-import { PageHeader } from '../../components/docs-ui';
+import { ComponentsGallery } from '@/components/components-gallery';
+import { PageHeader } from '@/components/docs-ui';
 
 export const metadata = { title: 'Components' };
 

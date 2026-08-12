@@ -4,7 +4,7 @@ import {
   INSPECTOR_GROUP_LABELS,
   type InspectorStep,
   type InspectorStepStatus,
-} from '../../../lib/inspector/types';
+} from '@/lib/inspector/types';
 
 function StatusMark({ status }: { status?: InspectorStepStatus }) {
   if (!status) return <span className="text-[var(--text-muted)]">—</span>;

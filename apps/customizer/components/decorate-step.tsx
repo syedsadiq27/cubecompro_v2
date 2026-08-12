@@ -2,8 +2,8 @@
 
 import type { DecorationRegion } from '@repo/configurator-core';
 import { ExperiencePanel } from '@repo/customizer-ui';
-import { HEADWEAR_CAMERA_POSITIONS } from '../lib/product-camera';
-import { useConfiguration } from '../providers/configuration-provider';
+import { HEADWEAR_CAMERA_POSITIONS } from '@/lib/product-camera';
+import { useConfiguration } from '@/providers/configuration-provider';
 import type { ModelSceneApi } from './model-canvas';
 
 const REGION_LABELS: Record<DecorationRegion, string> = {

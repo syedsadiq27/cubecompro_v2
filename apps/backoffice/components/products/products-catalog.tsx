@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { useMemo, useState, useTransition } from 'react';
 import { EmptyState } from '@repo/ui/empty-state';
 import { Stage } from '@repo/ui/stage';
-import { softDeleteProductAction } from '../../actions/products';
-import type { CommerceHealth, CommerceSignals } from '../../lib/commerce-signals';
-import { summarizeCatalog } from '../../lib/commerce-signals';
+import { softDeleteProductAction } from '@/actions/products';
+import type { CommerceHealth, CommerceSignals } from '@/lib/commerce-signals';
+import { summarizeCatalog } from '@/lib/commerce-signals';
 import {
   formatOperationalStatus,
   toOperationalStatus,
   type OperationalStatus,
-} from '../../lib/product-status';
+} from '@/lib/product-status';
 
 export type CatalogProduct = {
   id: string;
@@ -124,11 +124,11 @@ function OverflowMenu({
               Edit metadata
             </Link>
             <Link
-              href={`/${projectId}/products/${productId}/edit`}
+              href={`/${projectId}/products/${productId}?tab=options`}
               className="block px-3 py-1.5 text-[13px] hover:bg-black/[0.03]"
               onClick={() => setOpen(false)}
             >
-              Open product
+              Configure options
             </Link>
             <button
               type="button"
@@ -329,7 +329,7 @@ export function ProductsCatalog({
           </div>
           <Link
             href={`/${projectId}/products/new`}
-            className="inline-flex shrink-0 items-center rounded-lg bg-[var(--bo-ink)] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black"
+            className="inline-flex shrink-0 items-center bo-btn-primary rounded-lg px-3 py-1.5 text-[12px] font-medium"
           >
             + New
           </Link>
@@ -427,7 +427,7 @@ export function ProductsCatalog({
             action={
               <Link
                 href={`/${projectId}/products/new`}
-                className="inline-flex items-center rounded-[7px] bg-[var(--bo-ink)] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black"
+                className="inline-flex items-center bo-btn-primary rounded-[7px] px-3 py-1.5 text-[12px] font-medium"
               >
                 + New product
               </Link>
@@ -440,7 +440,7 @@ export function ProductsCatalog({
               return (
                 <Link
                   key={product.id}
-                  href={`/${projectId}/products/${product.id}/edit`}
+                  href={`/${projectId}/products/${product.id}`}
                   className="group overflow-hidden rounded-[10px] border border-[var(--bo-line)] bg-white transition hover:border-[var(--bo-line-strong)]"
                 >
                   <Stage
@@ -544,7 +544,7 @@ export function ProductsCatalog({
                       >
                         <td className="px-3 py-2.5 sm:px-4">
                           <Link
-                            href={`/${projectId}/products/${product.id}/edit`}
+                            href={`/${projectId}/products/${product.id}`}
                             className="flex items-center gap-3"
                           >
                             <ProductThumb product={product} />

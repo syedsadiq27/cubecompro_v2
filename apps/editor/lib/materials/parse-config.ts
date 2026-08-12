@@ -1,4 +1,4 @@
-import type { ModelConfig } from '../api/model';
+import type { ModelConfig } from '../model-types';
 import type {
   MaterialJson,
   ObjectRule,

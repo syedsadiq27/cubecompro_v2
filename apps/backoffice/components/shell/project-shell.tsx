@@ -4,7 +4,10 @@ import { usePathname } from 'next/navigation';
 import { AppShell } from './app-shell';
 
 function isStudioEditorPath(pathname: string) {
-  return /\/products\/[^/]+\/edit\/[^/]+\/?$/.test(pathname);
+  return (
+    /\/products\/[^/]+\/edit\/[^/]+\/?$/.test(pathname) ||
+    /\/products\/[^/]+\/studio\/?$/.test(pathname)
+  );
 }
 
 export function ProjectShell({

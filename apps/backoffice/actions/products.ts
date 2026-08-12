@@ -2,15 +2,20 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { graphRequest } from '@repo/product-graph';
 import {
-  SoftDeleteProductDocument,
-  UpdateProductMetadataDocument,
-} from '@repo/graphql/generated';
-import { createProjectClient } from '../lib/graphql';
+  CREATE_PRODUCT_MUTATION,
+  DELETE_PRODUCT_MUTATION,
+  ME_QUERY,
+  PRODUCT_GRAPH_VERSIONS_QUERY,
+  PUBLISH_GRAPH_VERSION_MUTATION,
+  UPDATE_PRODUCT_MUTATION,
+} from '@repo/product-graph';
+import { forceRelogin, isStaleAuthError } from '@/lib/auth-recovery';
 import {
   getProjectSession,
   getSessionUser,
-} from '../lib/session-server';
+} from '@/lib/session-server';
 
 export type MutationResult = {
   ok: boolean;
@@ -27,8 +32,11 @@ export async function softDeleteProductAction(
   }
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    await client.project(SoftDeleteProductDocument, { id: productId });
+    await graphRequest<{ deleteProduct: boolean }>(
+      DELETE_PRODUCT_MUTATION,
+      { id: productId },
+      project.projectToken
+    );
     revalidatePath(`/${projectId}/products`);
     return { ok: true };
   } catch (error) {
@@ -53,18 +61,17 @@ export async function updateProductMetadataAction(
   }
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    await client.project(UpdateProductMetadataDocument, {
-      id: productId,
-      Name: String(formData.get('Name') ?? ''),
-      Description: String(formData.get('Description') ?? ''),
-      code: String(formData.get('code') ?? ''),
-      Department: String(formData.get('Department') ?? ''),
-      Manufacture: String(formData.get('Manufacture') ?? ''),
-      active: formData.get('active') === 'on',
-      projectId: Number(projectId),
-      userId: Number(user.userId),
-    });
+    await graphRequest(
+      UPDATE_PRODUCT_MUTATION,
+      {
+        input: {
+          id: productId,
+          name: String(formData.get('Name') ?? ''),
+          key: String(formData.get('key') ?? ''),
+        },
+      },
+      project.projectToken
+    );
     revalidatePath(`/${projectId}/products/${productId}`);
     revalidatePath(`/${projectId}/products`);
     return { ok: true };
@@ -72,6 +79,108 @@ export async function updateProductMetadataAction(
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Update failed.',
+    };
+  }
+}
+
+export async function createProductAction(
+  projectId: string,
+  formData: FormData
+): Promise<MutationResult> {
+  const [user, project] = await Promise.all([
+    getSessionUser(),
+    getProjectSession(),
+  ]);
+  if (!user || !project || project.projectId !== projectId) {
+    return { ok: false, error: 'Session missing.' };
+  }
+
+  const name = String(formData.get('Name') ?? '').trim();
+  const key = String(formData.get('key') ?? '').trim();
+  if (!name || !key) {
+    return { ok: false, error: 'Name and key are required.' };
+  }
+
+  try {
+    const me = await graphRequest<{
+      me: { organizationId?: string | null };
+    }>(ME_QUERY, undefined, user.token);
+    const organizationId = me.me.organizationId;
+    if (!organizationId) {
+      return { ok: false, error: 'No organization on session.' };
+    }
+
+    const data = await graphRequest<{
+      createProduct: { id: string };
+    }>(
+      CREATE_PRODUCT_MUTATION,
+      {
+        input: {
+          organizationId,
+          projectId,
+          name,
+          key,
+        },
+      },
+      project.projectToken
+    );
+
+    revalidatePath(`/${projectId}/products`);
+    redirect(`/${projectId}/products/${data.createProduct.id}`);
+  } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'digest' in error &&
+      String((error as { digest?: string }).digest).startsWith('NEXT_REDIRECT')
+    ) {
+      throw error;
+    }
+    if (isStaleAuthError(error)) {
+      forceRelogin();
+    }
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Create failed.',
+    };
+  }
+}
+
+export async function publishProductGraphAction(
+  projectId: string,
+  productId: string
+): Promise<MutationResult> {
+  const project = await getProjectSession();
+  if (!project || project.projectId !== projectId) {
+    return { ok: false, error: 'Project session missing.' };
+  }
+
+  try {
+    const versions = await graphRequest<{
+      productGraphVersions: Array<{ id: string; status: string }>;
+    }>(
+      PRODUCT_GRAPH_VERSIONS_QUERY,
+      { productId },
+      project.projectToken
+    );
+    const draft = versions.productGraphVersions.find(
+      (version) => version.status === 'DRAFT'
+    );
+    if (!draft) {
+      return { ok: false, error: 'No draft graph version to publish.' };
+    }
+
+    await graphRequest(
+      PUBLISH_GRAPH_VERSION_MUTATION,
+      { id: draft.id },
+      project.projectToken
+    );
+    revalidatePath(`/${projectId}/products/${productId}`);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Publish failed.',
     };
   }
 }

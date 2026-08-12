@@ -4,7 +4,7 @@ import { useTransition } from 'react';
 import {
   deleteObjectAction,
   deleteTextureAction,
-} from '../../actions/assets';
+} from '@/actions/assets';
 
 export function AssetDeleteButton({
   kind,

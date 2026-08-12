@@ -1,27 +1,33 @@
 'use client';
 
 import { useEffect } from 'react';
-import { bootstrapEditorProduct } from '../lib/bootstrap-editor';
-import {
-  buildProductConfiguration,
-  initialActiveValues,
-} from '../lib/configuration';
-import { useEditorStore } from '../lib/editor-store';
+import { bootstrapProductEditor } from '@repo/product-graph';
+import { useEditorStore } from '@/lib/editor-store';
 
 export function useEditorProductLoad() {
   const runtime = useEditorStore((state) => state.runtime);
   const projectId = useEditorStore((state) => state.projectId);
   const productId = useEditorStore((state) => state.productId);
   const modelId = useEditorStore((state) => state.modelId);
+  const embedded = useEditorStore((state) => state.embedded);
+  const graphAuth = useEditorStore((state) => state.graphAuth);
   const setLoading = useEditorStore((state) => state.setLoading);
   const setLoadError = useEditorStore((state) => state.setLoadError);
-  const setOutlineNodes = useEditorStore((state) => state.setOutlineNodes);
   const setDocument = useEditorStore((state) => state.setDocument);
   const setConfiguration = useEditorStore((state) => state.setConfiguration);
-  const selectConfigValue = useEditorStore((state) => state.selectConfigValue);
+  const setGraphDetail = useEditorStore((state) => state.setGraphDetail);
 
   useEffect(() => {
     if (!runtime || !projectId || !productId) {
+      return;
+    }
+    if (!graphAuth) {
+      setLoading(true);
+      setLoadError(
+        embedded
+          ? null
+          : 'Open this editor from backoffice (product → 3D → Open 3D editor).'
+      );
       return;
     }
 
@@ -32,9 +38,10 @@ export function useEditorProductLoad() {
       setLoadError(null);
       setDocument(null);
       setConfiguration(null, {}, null);
+      setGraphDetail(null);
       try {
-        const bundle = await bootstrapEditorProduct({
-          projectId,
+        const bundle = await bootstrapProductEditor({
+          auth: graphAuth,
           productId,
           modelId,
         });
@@ -42,69 +49,33 @@ export function useEditorProductLoad() {
 
         const meshCount = await runtime.mountAssets({
           assets: bundle.assets,
-          cameraConfig: bundle.camera,
-          materials: bundle.materials,
-          textures: bundle.textures,
+          materials: { materials: {}, rules: {}, colors: {} },
+          textures: [],
         });
-
         if (cancelled) return;
 
-        const configuration = buildProductConfiguration(bundle.product);
-        const visibleAssetIds = new Set(
-          bundle.assets
-            .filter((asset) => asset.visible)
-            .map((asset) => asset.id)
-        );
-        const activeValues = initialActiveValues(
-          configuration,
-          visibleAssetIds
-        );
-        const firstProperty = configuration.properties.find(
-          (property) => activeValues[property.id]
-        );
-        const selection = firstProperty
-          ? {
-              propertyId: firstProperty.id,
-              valueId: activeValues[firstProperty.id]!,
-            }
-          : null;
-
+        setGraphDetail(bundle.detail);
         setDocument({
           productId,
-          productName: bundle.product.Name || `Product ${productId}`,
-          productCode: bundle.product.code || productId,
-          modelId: modelId || String(bundle.model?.id ?? ''),
-          modelName:
-            bundle.model?.name ||
-            bundle.model?.sku ||
-            (modelId ? `Model ${modelId}` : 'Model'),
-          modelSku: bundle.model?.sku || bundle.product.code || '',
-          materialCount: Object.keys(bundle.materials.materials).length,
-          ruleCount: Object.keys(bundle.materials.rules).length,
+          productName: bundle.product.name,
+          productCode: bundle.product.key,
+          modelId: bundle.productModelId,
+          modelName: bundle.modelName,
+          modelSku: bundle.product.key,
+          materialCount: 0,
+          ruleCount: bundle.detail.visualEffects.length,
           meshCount,
-          objectCount: bundle.assets.length,
+          objectCount: 1,
         });
-        setConfiguration(configuration, activeValues, selection);
-
-        Object.entries(activeValues).forEach(([propertyId, valueId]) => {
-          selectConfigValue(propertyId, valueId, { focus: false });
-        });
-        if (selection) {
-          selectConfigValue(selection.propertyId, selection.valueId, {
-            focus: true,
-          });
-        }
+        setConfiguration(null, {}, null);
+        setLoading(false);
       } catch (error) {
         if (cancelled) return;
-        runtime.clearProduct();
-        setOutlineNodes([]);
-        setDocument(null);
-        setConfiguration(null, {}, null);
+        setGraphDetail(null);
         setLoadError(
-          error instanceof Error ? error.message : 'Failed to load model'
+          error instanceof Error ? error.message : 'Failed to load product'
         );
-      } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
 
@@ -116,11 +87,12 @@ export function useEditorProductLoad() {
     projectId,
     productId,
     modelId,
+    embedded,
+    graphAuth,
     setLoading,
     setLoadError,
-    setOutlineNodes,
     setDocument,
     setConfiguration,
-    selectConfigValue,
+    setGraphDetail,
   ]);
 }

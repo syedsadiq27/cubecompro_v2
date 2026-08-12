@@ -11,11 +11,12 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@repo/graphql": "*",
+    "@repo/product-graph": "*",
     "@repo/ui": "*",
     "next": "16.3.0",
     "react": "^19.2.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "three": "^0.172.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.3.0",
@@ -26,6 +27,7 @@
     "@types/node": "^22.15.30",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
+    "@types/three": "^0.172.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.39.1",
     "postcss": "^8.5.3",

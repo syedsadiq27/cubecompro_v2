@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { createEditorRuntime, useEditorStore } from '../../lib/editor-store';
+import { createEditorRuntime, useEditorStore } from '@/lib/editor-store';
 
 export function EditorViewport() {
   const hostRef = useRef<HTMLDivElement>(null);

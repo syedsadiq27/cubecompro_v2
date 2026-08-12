@@ -1,17 +1,13 @@
 import Link from 'next/link';
 import {
-  GetProductsDocument,
-  GetWorkflowsDocument,
-} from '@repo/graphql/generated';
-import {
   EmptyState,
   ErrorState,
   PageHeader,
   Panel,
-} from '../../../../components/ui';
-import { createProjectClient } from '../../../../lib/graphql';
-import { PRODUCT_LIST_STATUSES } from '../../../../lib/product-status';
-import { getProjectSession } from '../../../../lib/session-server';
+} from '@/components/ui';
+import { graphRequest } from '@repo/product-graph';
+import { PRODUCTS_BY_PROJECT_QUERY } from '@repo/product-graph';
+import { getProjectSession } from '@/lib/session-server';
 
 export default async function DashboardPage({
   params,
@@ -23,24 +19,17 @@ export default async function DashboardPage({
   if (!project) return null;
 
   let productCount = 0;
-  let workflowCount = 0;
-  let openWorkflows = 0;
   let error: string | null = null;
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    const [products, workflows] = await Promise.all([
-      client.project(GetProductsDocument, { status: PRODUCT_LIST_STATUSES }),
-      client.project(GetWorkflowsDocument),
-    ]);
-    productCount = products.getProductDetails?.length ?? 0;
-    const list = workflows.getWorkflows ?? [];
-    workflowCount = list.length;
-    openWorkflows = list.filter(
-      (item) =>
-        item.workflowStatus?.Status_Name?.toLowerCase() !== 'completed' &&
-        item.workflowStatus?.Status_Name?.toLowerCase() !== 'published'
-    ).length;
+    const data = await graphRequest<{
+      productsByProject: Array<{ id: string }>;
+    }>(
+      PRODUCTS_BY_PROJECT_QUERY,
+      { projectId },
+      project.projectToken
+    );
+    productCount = data.productsByProject.length;
   } catch (err) {
     error = err instanceof Error ? err.message : 'Failed to load dashboard.';
   }
@@ -49,11 +38,11 @@ export default async function DashboardPage({
     <div>
       <PageHeader
         title="Dashboard"
-        description="Project overview for catalog and workflow activity."
+        description="Project overview for catalog activity."
         actions={
           <Link
             href={`/${projectId}/products`}
-            className="rounded-xl bg-[var(--bo-ink)] px-4 py-2 text-sm font-medium text-white"
+            className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium"
           >
             View products
           </Link>
@@ -68,11 +57,13 @@ export default async function DashboardPage({
           </Panel>
           <Panel>
             <p className="text-sm text-[var(--bo-muted)]">Workflows</p>
-            <p className="mt-2 text-3xl font-semibold">{workflowCount}</p>
+            <p className="mt-2 text-3xl font-semibold">0</p>
+            <p className="mt-1 text-xs text-[var(--bo-muted)]">Deferred in v1</p>
           </Panel>
           <Panel>
             <p className="text-sm text-[var(--bo-muted)]">Open workflows</p>
-            <p className="mt-2 text-3xl font-semibold">{openWorkflows}</p>
+            <p className="mt-2 text-3xl font-semibold">0</p>
+            <p className="mt-1 text-xs text-[var(--bo-muted)]">Deferred in v1</p>
           </Panel>
         </div>
       ) : (

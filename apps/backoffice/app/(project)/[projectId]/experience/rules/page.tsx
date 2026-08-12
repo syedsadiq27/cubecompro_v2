@@ -1,4 +1,4 @@
-import { CommercePlaceholder } from '../../../../../components/commerce/commerce-placeholder';
+import { CommercePlaceholder } from '@/components/commerce/commerce-placeholder';
 
 export default async function RulesPage({
   params,

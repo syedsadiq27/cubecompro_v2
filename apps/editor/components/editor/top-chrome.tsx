@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Wordmark } from '@repo/ui/wordmark';
-import { useEditorStore } from '../../lib/editor-store';
+import { EDITOR_EMBED } from '@repo/product-graph';
+import { useEditorStore } from '@/lib/editor-store';
 
 export function TopChrome() {
   const editorDocument = useEditorStore((state) => state.document);
@@ -50,7 +51,7 @@ export function TopChrome() {
     if (embedded && window.parent && window.parent !== window) {
       window.parent.postMessage(
         {
-          type: 'cubecom:editor-close',
+          type: EDITOR_EMBED.CLOSE,
           returnTo: returnTo || undefined,
         },
         '*'
@@ -197,7 +198,11 @@ export function TopChrome() {
           onClick={onClose}
           className="rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-muted)] hover:bg-black/[0.04] hover:text-[var(--ink)]"
         >
-          Close
+          {returnTo?.includes('/studio') || returnTo?.includes('tab=3d')
+            ? '← Product'
+            : returnTo?.includes('/products/')
+              ? '← Product'
+              : 'Close'}
         </button>
         <div ref={saveRef} className="relative flex items-center">
           <button

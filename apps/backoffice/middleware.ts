@@ -7,6 +7,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIES.token)?.value;
   const projectId = request.cookies.get(SESSION_COOKIES.projectId)?.value;
+  const forceLogin = request.nextUrl.searchParams.get('force') === '1';
   const isPublic = publicPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
@@ -18,17 +19,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (token && (pathname === '/' || pathname === '/login')) {
+  if (
+    token &&
+    (pathname === '/' || pathname === '/login') &&
+    !(pathname === '/login' && forceLogin)
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = projectId ? `/${projectId}/dashboard` : '/projects';
     return NextResponse.redirect(url);
   }
 
-  const projectMatch = pathname.match(/^\/(\d+)(\/|$)/);
-  if (projectMatch && token && !projectId) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/projects';
-    return NextResponse.redirect(url);
+  if (pathname === '/login' && forceLogin && token) {
+    const response = NextResponse.next();
+    for (const key of Object.values(SESSION_COOKIES)) {
+      response.cookies.delete(key);
+    }
+    return response;
   }
 
   return NextResponse.next();

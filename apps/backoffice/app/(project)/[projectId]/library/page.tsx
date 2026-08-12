@@ -1,17 +1,18 @@
 import Link from 'next/link';
 import {
-  GetProjectObjectsDocument,
-  GetProjectTexturesDocument,
-} from '@repo/graphql/generated';
-import {
   EmptyState,
   ErrorState,
   PageHeader,
   Panel,
-} from '../../../../components/ui';
-import { resolveImageUrl } from '../../../../lib/env';
-import { createProjectClient } from '../../../../lib/graphql';
-import { getProjectSession } from '../../../../lib/session-server';
+} from '@/components/ui';
+import { graphRequest } from '@repo/product-graph';
+import {
+  LIBRARY_FOLDERS_QUERY,
+  MATERIAL_ASSETS_QUERY,
+  OBJECT_ASSETS_QUERY,
+  TEXTURE_ASSETS_QUERY,
+} from '@repo/product-graph';
+import { getProjectSession } from '@/lib/session-server';
 
 export default async function LibraryPage({
   params,
@@ -22,40 +23,48 @@ export default async function LibraryPage({
   const project = await getProjectSession();
   if (!project) return null;
 
+  const errors: string[] = [];
+  let folders: Array<{ id: string; name: string }> = [];
+  let materials: Array<{ id: string; name: string; code?: string | null }> =
+    [];
   let textureCount = 0;
   let objectCount = 0;
-  const errors: string[] = [];
-  let textures: Array<{
-    id: string | number;
-    name?: string | null;
-    code?: string | null;
-    ProductMedium?: { Image_URL?: string | null } | null;
-  }> = [];
 
-  const client = createProjectClient(projectId, project.projectToken);
-  const [textureResult, objectResult] = await Promise.allSettled([
-    client.project(GetProjectTexturesDocument),
-    client.project(GetProjectObjectsDocument),
-  ]);
-
-  if (textureResult.status === 'fulfilled') {
-    textures = (textureResult.value.gettexture ?? []).slice(0, 8);
-    textureCount = textureResult.value.gettexture?.length ?? 0;
-  } else {
+  try {
+    const [folderData, materialData, textureData, objectData] =
+      await Promise.all([
+        graphRequest<{
+          libraryFolders: Array<{ id: string; name: string }>;
+        }>(
+          LIBRARY_FOLDERS_QUERY,
+          { projectId, parentId: null },
+          project.projectToken
+        ),
+        graphRequest<{
+          materialAssets: Array<{
+            id: string;
+            name: string;
+            code?: string | null;
+          }>;
+        }>(MATERIAL_ASSETS_QUERY, { projectId }, project.projectToken),
+        graphRequest<{ textureAssets: Array<{ id: string }> }>(
+          TEXTURE_ASSETS_QUERY,
+          { projectId },
+          project.projectToken
+        ),
+        graphRequest<{ objectAssets: Array<{ id: string }> }>(
+          OBJECT_ASSETS_QUERY,
+          { projectId },
+          project.projectToken
+        ),
+      ]);
+    folders = folderData.libraryFolders;
+    materials = materialData.materialAssets;
+    textureCount = textureData.textureAssets.length;
+    objectCount = objectData.objectAssets.length;
+  } catch (error) {
     errors.push(
-      textureResult.reason instanceof Error
-        ? textureResult.reason.message
-        : 'Failed to load textures.'
-    );
-  }
-
-  if (objectResult.status === 'fulfilled') {
-    objectCount = objectResult.value.getObject?.length ?? 0;
-  } else {
-    errors.push(
-      objectResult.reason instanceof Error
-        ? objectResult.reason.message
-        : 'Failed to load objects.'
+      error instanceof Error ? error.message : 'Failed to load library.'
     );
   }
 
@@ -63,7 +72,7 @@ export default async function LibraryPage({
     <div>
       <PageHeader
         title="Asset library"
-        description="Textures and 3D objects available to this project."
+        description="Folders, materials, textures, and objects for this project."
         actions={
           <div className="flex gap-2">
             <Link
@@ -86,33 +95,40 @@ export default async function LibraryPage({
           <ErrorState message={message} />
         </div>
       ))}
-      {errors.length === 0 && textures.length === 0 ? (
-        <EmptyState message="No textures yet. Open the textures view to manage assets." />
-      ) : null}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {textures.map((texture) => {
-          const image = resolveImageUrl(texture.ProductMedium?.Image_URL);
-          return (
-            <Panel key={String(texture.id)} className="overflow-hidden p-0">
-              <div className="aspect-square bg-[var(--bo-surface)]">
-                {image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={image}
-                    alt={texture.name ?? ''}
-                    className="h-full w-full object-cover"
-                  />
-                ) : null}
-              </div>
-              <div className="p-3">
-                <p className="font-medium">{texture.name}</p>
+      <div className="mb-8">
+        <h3 className="mb-3 text-sm font-medium text-[var(--bo-muted)]">
+          Folders ({folders.length})
+        </h3>
+        {folders.length === 0 && errors.length === 0 ? (
+          <EmptyState message="No folders yet." />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {folders.map((folder) => (
+              <Panel key={folder.id}>
+                <p className="font-medium">{folder.name}</p>
+              </Panel>
+            ))}
+          </div>
+        )}
+      </div>
+      <div>
+        <h3 className="mb-3 text-sm font-medium text-[var(--bo-muted)]">
+          Materials ({materials.length})
+        </h3>
+        {materials.length === 0 && errors.length === 0 ? (
+          <EmptyState message="No materials yet." />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {materials.map((material) => (
+              <Panel key={material.id}>
+                <p className="font-medium">{material.name}</p>
                 <p className="text-xs text-[var(--bo-muted)]">
-                  {texture.code || 'No code'}
+                  {material.code || 'No code'}
                 </p>
-              </div>
-            </Panel>
-          );
-        })}
+              </Panel>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

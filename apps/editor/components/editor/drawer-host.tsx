@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorStore, type DrawerId } from '../../lib/editor-store';
+import { useEditorStore, type DrawerId } from '@/lib/editor-store';
 
 const TITLES: Record<Exclude<DrawerId, null>, string> = {
   materials: 'Material library',

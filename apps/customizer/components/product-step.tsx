@@ -1,7 +1,7 @@
 'use client';
 
 import { ExperiencePanel } from '@repo/customizer-ui';
-import { useConfiguration } from '../providers/configuration-provider';
+import { useConfiguration } from '@/providers/configuration-provider';
 
 export function ProductStep() {
   const { state } = useConfiguration();

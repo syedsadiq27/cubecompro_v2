@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation';
-import { ProjectShell } from '../../../components/shell/project-shell';
-import {
-  getProjectSession,
-  getSessionUser,
-} from '../../../lib/session-server';
+import { ProjectShell } from '@/components/shell/project-shell';
+import { requireAuthenticatedUser } from '@/lib/require-auth';
+import { getProjectSession } from '@/lib/session-server';
 
 export default async function ProjectLayout({
   children,
@@ -13,8 +11,7 @@ export default async function ProjectLayout({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
-  const user = await getSessionUser();
-  if (!user) redirect('/login');
+  const user = await requireAuthenticatedUser();
 
   const project = await getProjectSession();
   if (!project || project.projectId !== projectId) {

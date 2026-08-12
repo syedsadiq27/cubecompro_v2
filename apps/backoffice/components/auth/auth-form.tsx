@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import type { ActionResult } from '../../actions/auth';
+import type { ActionResult } from '@/actions/auth';
 
 const initial: ActionResult = { ok: false };
 
@@ -34,7 +34,7 @@ export function AuthForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-[var(--bo-ink)] px-4 py-3 text-sm font-medium text-white transition hover:bg-black disabled:opacity-60"
+        className="w-full bo-btn-primary rounded-xl px-4 py-3 text-sm font-medium transition disabled:opacity-60"
       >
         {pending ? 'Please wait…' : submitLabel}
       </button>

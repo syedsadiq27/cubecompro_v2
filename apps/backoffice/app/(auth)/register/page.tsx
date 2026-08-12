@@ -1,6 +1,6 @@
-import { registerAction } from '../../../actions/auth';
-import { AuthForm, Field } from '../../../components/auth/auth-form';
-import { AuthShell } from '../../../components/auth/auth-shell';
+import { registerAction } from '@/actions/auth';
+import { AuthForm, Field } from '@/components/auth/auth-form';
+import { AuthShell } from '@/components/auth/auth-shell';
 
 export default function RegisterPage() {
   return (

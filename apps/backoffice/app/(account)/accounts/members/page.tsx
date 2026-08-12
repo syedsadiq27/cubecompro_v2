@@ -1,45 +1,48 @@
 import {
-  GetAllUsersDocument,
-  GetOrganizationsByUserIdDocument,
-} from '@repo/graphql/generated';
-import { inviteUserAction } from '../../../../actions/teams';
-import { InviteForm } from '../../../../components/account/invite-form';
-import {
   EmptyState,
   ErrorState,
   PageHeader,
   Panel,
-} from '../../../../components/ui';
-import { createGlobalClient } from '../../../../lib/graphql';
-import { getSessionUser } from '../../../../lib/session-server';
+} from '@/components/ui';
+import { graphRequest } from '@repo/product-graph';
+import {
+  ME_QUERY,
+  ORGANIZATION_MEMBERS_QUERY,
+} from '@repo/product-graph';
+import { getSessionUser } from '@/lib/session-server';
 
 export default async function MembersPage() {
   const user = await getSessionUser();
   if (!user) return null;
 
   let error: string | null = null;
-  let users: Array<{
-    id: string | number;
-    email?: string | null;
-    firstname?: string | null;
-    lastname?: string | null;
-    role?: string | null;
+  let members: Array<{
+    id: string;
+    email: string;
+    name?: string | null;
+    roleName: string;
   }> = [];
-  let organizationId = '';
-  let userGroupId = '';
 
   try {
-    const client = createGlobalClient(user.token);
-    const [usersData, orgsData] = await Promise.all([
-      client.global(GetAllUsersDocument),
-      client.global(GetOrganizationsByUserIdDocument, { id: user.userId }),
-    ]);
-    users = usersData.allUsers ?? [];
-    const org = orgsData.getOrganizationByUserId?.[0];
-    organizationId = org?.id ? String(org.id) : '';
-    userGroupId = org?.usergroups?.[0]?.id
-      ? String(org.usergroups[0].id)
-      : '';
+    const me = await graphRequest<{
+      me: { organizationId?: string | null };
+    }>(ME_QUERY, undefined, user.token);
+    const organizationId = me.me.organizationId;
+    if (organizationId) {
+      const data = await graphRequest<{
+        organizationMembers: Array<{
+          id: string;
+          email: string;
+          name?: string | null;
+          roleName: string;
+        }>;
+      }>(
+        ORGANIZATION_MEMBERS_QUERY,
+        { organizationId },
+        user.token
+      );
+      members = data.organizationMembers;
+    }
   } catch (err) {
     error = err instanceof Error ? err.message : 'Failed to load members.';
   }
@@ -48,7 +51,7 @@ export default async function MembersPage() {
     <div>
       <PageHeader
         title="Members"
-        description="Users visible to this account and invite flow."
+        description="Organization memberships from CubeCom."
       />
       {error ? <ErrorState message={error} /> : null}
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -56,35 +59,25 @@ export default async function MembersPage() {
           <h3 className="mb-4 text-sm font-semibold tracking-wide uppercase">
             Invite user
           </h3>
-          {organizationId && userGroupId ? (
-            <InviteForm
-              organizationId={organizationId}
-              userGroupId={userGroupId}
-              action={inviteUserAction}
-            />
-          ) : (
-            <p className="text-sm text-[var(--bo-muted)]">
-              Join an organization with a user group before inviting members.
-            </p>
-          )}
+          <p className="text-sm text-[var(--bo-muted)]">
+            Member invites are not enabled on CubeCom API yet.
+          </p>
         </Panel>
         <div className="space-y-3">
-          {!error && users.length === 0 ? (
-            <EmptyState message="No users returned." />
+          {!error && members.length === 0 ? (
+            <EmptyState message="No members returned." />
           ) : null}
-          {users.map((member) => (
+          {members.map((member) => (
             <Panel
-              key={String(member.id)}
+              key={member.id}
               className="flex items-center justify-between gap-4"
             >
               <div>
                 <h3 className="font-semibold">
-                  {[member.firstname, member.lastname]
-                    .filter(Boolean)
-                    .join(' ') || member.email}
+                  {member.name || member.email}
                 </h3>
                 <p className="text-sm text-[var(--bo-muted)]">
-                  {member.email} · {member.role || 'no role'}
+                  {member.email} · {member.roleName}
                 </p>
               </div>
             </Panel>

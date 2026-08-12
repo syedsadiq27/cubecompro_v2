@@ -1,15 +1,10 @@
-import { registerInspectorStep } from '../../../lib/inspector/registry';
-import type { InspectorStep } from '../../../lib/inspector/types';
+import { registerInspectorStep } from '@/lib/inspector/registry';
+import type { InspectorStep } from '@/lib/inspector/types';
 import {
   CameraStep,
-  ColorStep,
-  CommerceStep,
-  DecorationStep,
   EnvironmentStep,
   GeometryStep,
-  LocationStep,
   MaterialStep,
-  RulesStep,
   SceneStep,
   ShadowStep,
   TextureStep,
@@ -24,80 +19,6 @@ export function ensureInspectorStepsRegistered() {
   registered = true;
 
   const steps: InspectorStep[] = [
-    {
-      id: 'location',
-      label: 'Location',
-      description: 'Placement & region',
-      group: 'configure',
-      contexts: ['model'],
-      getStatus: () => ({ kind: 'complete' }),
-      getSummary: () => 'Placement & region',
-      render: (ctx) => <LocationStep ctx={ctx} />,
-    },
-    {
-      id: 'color',
-      label: 'Color',
-      description: 'Library & custom',
-      group: 'configure',
-      contexts: ['model'],
-      getStatus: () => ({ kind: 'count', value: 3 }),
-      getSummary: () => '3 values',
-      render: (ctx) => <ColorStep ctx={ctx} />,
-    },
-    {
-      id: 'material',
-      label: 'Material',
-      description: 'Assignment & PBR',
-      group: 'configure',
-      contexts: ['model'],
-      getStatus: (ctx) =>
-        ctx.document?.materialCount
-          ? { kind: 'complete' }
-          : { kind: 'empty' },
-      getSummary: (ctx) =>
-        ctx.document?.materialCount
-          ? `${ctx.document.materialCount} materials`
-          : undefined,
-      render: (ctx) => <MaterialStep ctx={ctx} />,
-    },
-    {
-      id: 'decoration',
-      label: 'Decorations',
-      description: 'Artwork & method',
-      group: 'configure',
-      contexts: ['model'],
-      getStatus: () => ({ kind: 'empty' }),
-      getSummary: () => '1 artwork',
-      render: (ctx) => <DecorationStep ctx={ctx} />,
-    },
-    {
-      id: 'rules',
-      label: 'Rules',
-      description: 'Mapped values',
-      group: 'configure',
-      contexts: ['model'],
-      getStatus: (ctx) =>
-        ctx.document?.ruleCount
-          ? { kind: 'count', value: ctx.document.ruleCount }
-          : { kind: 'empty' },
-      getSummary: (ctx) =>
-        ctx.document?.ruleCount
-          ? `${ctx.document.ruleCount} rules`
-          : undefined,
-      render: (ctx) => <RulesStep ctx={ctx} />,
-    },
-    {
-      id: 'commerce',
-      label: 'Commerce',
-      description: 'SKU & options',
-      group: 'configure',
-      contexts: ['model'],
-      getStatus: (ctx) =>
-        ctx.document?.modelSku ? { kind: 'complete' } : { kind: 'warning' },
-      getSummary: (ctx) =>
-        ctx.document?.modelSku ? `SKU ${ctx.document.modelSku}` : undefined,
-      render: (ctx) => <CommerceStep ctx={ctx} />,
-    },
     {
       id: 'transform',
       label: 'Transform',
@@ -131,16 +52,6 @@ export function ensureInspectorStepsRegistered() {
       render: (ctx) => <GeometryStep ctx={ctx} />,
     },
     {
-      id: 'color-object',
-      label: 'Color',
-      description: 'Library & custom',
-      group: 'appearance',
-      contexts: ['object', 'decoration'],
-      getStatus: () => ({ kind: 'count', value: 3 }),
-      getSummary: () => '3 values',
-      render: (ctx) => <ColorStep ctx={ctx} />,
-    },
-    {
       id: 'material-object',
       label: 'Material',
       description: 'Assignment & PBR',
@@ -167,49 +78,6 @@ export function ensureInspectorStepsRegistered() {
       contexts: ['object'],
       getStatus: () => ({ kind: 'complete' }),
       render: (ctx) => <ShadowStep ctx={ctx} />,
-    },
-    {
-      id: 'location-object',
-      label: 'Location',
-      description: 'Placement & region',
-      group: 'configure',
-      contexts: ['object', 'decoration'],
-      getStatus: () => ({ kind: 'complete' }),
-      getSummary: () => 'Placement & region',
-      render: (ctx) => <LocationStep ctx={ctx} />,
-    },
-    {
-      id: 'decoration-object',
-      label: 'Decoration',
-      description: 'Artwork & method',
-      group: 'configure',
-      contexts: ['object', 'decoration'],
-      getStatus: () => ({ kind: 'empty' }),
-      render: (ctx) => <DecorationStep ctx={ctx} />,
-    },
-    {
-      id: 'rules-object',
-      label: 'Rules',
-      description: 'Mapped values',
-      group: 'configure',
-      contexts: ['object', 'decoration'],
-      getStatus: (ctx) =>
-        ctx.document?.ruleCount
-          ? { kind: 'count', value: ctx.document.ruleCount }
-          : { kind: 'empty' },
-      render: (ctx) => <RulesStep ctx={ctx} />,
-    },
-    {
-      id: 'commerce-object',
-      label: 'Commerce',
-      description: 'SKU & options',
-      group: 'commerce',
-      contexts: ['object'],
-      getStatus: (ctx) =>
-        ctx.document?.modelSku ? { kind: 'complete' } : { kind: 'warning' },
-      getSummary: (ctx) =>
-        ctx.document?.modelSku ? `SKU ${ctx.document.modelSku}` : undefined,
-      render: (ctx) => <CommerceStep ctx={ctx} />,
     },
     {
       id: 'scene',

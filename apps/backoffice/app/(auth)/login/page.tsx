@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { loginAction } from '../../../actions/auth';
-import { AuthForm, Field } from '../../../components/auth/auth-form';
-import { AuthShell } from '../../../components/auth/auth-shell';
+import { loginAction } from '@/actions/auth';
+import { AuthForm, Field } from '@/components/auth/auth-form';
+import { AuthShell } from '@/components/auth/auth-shell';
 
 export default function LoginPage() {
   return (

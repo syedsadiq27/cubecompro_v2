@@ -1,12 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { graphRequest } from '@repo/product-graph';
 import {
-  DeleteObjectDocument,
-  DeleteTextureDocument,
-} from '@repo/graphql/generated';
-import { createProjectClient } from '../lib/graphql';
-import { getProjectSession } from '../lib/session-server';
+  DELETE_OBJECT_ASSET_MUTATION,
+  DELETE_TEXTURE_ASSET_MUTATION,
+} from '@repo/product-graph';
+import { getProjectSession } from '@/lib/session-server';
 
 export async function deleteTextureAction(
   projectId: string,
@@ -18,8 +18,11 @@ export async function deleteTextureAction(
   }
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    await client.project(DeleteTextureDocument, { id: textureId });
+    await graphRequest(
+      DELETE_TEXTURE_ASSET_MUTATION,
+      { id: textureId },
+      project.projectToken
+    );
     revalidatePath(`/${projectId}/library/textures`);
     revalidatePath(`/${projectId}/library`);
     return { ok: true };
@@ -38,8 +41,11 @@ export async function deleteObjectAction(projectId: string, objectId: string) {
   }
 
   try {
-    const client = createProjectClient(projectId, project.projectToken);
-    await client.project(DeleteObjectDocument, { id: objectId });
+    await graphRequest(
+      DELETE_OBJECT_ASSET_MUTATION,
+      { id: objectId },
+      project.projectToken
+    );
     revalidatePath(`/${projectId}/library/objects`);
     revalidatePath(`/${projectId}/library`);
     return { ok: true };

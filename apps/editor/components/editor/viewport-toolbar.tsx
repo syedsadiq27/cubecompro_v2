@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorStore, type ToolMode } from '../../lib/editor-store';
+import { useEditorStore, type ToolMode } from '@/lib/editor-store';
 
 const TOOLS: Array<{ id: ToolMode; label: string; hint: string }> = [
   { id: 'select', label: 'Select', hint: 'V' },

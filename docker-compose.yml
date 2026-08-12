@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cubecom-pg
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: cubecom
+      POSTGRES_PASSWORD: cubecom
+      POSTGRES_DB: cubecom
+    volumes:
+      - cubecom_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cubecom -d cubecom']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: cubecom-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - cubecom_redis_data:/data
+    command: ['redis-server', '--appendonly', 'yes']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: cubecom-pgadmin
+    restart: unless-stopped
+    ports:
+      - '5050:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cubecom.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_CHECK_EMAIL_DELIVERABILITY: 'False'
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: 'True'
+    volumes:
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./docker/pgadmin/pgpass:/pgpass:ro
+      - cubecom_pgadmin_data:/var/lib/pgadmin
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cp /pgpass /tmp/pgpass
+        chmod 600 /tmp/pgpass
+        chown pgadmin:root /tmp/pgpass
+        /entrypoint.sh
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  cubecom_pg_data:
+  cubecom_redis_data:
+  cubecom_pgadmin_data:

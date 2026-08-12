@@ -9,12 +9,14 @@ import type {
   ProductCamera,
   ProductObjectAsset,
   ProductTexture,
-} from './api/model';
+} from './model-types';
 import type {
   ActiveConfigValues,
   ConfigSelection,
   ProductConfiguration,
 } from './configuration';
+import type { GraphDetail, GraphSessionAuth } from '@repo/product-graph';
+import { defaultPreviewSelections } from './preview-configuration';
 import { ENVIRONMENT_MAP_URL } from './constants';
 import { disposeModelLoaders, loadModel } from './load-model';
 import {
@@ -97,6 +99,9 @@ type EditorState = EditorIds & {
   configuration: ProductConfiguration | null;
   activeConfigValues: ActiveConfigValues;
   configSelection: ConfigSelection | null;
+  graphAuth: GraphSessionAuth | null;
+  graphDetail: GraphDetail | null;
+  previewSelections: Record<string, string>;
   drawer: DrawerId;
   modal: ModalId;
   inspectorStepId: string | null;
@@ -131,6 +136,10 @@ type EditorState = EditorIds & {
   setStatusMessage: (statusMessage: string | null) => void;
   setOutlineNodes: (outlineNodes: THREE.Object3D[]) => void;
   setDocument: (document: EditorDocument | null) => void;
+  setGraphAuth: (graphAuth: GraphSessionAuth | null) => void;
+  setGraphDetail: (graphDetail: GraphDetail | null) => void;
+  setPreviewSelection: (attributeId: string, valueId: string) => void;
+  resetPreviewSelections: () => void;
   openDrawer: (drawer: DrawerId) => void;
   closeDrawer: () => void;
   openModal: (modal: ModalId) => void;
@@ -158,6 +167,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   configuration: null,
   activeConfigValues: {},
   configSelection: null,
+  graphAuth: null,
+  graphDetail: null,
+  previewSelections: {},
   drawer: null,
   modal: null,
   inspectorStepId: null,
@@ -308,6 +320,23 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       outlineRevision: state.outlineRevision + 1,
     })),
   setDocument: (document) => set({ document, dirty: false }),
+  setGraphAuth: (graphAuth) => set({ graphAuth }),
+  setGraphDetail: (graphDetail) =>
+    set({
+      graphDetail,
+      previewSelections: defaultPreviewSelections(graphDetail),
+    }),
+  setPreviewSelection: (attributeId, valueId) =>
+    set((state) => ({
+      previewSelections: {
+        ...state.previewSelections,
+        [attributeId]: valueId,
+      },
+    })),
+  resetPreviewSelections: () =>
+    set((state) => ({
+      previewSelections: defaultPreviewSelections(state.graphDetail),
+    })),
   openDrawer: (drawer) => set({ drawer }),
   closeDrawer: () => set({ drawer: null }),
   openModal: (modal) => set({ modal }),
@@ -329,6 +358,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       embedded: false,
       returnTo: undefined,
       inspectorStepId: null,
+      previewSelections: {},
     }),
 }));
 
@@ -409,10 +439,16 @@ function resolveSelectable(
   productRoot: THREE.Object3D
 ): THREE.Object3D | null {
   let current: THREE.Object3D | null = hit;
-  while (current && current.parent !== productRoot) {
+  while (current && current !== productRoot) {
+    if (current.name?.trim()) return current;
     current = current.parent;
   }
-  return current && current.parent === productRoot ? current : null;
+  let walk: THREE.Object3D | null = hit;
+  while (walk && walk.parent && walk.parent !== productRoot) {
+    walk = walk.parent;
+  }
+  if (walk && walk.parent === productRoot) return walk;
+  return hit !== productRoot ? hit : null;
 }
 
 function countMeshes(root: THREE.Object3D): number {
@@ -667,7 +703,11 @@ export function createEditorRuntime(container: HTMLElement): EditorRuntime {
     );
 
     for (const asset of assets) {
-      const loaded = await loadModel(asset.url);
+      const auth = useEditorStore.getState().graphAuth;
+      const headers = auth
+        ? { Authorization: `Bearer ${auth.token}` }
+        : undefined;
+      const loaded = await loadModel(asset.url, headers);
       loaded.visible = asset.visible;
       if (asset.code) {
         loaded.userData.code = asset.code;

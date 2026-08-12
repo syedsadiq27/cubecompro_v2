@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CubeWordmark } from './brand';
-import { NAV } from '../lib/nav';
+import { NAV } from '@/lib/nav';
 
 function isActive(pathname: string, href: string) {
   if (href === '/') return pathname === '/';

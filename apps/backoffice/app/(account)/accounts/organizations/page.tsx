@@ -1,31 +1,51 @@
-import { GetOrganizationsByUserIdDocument } from '@repo/graphql/generated';
 import {
   EmptyState,
   ErrorState,
   PageHeader,
   Panel,
-} from '../../../../components/ui';
-import { createGlobalClient } from '../../../../lib/graphql';
-import { getSessionUser } from '../../../../lib/session-server';
+} from '@/components/ui';
+import { graphRequest } from '@repo/product-graph';
+import {
+  ME_QUERY,
+  ORGANIZATION_QUERY,
+  ORGANIZATION_ROLES_QUERY,
+} from '@repo/product-graph';
+import { getSessionUser } from '@/lib/session-server';
 
 export default async function OrganizationsPage() {
   const user = await getSessionUser();
   if (!user) return null;
 
   let error: string | null = null;
-  let organizations: Array<{
-    id: string | number;
-    name?: string | null;
-    active?: boolean | null;
-    usergroups?: Array<{ id: string | number; name?: string | null }> | null;
-  }> = [];
+  let organization: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null = null;
+  let roles: Array<{ id: string; name: string }> = [];
 
   try {
-    const client = createGlobalClient(user.token);
-    const data = await client.global(GetOrganizationsByUserIdDocument, {
-      id: user.userId,
-    });
-    organizations = data.getOrganizationByUserId ?? [];
+    const me = await graphRequest<{
+      me: { organizationId?: string | null };
+    }>(ME_QUERY, undefined, user.token);
+
+    const organizationId = me.me.organizationId;
+    if (organizationId) {
+      const [orgData, rolesData] = await Promise.all([
+        graphRequest<{
+          organization: { id: string; name: string; slug: string };
+        }>(ORGANIZATION_QUERY, { id: organizationId }, user.token),
+        graphRequest<{
+          organizationRoles: Array<{ id: string; name: string }>;
+        }>(
+          ORGANIZATION_ROLES_QUERY,
+          { organizationId },
+          user.token
+        ),
+      ]);
+      organization = orgData.organization;
+      roles = rolesData.organizationRoles;
+    }
   } catch (err) {
     error =
       err instanceof Error ? err.message : 'Failed to load organizations.';
@@ -35,28 +55,27 @@ export default async function OrganizationsPage() {
     <div>
       <PageHeader
         title="Organizations"
-        description="Organizations associated with your account."
+        description="Organization associated with your account."
       />
       {error ? <ErrorState message={error} /> : null}
-      {!error && organizations.length === 0 ? (
+      {!error && !organization ? (
         <EmptyState message="No organizations found." />
       ) : null}
-      <div className="grid gap-4 md:grid-cols-2">
-        {organizations.map((org) => (
-          <Panel key={String(org.id)}>
-            <h3 className="text-lg font-semibold">{org.name}</h3>
+      {organization ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Panel>
+            <h3 className="text-lg font-semibold">{organization.name}</h3>
             <p className="mt-1 text-sm text-[var(--bo-muted)]">
-              {org.active === false ? 'Inactive' : 'Active'} ·{' '}
-              {org.usergroups?.length ?? 0} teams
+              {organization.slug} · {roles.length} roles
             </p>
             <ul className="mt-4 space-y-1 text-sm text-[var(--bo-muted)]">
-              {(org.usergroups ?? []).map((group) => (
-                <li key={String(group.id)}>{group.name}</li>
+              {roles.map((role) => (
+                <li key={role.id}>{role.name}</li>
               ))}
             </ul>
           </Panel>
-        ))}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

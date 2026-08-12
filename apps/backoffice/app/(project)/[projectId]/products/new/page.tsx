@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { PageHeader, Panel } from '../../../../../components/ui';
+import { createProductAction } from '@/actions/products';
+import { PageHeader, Panel } from '@/components/ui';
+import { CreateProductForm } from '@/components/products/create-product-form';
 
 export default async function NewProductPage({
   params,
@@ -12,14 +14,10 @@ export default async function NewProductPage({
     <div>
       <PageHeader
         title="Add product"
-        description="Full product creation with media upload lands with the multipart GraphQL client. Use metadata editing on existing products for now."
+        description="Creates a product with an empty draft configuration graph."
       />
       <Panel className="space-y-4">
-        <p className="text-sm text-[var(--bo-muted)]">
-          Create-with-upload requires the GraphQL multipart boundary (files /
-          textures). That integration is staged after the typed JSON client
-          and will attach to this route.
-        </p>
+        <CreateProductForm projectId={projectId} action={createProductAction} />
         <Link
           href={`/${projectId}/products`}
           className="inline-flex rounded-xl border border-[var(--bo-line)] px-4 py-2 text-sm"
