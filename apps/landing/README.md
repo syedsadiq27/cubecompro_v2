@@ -31,11 +31,13 @@ Runs on [http://localhost:3004](http://localhost:3004) (docs stays on `3000`).
 
 Sofa on Stage: [/demo](http://localhost:3004/demo).
 
-## Env (optional)
+## Env
+
+Contact posts to a Google Form (sheet-backed). Copy `.env.example` to `.env.local`.
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_GOOGLE_FORM_ACTION_URL` | Contact form submit endpoint |
-| `NEXT_PUBLIC_GOOGLE_FORM_ENTRY_*` | Google Form entry field IDs |
+| `NEXT_PUBLIC_GOOGLE_FORM_ACTION_URL` | Google Form `formResponse` URL |
+| `NEXT_PUBLIC_GOOGLE_FORM_ENTRY_*` | Entry field IDs for name, email, company, interest, message |
 
-Without a Google Form URL, contact falls back to `mailto:hello@cubecompro.com`.
+Set the same vars in Netlify (or your host) for production builds.

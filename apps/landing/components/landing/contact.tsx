@@ -40,7 +40,8 @@ function isInterest(value: string | null): value is Interest {
 }
 
 const FORM_ACTION =
-  process.env.NEXT_PUBLIC_GOOGLE_FORM_ACTION_URL ?? '';
+  process.env.NEXT_PUBLIC_GOOGLE_FORM_ACTION_URL ??
+  'https://docs.google.com/forms/d/e/1FAIpQLSfwtbtFa3lTY6zwicYrRVMes_fO5BettdFGuCIUGbIsr8PjpQ/formResponse';
 
 const ENTRIES = {
   name: process.env.NEXT_PUBLIC_GOOGLE_FORM_ENTRY_NAME ?? 'entry.435239021',
@@ -54,44 +55,25 @@ const ENTRIES = {
 };
 
 async function submitForm(values: FormState) {
-  if (FORM_ACTION) {
-    const body = new URLSearchParams();
-    body.set(ENTRIES.name, values.name);
-    body.set(ENTRIES.email, values.email);
-    body.set(ENTRIES.company, values.company);
-    body.set(ENTRIES.interest, interestLabels[values.interest]);
-    body.set(
-      ENTRIES.message,
-      values.message ||
-        'I’d like a CubeCom session to map our catalog, option rules, and commerce path.'
-    );
-
-    await fetch(FORM_ACTION, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body,
-    });
-    return;
-  }
-
-  const subject = encodeURIComponent(
-    `CubeCom Pro — ${interestLabels[values.interest]}`
+  const body = new URLSearchParams();
+  body.set(ENTRIES.name, values.name);
+  body.set(ENTRIES.email, values.email);
+  body.set(ENTRIES.company, values.company);
+  body.set(ENTRIES.interest, interestLabels[values.interest]);
+  body.set(
+    ENTRIES.message,
+    values.message ||
+      'I’d like a CubeCom session to map our catalog, option rules, and commerce path.'
   );
-  const body = encodeURIComponent(
-    [
-      `Name: ${values.name}`,
-      `Email: ${values.email}`,
-      `Company: ${values.company}`,
-      `Interest: ${interestLabels[values.interest]}`,
-      '',
-      values.message ||
-        'I’d like a CubeCom session to map our catalog, option rules, and commerce path.',
-    ].join('\n')
-  );
-  window.location.href = `mailto:${SITE_EMAIL}?subject=${subject}&body=${body}`;
+
+  await fetch(FORM_ACTION, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body,
+  });
 }
 
 function ContactForm() {
