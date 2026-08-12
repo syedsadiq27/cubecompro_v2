@@ -1,4 +1,4 @@
-import { whyReasons } from '../../lib/content';
+import { whyReasons } from '@/lib/content';
 
 export function Why3d() {
   return (

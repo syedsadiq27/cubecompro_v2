@@ -1,4 +1,4 @@
-import type { SeoFaqItem } from '../../lib/seo-pages';
+import type { SeoFaqItem } from '@/lib/seo-pages';
 
 export function SeoFaq({
   items,

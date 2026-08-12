@@ -1,4 +1,4 @@
-import { howItWorksFlow, howItWorksSteps } from '../../lib/content';
+import { howItWorksFlow, howItWorksSteps } from '@/lib/content';
 
 export function StageStory() {
   return (

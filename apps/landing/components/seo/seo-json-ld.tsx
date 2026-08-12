@@ -1,5 +1,5 @@
-import { SITE_NAME, SITE_URL } from '../../lib/site';
-import type { SeoFaqItem, SeoPageDef } from '../../lib/seo-pages';
+import { SITE_NAME, SITE_URL } from '@/lib/site';
+import type { SeoFaqItem, SeoPageDef } from '@/lib/seo-pages';
 
 export function SeoJsonLd({
   page,

@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { getSeoBody } from '../../lib/seo-bodies';
-import { getSeoPage } from '../../lib/seo-pages';
+import { getSeoBody } from '@/lib/seo-bodies';
+import { getSeoPage } from '@/lib/seo-pages';
 import { SeoCta } from './seo-cta';
 import { SeoFaq } from './seo-faq';
 import { SeoJsonLd } from './seo-json-ld';

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { SeoPageDef } from '../../lib/seo-pages';
+import type { SeoPageDef } from '@/lib/seo-pages';
 
 export function SeoRelated({ page }: { page: SeoPageDef }) {
   return (

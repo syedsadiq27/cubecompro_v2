@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { plans } from '../../lib/content';
+import { plans } from '@/lib/content';
 
 export function Pricing() {
   return (

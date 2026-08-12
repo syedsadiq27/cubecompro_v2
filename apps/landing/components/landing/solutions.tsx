@@ -1,4 +1,4 @@
-import { solutions } from '../../lib/content';
+import { solutions } from '@/lib/content';
 
 export function Solutions() {
   return (

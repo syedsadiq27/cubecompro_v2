@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { Wordmark } from '@repo/ui/wordmark';
-import { nav } from '../../lib/content';
-import { seoPages } from '../../lib/seo-pages';
-import { SITE_EMAIL } from '../../lib/site';
+import { nav } from '@/lib/content';
+import { seoPages } from '@/lib/seo-pages';
+import { SITE_EMAIL } from '@/lib/site';
 
 export function SiteFooter() {
   return (

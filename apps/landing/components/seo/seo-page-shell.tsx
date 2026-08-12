@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import type { SeoPageDef } from '../../lib/seo-pages';
+import type { SeoPageDef } from '@/lib/seo-pages';
 
 export function SeoPageShell({
   page,

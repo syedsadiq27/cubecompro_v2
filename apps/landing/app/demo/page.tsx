@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import {
   ConfiguratorShell,
   configurationFromShareId,
-} from '../../components/demo/sofa';
+} from '@/components/demo/sofa';
 
 function DemoPageInner() {
   const searchParams = useSearchParams();

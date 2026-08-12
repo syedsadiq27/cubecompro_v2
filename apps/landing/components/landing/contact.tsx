@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
-import { SITE_EMAIL } from '../../lib/site';
+import { SITE_EMAIL } from '@/lib/site';
 
 type Interest =
   | 'solution-session'
@@ -28,11 +28,11 @@ const initial: FormState = {
 };
 
 const interestLabels: Record<Interest, string> = {
-  'solution-session': 'CubeCom session — map our catalog',
-  starter: 'Starter — founding plan',
-  pro: 'Pro — founding plan',
+  'solution-session': 'Free 30-min solution session',
+  starter: 'Starter — founding $49/mo',
+  pro: 'Pro — founding $149/mo',
   enterprise: 'Enterprise / custom',
-  addons: 'Add-ons (decoration / image generation)',
+  addons: 'Add-ons or usage credits',
 };
 
 function isInterest(value: string | null): value is Interest {

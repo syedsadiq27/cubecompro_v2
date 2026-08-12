@@ -1,4 +1,4 @@
-import { faqs } from '../../lib/content';
+import { faqs } from '@/lib/content';
 
 export function Faq() {
   return (

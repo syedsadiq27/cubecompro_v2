@@ -1,5 +1,5 @@
-import { faqs } from '../../lib/content';
-import { SITE_DESCRIPTION, SITE_EMAIL, SITE_NAME, SITE_URL } from '../../lib/site';
+import { faqs } from '@/lib/content';
+import { SITE_DESCRIPTION, SITE_EMAIL, SITE_NAME, SITE_URL } from '@/lib/site';
 
 export function HomeJsonLd() {
   const organization = {

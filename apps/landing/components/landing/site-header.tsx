@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Wordmark } from '@repo/ui/wordmark';
-import { nav } from '../../lib/content';
+import { nav } from '@/lib/content';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);

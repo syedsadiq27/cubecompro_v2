@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Inter_Tight } from 'next/font/google';
 import { GeistMono } from 'geist/font/mono';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../lib/site';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import '@repo/ui/styles.css';
 import './globals.css';
 
