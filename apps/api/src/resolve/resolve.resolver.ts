@@ -41,6 +41,8 @@ export class ResolveResolver {
           nodePath: effect.nodePath,
           operation: effect.operation,
           valueJson: JSON.stringify(effect.value),
+          materialAssetId: effect.materialAssetId ?? null,
+          documentUrl: effect.documentUrl ?? null,
         })),
       },
       commerce: {

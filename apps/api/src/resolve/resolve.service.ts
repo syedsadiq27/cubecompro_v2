@@ -26,6 +26,8 @@ export type ResolvedConfiguration = {
       nodePath: string | null;
       operation: VisualOperation;
       value: unknown;
+      materialAssetId?: string | null;
+      documentUrl?: string | null;
     }>;
   };
   commerce: {
@@ -143,12 +145,30 @@ export class ResolveService {
         if (!selectedValueIds.has(effect.attributeValueId)) continue;
         const target = targetById.get(effect.modelTargetId);
         if (!target) continue;
+
+        if (effect.operation === VisualOperation.SET_MATERIAL) {
+          const materialAssetId = readMaterialAssetId(effect.value);
+          if (!materialAssetId) continue;
+          threeD.effects.push({
+            targetKey: target.key,
+            targetType: target.targetType,
+            nodePath: target.nodePath ?? null,
+            operation: effect.operation,
+            value: { materialAssetId },
+            materialAssetId,
+            documentUrl: publicMaterialUrl(materialAssetId),
+          });
+          continue;
+        }
+
         threeD.effects.push({
           targetKey: target.key,
           targetType: target.targetType,
           nodePath: target.nodePath ?? null,
           operation: effect.operation,
           value: effect.value,
+          materialAssetId: null,
+          documentUrl: null,
         });
       }
 
@@ -193,6 +213,27 @@ export class ResolveService {
       graphVersion: versionMeta.version,
     };
   }
+}
+
+function publicMaterialUrl(id: string) {
+  const base =
+    process.env.API_PUBLIC_URL ??
+    process.env.NEXT_PUBLIC_PRODUCT_GRAPH_URL ??
+    'http://localhost:3005';
+  return `${base.replace(/\/$/, '')}/documents/materials/${id}`;
+}
+
+function readMaterialAssetId(value: unknown): string | null {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as { materialAssetId?: unknown }).materialAssetId === 'string'
+  ) {
+    const id = (value as { materialAssetId: string }).materialAssetId.trim();
+    return id || null;
+  }
+  return null;
 }
 
 function emptyUnresolved(

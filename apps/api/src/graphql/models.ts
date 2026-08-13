@@ -8,6 +8,8 @@ import {
 import {
   AttributeType,
   GraphVersionStatus,
+  ObjectAssetPurpose,
+  ObjectAssetStatus,
   ProductStatus,
   VisualOperation,
 } from '@prisma/client';
@@ -16,6 +18,8 @@ registerEnumType(GraphVersionStatus, { name: 'GraphVersionStatus' });
 registerEnumType(ProductStatus, { name: 'ProductStatus' });
 registerEnumType(AttributeType, { name: 'AttributeType' });
 registerEnumType(VisualOperation, { name: 'VisualOperation' });
+registerEnumType(ObjectAssetPurpose, { name: 'ObjectAssetPurpose' });
+registerEnumType(ObjectAssetStatus, { name: 'ObjectAssetStatus' });
 
 @ObjectType()
 export class OrganizationModel {
@@ -339,6 +343,9 @@ export class MaterialAssetModel {
 
   @Field()
   documentSha256: string;
+
+  @Field(() => String, { nullable: true })
+  documentUrl?: string | null;
 }
 
 @ObjectType()
@@ -396,6 +403,42 @@ export class ObjectAssetModel {
 
   @Field(() => String, { nullable: true })
   fileUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  format?: string | null;
+
+  @Field(() => Number, { nullable: true })
+  sizeBytes?: number | null;
+
+  @Field(() => ObjectAssetPurpose)
+  purpose: ObjectAssetPurpose;
+
+  @Field(() => ObjectAssetStatus)
+  status: ObjectAssetStatus;
+
+  @Field(() => String, { nullable: true })
+  parsedMetadataUri?: string | null;
+
+  @Field(() => String, { nullable: true })
+  parsedMetadataSha256?: string | null;
+
+  @Field()
+  metadataVersion: number;
+
+  @Field(() => Number, { nullable: true })
+  nodeCount?: number | null;
+
+  @Field(() => Number, { nullable: true })
+  meshCount?: number | null;
+
+  @Field(() => Number, { nullable: true })
+  materialCount?: number | null;
+
+  @Field(() => Number, { nullable: true })
+  animationCount?: number | null;
+
+  @Field(() => String, { nullable: true })
+  metadataUrl?: string | null;
 }
 
 @ObjectType()
@@ -444,6 +487,12 @@ export class ResolvedVisualEffectModel {
 
   @Field()
   valueJson: string;
+
+  @Field(() => String, { nullable: true })
+  materialAssetId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  documentUrl?: string | null;
 }
 
 @ObjectType()
@@ -753,6 +802,21 @@ export class CreateMaterialAssetInput {
 }
 
 @InputType()
+export class UpdateMaterialAssetInput {
+  @Field()
+  id: string;
+
+  @Field(() => String, { nullable: true })
+  name?: string;
+
+  @Field(() => String, { nullable: true })
+  code?: string;
+
+  @Field(() => String, { nullable: true })
+  documentJson?: string;
+}
+
+@InputType()
 export class CreateTextureAssetInput {
   @Field()
   organizationId: string;
@@ -798,6 +862,9 @@ export class CreateObjectAssetInput {
 
   @Field(() => String, { nullable: true })
   fileName?: string;
+
+  @Field(() => ObjectAssetPurpose, { nullable: true })
+  purpose?: ObjectAssetPurpose;
 }
 
 @InputType()

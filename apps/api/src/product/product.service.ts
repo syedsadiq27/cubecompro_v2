@@ -564,6 +564,45 @@ export class ProductService {
       throw new BadRequestException('valueJson must be valid JSON');
     }
 
+    if (input.operation === VisualOperation.SET_MATERIAL) {
+      const materialAssetId =
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        !Array.isArray(parsed) &&
+        typeof (parsed as { materialAssetId?: unknown }).materialAssetId ===
+          'string'
+          ? (parsed as { materialAssetId: string }).materialAssetId.trim()
+          : '';
+      if (!materialAssetId) {
+        throw new BadRequestException(
+          'SET_MATERIAL value must be { "materialAssetId": "<id>" }'
+        );
+      }
+
+      const graphVersion = await this.prisma.productGraphVersion.findUnique({
+        where: { id: value.attribute.graphVersionId },
+        include: { product: true },
+      });
+      if (!graphVersion) {
+        throw new NotFoundException('Graph version not found');
+      }
+
+      const material = await this.prisma.materialAsset.findFirst({
+        where: {
+          id: materialAssetId,
+          organizationId: graphVersion.organizationId,
+          projectId: graphVersion.product.projectId,
+        },
+      });
+      if (!material) {
+        throw new BadRequestException(
+          'materialAssetId must reference a material in this project'
+        );
+      }
+
+      parsed = { materialAssetId };
+    }
+
     return this.prisma.visualEffect.create({
       data: {
         attributeValueId: input.attributeValueId,

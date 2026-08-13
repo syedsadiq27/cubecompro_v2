@@ -4,24 +4,46 @@ import { useEffect, useMemo, useState, useTransition } from 'react';
 import {
   CREATE_MODEL_TARGET_MUTATION,
   CREATE_VISUAL_EFFECT_MUTATION,
+  MATERIAL_ASSETS_QUERY,
   PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
   graphRequest,
+  setMaterialValueJson,
   type GraphDetail,
   type GraphTarget,
 } from '@repo/product-graph';
-import {
-  buildNodePath,
-  semanticKeyFromName,
-} from '@/lib/scene-tree';
+import { semanticKeyFromName } from '@/lib/scene-tree';
 import { useEditorStore } from '@/lib/editor-store';
 import { FieldLabel } from './fields';
 
-function effectLabel(valueJson: string, operation: string): string {
+type LibraryMaterial = {
+  id: string;
+  name: string;
+  code?: string | null;
+};
+
+function effectLabel(
+  valueJson: string,
+  operation: string,
+  materials: LibraryMaterial[]
+): string {
   if (operation === 'SET_VISIBILITY') {
     try {
       return JSON.parse(valueJson) ? 'Show' : 'Hide';
     } catch {
       return valueJson === 'false' ? 'Hide' : 'Show';
+    }
+  }
+  if (operation === 'SET_MATERIAL') {
+    try {
+      const parsed = JSON.parse(valueJson) as { materialAssetId?: string };
+      if (parsed?.materialAssetId) {
+        const match = materials.find(
+          (material) => material.id === parsed.materialAssetId
+        );
+        return match?.name ?? parsed.materialAssetId;
+      }
+    } catch {
+      /* ignore */
     }
   }
   try {
@@ -41,6 +63,7 @@ export function ObjectConfigurationSection({
 }) {
   const graphAuth = useEditorStore((state) => state.graphAuth);
   const graphDetail = useEditorStore((state) => state.graphDetail);
+  const projectId = useEditorStore((state) => state.projectId);
   const modelId = useEditorStore((state) => state.modelId);
   const setGraphDetail = useEditorStore((state) => state.setGraphDetail);
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
@@ -52,7 +75,8 @@ export function ObjectConfigurationSection({
   );
   const [valueId, setValueId] = useState('');
   const [action, setAction] = useState<'show' | 'hide' | 'material'>('show');
-  const [materialValue, setMaterialValue] = useState('');
+  const [materialAssetId, setMaterialAssetId] = useState('');
+  const [materials, setMaterials] = useState<LibraryMaterial[]>([]);
 
   const productModel =
     graphDetail?.models.find((model) => model.id === modelId) ??
@@ -75,6 +99,24 @@ export function ObjectConfigurationSection({
     setAdding(false);
   }, [selectedName, selectedPath]);
 
+  useEffect(() => {
+    if (!graphAuth || !projectId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await graphRequest<{
+          materialAssets: LibraryMaterial[];
+        }>(MATERIAL_ASSETS_QUERY, { projectId }, graphAuth.token, graphAuth.apiUrl);
+        if (!cancelled) setMaterials(data.materialAssets);
+      } catch {
+        if (!cancelled) setMaterials([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [graphAuth, projectId]);
+
   const controlledBy = useMemo(() => {
     if (!graphDetail || !productModel) return [];
     const targetIds = new Set(
@@ -96,10 +138,10 @@ export function ObjectConfigurationSection({
           id: effect.id,
           attributeName: attribute?.name ?? 'Option',
           valueName: value?.name ?? 'Value',
-          label: effectLabel(effect.valueJson, effect.operation),
+          label: effectLabel(effect.valueJson, effect.operation, materials),
         };
       });
-  }, [graphDetail, productModel, matchedTargets, selectedPath]);
+  }, [graphDetail, productModel, matchedTargets, selectedPath, materials]);
 
   const editable = graphDetail?.status === 'DRAFT';
 
@@ -214,12 +256,19 @@ export function ObjectConfigurationSection({
               <option value="material">Set material</option>
             </select>
             {action === 'material' ? (
-              <input
-                value={materialValue}
-                onChange={(event) => setMaterialValue(event.target.value)}
-                placeholder="Walnut Wood"
+              <select
+                value={materialAssetId}
+                onChange={(event) => setMaterialAssetId(event.target.value)}
                 className="w-full rounded-md border border-[var(--line)] px-2 py-1.5 text-[12px]"
-              />
+              >
+                <option value="">Library material</option>
+                {materials.map((material) => (
+                  <option key={material.id} value={material.id}>
+                    {material.name}
+                    {material.code ? ` (${material.code})` : ''}
+                  </option>
+                ))}
+              </select>
             ) : null}
             <div className="flex gap-2">
               <button
@@ -228,7 +277,7 @@ export function ObjectConfigurationSection({
                   pending ||
                   !valueId ||
                   (!primaryTarget && !targetKey) ||
-                  (action === 'material' && !materialValue)
+                  (action === 'material' && !materialAssetId)
                 }
                 className="flex-1 rounded-md bg-[var(--ink)] px-2 py-1.5 text-[12px] font-medium text-white disabled:opacity-50"
                 onClick={() => {
@@ -265,7 +314,8 @@ export function ObjectConfigurationSection({
                           refreshed?.models.find((m) => m.id === modelId) ??
                           refreshed?.models[0];
                         modelTargetId = model?.targets.find(
-                          (t) => t.nodePath === selectedPath || t.key === targetKey
+                          (t) =>
+                            t.nodePath === selectedPath || t.key === targetKey
                         )?.id;
                       }
                       if (!modelTargetId) {
@@ -273,7 +323,7 @@ export function ObjectConfigurationSection({
                       }
                       const valueJson =
                         action === 'material'
-                          ? JSON.stringify(materialValue)
+                          ? setMaterialValueJson(materialAssetId)
                           : JSON.stringify(action === 'show');
                       await graphRequest(
                         CREATE_VISUAL_EFFECT_MUTATION,
@@ -293,7 +343,7 @@ export function ObjectConfigurationSection({
                       );
                       await refreshGraph();
                       setAdding(false);
-                      setMaterialValue('');
+                      setMaterialAssetId('');
                       setStatusMessage('Behavior added.');
                     } catch (error) {
                       setStatusMessage(

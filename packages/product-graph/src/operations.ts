@@ -104,6 +104,29 @@ export const MATERIAL_ASSETS_QUERY = `
       code
       folderId
       documentUri
+      documentUrl
+    }
+  }
+`;
+
+export const CREATE_MATERIAL_ASSET_MUTATION = `
+  mutation CreateMaterialAsset($input: CreateMaterialAssetInput!) {
+    createMaterialAsset(input: $input) {
+      id
+      name
+      code
+      documentUrl
+    }
+  }
+`;
+
+export const UPDATE_MATERIAL_ASSET_MUTATION = `
+  mutation UpdateMaterialAsset($input: UpdateMaterialAssetInput!) {
+    updateMaterialAsset(input: $input) {
+      id
+      name
+      code
+      documentUrl
     }
   }
 `;
@@ -129,16 +152,38 @@ export const OBJECT_ASSETS_QUERY = `
       folderId
       fileUri
       fileUrl
+      format
+      sizeBytes
+      purpose
+      status
+      metadataVersion
+      nodeCount
+      meshCount
+      materialCount
+      animationCount
+      metadataUrl
     }
   }
 `;
 
-export const CREATE_TEXTURE_ASSET_MUTATION = `
-  mutation CreateTextureAsset($input: CreateTextureAssetInput!) {
-    createTextureAsset(input: $input) {
+export const OBJECT_ASSET_QUERY = `
+  query ObjectAsset($id: String!) {
+    objectAsset(id: $id) {
       id
       name
       code
+      fileUri
+      fileUrl
+      format
+      sizeBytes
+      purpose
+      status
+      metadataVersion
+      nodeCount
+      meshCount
+      materialCount
+      animationCount
+      metadataUrl
     }
   }
 `;
@@ -146,6 +191,21 @@ export const CREATE_TEXTURE_ASSET_MUTATION = `
 export const CREATE_OBJECT_ASSET_MUTATION = `
   mutation CreateObjectAsset($input: CreateObjectAssetInput!) {
     createObjectAsset(input: $input) {
+      id
+      name
+      code
+      status
+      metadataUrl
+      nodeCount
+      meshCount
+      materialCount
+    }
+  }
+`;
+
+export const CREATE_TEXTURE_ASSET_MUTATION = `
+  mutation CreateTextureAsset($input: CreateTextureAssetInput!) {
+    createTextureAsset(input: $input) {
       id
       name
       code

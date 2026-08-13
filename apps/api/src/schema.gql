@@ -93,6 +93,7 @@ input CreateObjectAssetInput {
   name: String!
   organizationId: String!
   projectId: String!
+  purpose: ObjectAssetPurpose
 }
 
 input CreateOrganizationInput {
@@ -188,6 +189,7 @@ type MaterialAssetModel {
   code: String
   documentSha256: String!
   documentUri: String!
+  documentUrl: String
   folderId: ID
   id: ID!
   name: String!
@@ -228,6 +230,7 @@ type Mutation {
   login(input: LoginInput!): AuthPayloadModel!
   publishGraphVersion(id: String!): ProductGraphVersionModel!
   saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!
+  updateMaterialAsset(input: UpdateMaterialAssetInput!): MaterialAssetModel!
   updateProduct(input: UpdateProductInput!): ProductModel!
   updateProfile(input: UpdateProfileInput!): AuthUserModel!
 }
@@ -241,15 +244,38 @@ type MyProjectModel {
 }
 
 type ObjectAssetModel {
+  animationCount: Float
   code: String
   fileSha256: String!
   fileUri: String!
   fileUrl: String
   folderId: ID
+  format: String
   id: ID!
+  materialCount: Float
+  meshCount: Float
+  metadataUrl: String
+  metadataVersion: Float!
   name: String!
+  nodeCount: Float
   organizationId: String!
+  parsedMetadataSha256: String
+  parsedMetadataUri: String
   projectId: String!
+  purpose: ObjectAssetPurpose!
+  sizeBytes: Float
+  status: ObjectAssetStatus!
+}
+
+enum ObjectAssetPurpose {
+  COMPONENT
+  MODEL
+}
+
+enum ObjectAssetStatus {
+  FAILED
+  PROCESSING
+  READY
 }
 
 type OrganizationEntitlementModel {
@@ -360,6 +386,7 @@ type Query {
   materialAssets(projectId: String!): [MaterialAssetModel!]!
   me: AuthUserModel!
   myProjects: [MyProjectModel!]!
+  objectAsset(id: String!): ObjectAssetModel!
   objectAssets(projectId: String!): [ObjectAssetModel!]!
   organization(id: String!): OrganizationModel!
   organizationEntitlements(organizationId: String!): [OrganizationEntitlementModel!]!
@@ -401,6 +428,8 @@ type ResolvedConfigurationModel {
 }
 
 type ResolvedVisualEffectModel {
+  documentUrl: String
+  materialAssetId: String
   nodePath: String
   operation: VisualOperation!
   targetKey: String!
@@ -442,6 +471,13 @@ type TextureAssetModel {
   name: String!
   organizationId: String!
   projectId: String!
+}
+
+input UpdateMaterialAssetInput {
+  code: String
+  documentJson: String
+  id: String!
+  name: String
 }
 
 input UpdateProductInput {

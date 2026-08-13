@@ -37,6 +37,7 @@ export type EditorDocument = {
   modelId: string;
   modelName: string;
   modelSku: string;
+  objectAssetId?: string;
   materialCount: number;
   ruleCount: number;
   meshCount: number;

@@ -1,6 +1,8 @@
 import { ProductWorkspace } from '@/components/products/workspace/product-workspace';
 import { ErrorState } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import {
+  MATERIAL_ASSETS_QUERY,
   OBJECT_ASSETS_QUERY,
   PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
   PRODUCT_GRAPH_VERSIONS_QUERY,
@@ -27,7 +29,8 @@ export default async function ProductDetailPage({
   if (!project) return null;
 
   try {
-    const [productData, versionsData, objectsData] = await Promise.all([
+    const [productData, versionsData, objectsData, materialsData] =
+      await Promise.all([
       graphRequest<{
         product: {
           id: string;
@@ -55,10 +58,22 @@ export default async function ProductDetailPage({
           name: string;
           code?: string | null;
           fileUrl?: string | null;
+          status?: string | null;
+          meshCount?: number | null;
+          format?: string | null;
         }>;
       }>(OBJECT_ASSETS_QUERY, { projectId }, project.projectToken).catch(() => ({
         objectAssets: [],
       })),
+      graphRequest<{
+        materialAssets: Array<{
+          id: string;
+          name: string;
+          code?: string | null;
+        }>;
+      }>(MATERIAL_ASSETS_QUERY, { projectId }, project.projectToken).catch(
+        () => ({ materialAssets: [] })
+      ),
     ]);
 
     const versions = versionsData.productGraphVersions;
@@ -84,23 +99,28 @@ export default async function ProductDetailPage({
     }
 
     return (
-      <ProductWorkspace
-        projectId={projectId}
-        productId={id}
-        product={productData.product}
-        detail={detail}
-        objectAssets={objectsData.objectAssets}
-        publishedVersions={publishedVersions}
-        initialTab={parseWorkspaceTab(tab)}
-      />
+      <PageChrome flush>
+        <ProductWorkspace
+          projectId={projectId}
+          productId={id}
+          product={productData.product}
+          detail={detail}
+          objectAssets={objectsData.objectAssets}
+          materialAssets={materialsData.materialAssets}
+          publishedVersions={publishedVersions}
+          initialTab={parseWorkspaceTab(tab)}
+        />
+      </PageChrome>
     );
   } catch (error) {
     return (
-      <ErrorState
-        message={
-          error instanceof Error ? error.message : 'Failed to load product.'
-        }
-      />
+      <PageChrome title="Product">
+        <ErrorState
+          message={
+            error instanceof Error ? error.message : 'Failed to load product.'
+          }
+        />
+      </PageChrome>
     );
   }
 }

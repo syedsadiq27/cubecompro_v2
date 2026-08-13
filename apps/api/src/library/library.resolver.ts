@@ -8,6 +8,7 @@ import {
   MaterialAssetModel,
   ObjectAssetModel,
   TextureAssetModel,
+  UpdateMaterialAssetInput,
 } from '../graphql/models';
 import { LibraryService } from './library.service';
 
@@ -31,6 +32,11 @@ export class LibraryResolver {
   @Mutation(() => MaterialAssetModel)
   createMaterialAsset(@Args('input') input: CreateMaterialAssetInput) {
     return this.library.createMaterial(input);
+  }
+
+  @Mutation(() => MaterialAssetModel)
+  updateMaterialAsset(@Args('input') input: UpdateMaterialAssetInput) {
+    return this.library.updateMaterial(input);
   }
 
   @Query(() => [MaterialAssetModel])
@@ -61,6 +67,11 @@ export class LibraryResolver {
   @Query(() => [ObjectAssetModel])
   objectAssets(@Args('projectId') projectId: string) {
     return this.library.listObjects(projectId);
+  }
+
+  @Query(() => ObjectAssetModel)
+  objectAsset(@Args('id') id: string) {
+    return this.library.getObject(id);
   }
 
   @Mutation(() => Boolean)

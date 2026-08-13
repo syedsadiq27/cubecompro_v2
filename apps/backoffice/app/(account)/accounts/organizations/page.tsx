@@ -1,9 +1,9 @@
 import {
   EmptyState,
   ErrorState,
-  PageHeader,
   Panel,
 } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import { graphRequest } from '@repo/product-graph';
 import {
   ME_QUERY,
@@ -52,19 +52,18 @@ export default async function OrganizationsPage() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Organizations"
-        description="Organization associated with your account."
-      />
+    <PageChrome
+      title="Organizations"
+      description="Organization associated with your account."
+    >
       {error ? <ErrorState message={error} /> : null}
       {!error && !organization ? (
         <EmptyState message="No organizations found." />
       ) : null}
       {organization ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <Panel>
-            <h3 className="text-lg font-semibold">{organization.name}</h3>
+            <h3 className="text-base font-semibold">{organization.name}</h3>
             <p className="mt-1 text-sm text-[var(--bo-muted)]">
               {organization.slug} · {roles.length} roles
             </p>
@@ -76,6 +75,6 @@ export default async function OrganizationsPage() {
           </Panel>
         </div>
       ) : null}
-    </div>
+    </PageChrome>
   );
 }

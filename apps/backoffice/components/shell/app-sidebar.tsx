@@ -85,7 +85,6 @@ export function AppSidebar({
   const experience: NavItem[] = projectId
     ? [
         { href: `/${projectId}/products`, label: 'Configurations' },
-        { href: `/${projectId}/library/objects`, label: '3D Studio' },
       ]
     : [];
 

@@ -1,10 +1,7 @@
 import { updateProfileAction } from '@/actions/teams';
 import { ProfileForm } from '@/components/account/profile-form';
-import {
-  ErrorState,
-  PageHeader,
-  Panel,
-} from '@/components/ui';
+import { ErrorState, Panel } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import { graphRequest } from '@repo/product-graph';
 import { ME_QUERY } from '@repo/product-graph';
 import { getSessionUser } from '@/lib/session-server';
@@ -28,31 +25,34 @@ export default async function ProfilePage() {
       : [user.firstName, user.lastName];
 
     return (
-      <div>
-        <PageHeader
-          title="Profile"
-          description="Account details for the signed-in user."
-        />
-        <Panel>
-          <ProfileForm
-            defaults={{
-              firstname: firstname ?? '',
-              lastname: rest.join(' ') || user.lastName,
-              role: data.me.role ?? user.role,
-              email: data.me.email ?? user.email,
-            }}
-            action={updateProfileAction}
-          />
-        </Panel>
-      </div>
+      <PageChrome
+        title="Profile"
+        description="Account details for the signed-in user."
+      >
+        <div className="mx-auto max-w-xl">
+          <Panel>
+            <ProfileForm
+              defaults={{
+                firstname: firstname ?? '',
+                lastname: rest.join(' ') || user.lastName,
+                role: data.me.role ?? user.role,
+                email: data.me.email ?? user.email,
+              }}
+              action={updateProfileAction}
+            />
+          </Panel>
+        </div>
+      </PageChrome>
     );
   } catch (error) {
     return (
-      <ErrorState
-        message={
-          error instanceof Error ? error.message : 'Failed to load profile.'
-        }
-      />
+      <PageChrome title="Profile">
+        <ErrorState
+          message={
+            error instanceof Error ? error.message : 'Failed to load profile.'
+          }
+        />
+      </PageChrome>
     );
   }
 }

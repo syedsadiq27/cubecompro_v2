@@ -62,6 +62,7 @@ export function useEditorProductLoad() {
           modelId: bundle.productModelId,
           modelName: bundle.modelName,
           modelSku: bundle.product.key,
+          objectAssetId: bundle.assetId,
           materialCount: 0,
           ruleCount: bundle.detail.visualEffects.length,
           meshCount,

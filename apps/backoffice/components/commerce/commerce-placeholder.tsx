@@ -1,5 +1,13 @@
+'use client';
+
 import Link from 'next/link';
-import { PageHeader, Panel } from '../ui';
+import { useState } from 'react';
+import {
+  BrowseSearch,
+  BrowseWorkspace,
+} from '@/components/ui/browse-workspace';
+import { PageChrome } from '@/components/ui/page-chrome';
+import { Panel } from '@/components/ui';
 
 export function CommercePlaceholder({
   projectId,
@@ -14,22 +22,47 @@ export function CommercePlaceholder({
   href?: string;
   linkLabel?: string;
 }) {
+  const [query, setQuery] = useState('');
+
   return (
-    <div>
-      <PageHeader title={title} description={description} />
-      <Panel className="space-y-3">
-        <p className="text-[13px] text-[var(--bo-muted)]">
-          This surface is part of the commerce infrastructure information
-          architecture. Product → configuration → resolution → SKU / price /
-          inventory → channel will land here as dedicated workflows.
-        </p>
-        <Link
-          href={href ?? `/${projectId}/products`}
-          className="inline-flex rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-[13px]"
-        >
-          {linkLabel ?? 'Back to products'}
-        </Link>
-      </Panel>
-    </div>
+    <PageChrome flush>
+      <BrowseWorkspace
+        title={title}
+        meta={description}
+        actions={
+          <Link
+            href={href ?? `/${projectId}/products`}
+            className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm font-medium"
+          >
+            {linkLabel ?? 'Back to products'}
+          </Link>
+        }
+        filters={
+          <span className="px-1 text-[13px] text-[var(--bo-muted)]">
+            Commerce
+          </span>
+        }
+        search={
+          <BrowseSearch
+            value={query}
+            onChange={setQuery}
+            placeholder="Search…"
+          />
+        }
+      >
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <Panel className="space-y-2">
+            <p className="text-[13px] font-medium text-[var(--bo-ink)]">
+              {title}
+            </p>
+            <p className="text-[11px] text-[var(--bo-muted)]">Coming soon</p>
+            <p className="text-[13px] text-[var(--bo-muted)]">
+              Product → configuration → resolution → SKU / price / inventory →
+              channel will land here as dedicated workflows.
+            </p>
+          </Panel>
+        </div>
+      </BrowseWorkspace>
+    </PageChrome>
   );
 }

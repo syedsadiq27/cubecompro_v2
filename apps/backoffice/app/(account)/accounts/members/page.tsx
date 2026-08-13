@@ -1,9 +1,9 @@
 import {
   EmptyState,
   ErrorState,
-  PageHeader,
   Panel,
 } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import { graphRequest } from '@repo/product-graph';
 import {
   ME_QUERY,
@@ -48,13 +48,12 @@ export default async function MembersPage() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Members"
-        description="Organization memberships from CubeCom."
-      />
+    <PageChrome
+      title="Members"
+      description="Organization memberships from CubeCom."
+    >
       {error ? <ErrorState message={error} /> : null}
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <Panel>
           <h3 className="mb-4 text-sm font-semibold tracking-wide uppercase">
             Invite user
@@ -84,6 +83,6 @@ export default async function MembersPage() {
           ))}
         </div>
       </div>
-    </div>
+    </PageChrome>
   );
 }

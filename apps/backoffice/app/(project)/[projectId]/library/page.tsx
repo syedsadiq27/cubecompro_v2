@@ -1,10 +1,11 @@
-import Link from 'next/link';
-import {
-  EmptyState,
-  ErrorState,
-  PageHeader,
-  Panel,
-} from '@/components/ui';
+import { AssetLibrary } from '@/components/library/asset-library';
+import type {
+  LibraryAssetItem,
+  LibraryFolderItem,
+  LibraryScope,
+} from '@/components/library/types';
+import { ErrorState } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import { graphRequest } from '@repo/product-graph';
 import {
   LIBRARY_FOLDERS_QUERY,
@@ -16,25 +17,25 @@ import { getProjectSession } from '@/lib/session-server';
 
 export default async function LibraryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ type?: string }>;
 }) {
   const { projectId } = await params;
+  const { type } = await searchParams;
   const project = await getProjectSession();
   if (!project) return null;
 
-  const errors: string[] = [];
-  let folders: Array<{ id: string; name: string }> = [];
-  let materials: Array<{ id: string; name: string; code?: string | null }> =
-    [];
-  let textureCount = 0;
-  let objectCount = 0;
+  let error: string | null = null;
+  let folders: LibraryFolderItem[] = [];
+  let assets: LibraryAssetItem[] = [];
 
   try {
-    const [folderData, materialData, textureData, objectData] =
+    const [folderData, materialData, objectData, textureData] =
       await Promise.all([
         graphRequest<{
-          libraryFolders: Array<{ id: string; name: string }>;
+          libraryFolders: LibraryFolderItem[];
         }>(
           LIBRARY_FOLDERS_QUERY,
           { projectId, parentId: null },
@@ -45,91 +46,96 @@ export default async function LibraryPage({
             id: string;
             name: string;
             code?: string | null;
+            folderId?: string | null;
+            documentUrl?: string | null;
           }>;
         }>(MATERIAL_ASSETS_QUERY, { projectId }, project.projectToken),
-        graphRequest<{ textureAssets: Array<{ id: string }> }>(
-          TEXTURE_ASSETS_QUERY,
-          { projectId },
-          project.projectToken
-        ),
-        graphRequest<{ objectAssets: Array<{ id: string }> }>(
-          OBJECT_ASSETS_QUERY,
-          { projectId },
-          project.projectToken
-        ),
+        graphRequest<{
+          objectAssets: Array<{
+            id: string;
+            name: string;
+            code?: string | null;
+            folderId?: string | null;
+            fileUrl?: string | null;
+            format?: string | null;
+            status?: string | null;
+            meshCount?: number | null;
+            materialCount?: number | null;
+            nodeCount?: number | null;
+            sizeBytes?: number | null;
+          }>;
+        }>(OBJECT_ASSETS_QUERY, { projectId }, project.projectToken),
+        graphRequest<{
+          textureAssets: Array<{
+            id: string;
+            name: string;
+            code?: string | null;
+            folderId?: string | null;
+          }>;
+        }>(TEXTURE_ASSETS_QUERY, { projectId }, project.projectToken),
       ]);
+
     folders = folderData.libraryFolders;
-    materials = materialData.materialAssets;
-    textureCount = textureData.textureAssets.length;
-    objectCount = objectData.objectAssets.length;
-  } catch (error) {
-    errors.push(
-      error instanceof Error ? error.message : 'Failed to load library.'
-    );
+    assets = [
+      ...materialData.materialAssets.map(
+        (asset): LibraryAssetItem => ({
+          id: asset.id,
+          type: 'material',
+          name: asset.name,
+          code: asset.code,
+          folderId: asset.folderId,
+          documentUrl: asset.documentUrl,
+        })
+      ),
+      ...objectData.objectAssets.map(
+        (asset): LibraryAssetItem => ({
+          id: asset.id,
+          type: 'model',
+          name: asset.name,
+          code: asset.code,
+          folderId: asset.folderId,
+          fileUrl: asset.fileUrl,
+          format: asset.format,
+          status: asset.status,
+          meshCount: asset.meshCount,
+          materialCount: asset.materialCount,
+          nodeCount: asset.nodeCount,
+          sizeBytes: asset.sizeBytes,
+        })
+      ),
+      ...textureData.textureAssets.map(
+        (asset): LibraryAssetItem => ({
+          id: asset.id,
+          type: 'texture',
+          name: asset.name,
+          code: asset.code,
+          folderId: asset.folderId,
+        })
+      ),
+    ].sort((a, b) => a.name.localeCompare(b.name));
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Failed to load library.';
   }
 
+  const initialScope: LibraryScope | undefined =
+    type === 'material' || type === 'model' || type === 'texture'
+      ? { kind: 'type', type }
+      : undefined;
+
   return (
-    <div>
-      <PageHeader
-        title="Asset library"
-        description="Folders, materials, textures, and objects for this project."
-        actions={
-          <div className="flex gap-2">
-            <Link
-              href={`/${projectId}/library/textures`}
-              className="rounded-xl border border-[var(--bo-line)] px-4 py-2 text-sm"
-            >
-              Textures ({textureCount})
-            </Link>
-            <Link
-              href={`/${projectId}/library/objects`}
-              className="rounded-xl border border-[var(--bo-line)] px-4 py-2 text-sm"
-            >
-              Objects ({objectCount})
-            </Link>
-          </div>
-        }
-      />
-      {errors.map((message) => (
-        <div key={message} className="mb-3">
-          <ErrorState message={message} />
+    <PageChrome flush>
+      {error ? (
+        <div className="p-4">
+          <ErrorState message={error} />
         </div>
-      ))}
-      <div className="mb-8">
-        <h3 className="mb-3 text-sm font-medium text-[var(--bo-muted)]">
-          Folders ({folders.length})
-        </h3>
-        {folders.length === 0 && errors.length === 0 ? (
-          <EmptyState message="No folders yet." />
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {folders.map((folder) => (
-              <Panel key={folder.id}>
-                <p className="font-medium">{folder.name}</p>
-              </Panel>
-            ))}
-          </div>
-        )}
-      </div>
-      <div>
-        <h3 className="mb-3 text-sm font-medium text-[var(--bo-muted)]">
-          Materials ({materials.length})
-        </h3>
-        {materials.length === 0 && errors.length === 0 ? (
-          <EmptyState message="No materials yet." />
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {materials.map((material) => (
-              <Panel key={material.id}>
-                <p className="font-medium">{material.name}</p>
-                <p className="text-xs text-[var(--bo-muted)]">
-                  {material.code || 'No code'}
-                </p>
-              </Panel>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      ) : (
+        <AssetLibrary
+          projectId={projectId}
+          folders={folders}
+          assets={assets}
+          initialScope={initialScope}
+        />
+      )}
+    </PageChrome>
   );
 }

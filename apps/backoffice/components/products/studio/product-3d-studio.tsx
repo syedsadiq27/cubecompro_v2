@@ -33,6 +33,7 @@ export function Product3DStudio({
   productName,
   detail,
   objectAssets,
+  materials = [],
   editable,
 }: {
   projectId: string;
@@ -40,6 +41,7 @@ export function Product3DStudio({
   productName: string;
   detail: GraphDetail | null;
   objectAssets: ObjectAssetOption[];
+  materials?: Array<{ id: string; name: string }>;
   editable: boolean;
 }) {
   const router = useRouter();
@@ -56,7 +58,7 @@ export function Product3DStudio({
   const [mapAction, setMapAction] = useState<'show' | 'hide' | 'material'>(
     'hide'
   );
-  const [materialValue, setMaterialValue] = useState('');
+  const [materialAssetId, setMaterialAssetId] = useState('');
 
   const primaryModel = detail?.models[0] ?? null;
   const modelUrl = primaryModel ? objectProxyUrl(primaryModel.assetId) : null;
@@ -473,14 +475,20 @@ export function Product3DStudio({
                             ))}
                           </select>
                           {mapAction === 'material' ? (
-                            <input
-                              value={materialValue}
+                            <select
+                              value={materialAssetId}
                               onChange={(event) =>
-                                setMaterialValue(event.target.value)
+                                setMaterialAssetId(event.target.value)
                               }
-                              placeholder="Walnut Wood"
                               className={inputClass}
-                            />
+                            >
+                              <option value="">Library material</option>
+                              {materials.map((material) => (
+                                <option key={material.id} value={material.id}>
+                                  {material.name}
+                                </option>
+                              ))}
+                            </select>
                           ) : (
                             <div className="flex items-center text-[12px] text-[var(--bo-muted)]">
                               {mapAction === 'show' ? 'Visible' : 'Hidden'}
@@ -492,7 +500,7 @@ export function Product3DStudio({
                               pending ||
                               !mapValueId ||
                               !mapTargetId ||
-                              (mapAction === 'material' && !materialValue)
+                              (mapAction === 'material' && !materialAssetId)
                             }
                             className="bo-btn-primary rounded-lg px-3 py-1.5 text-[13px] font-medium disabled:opacity-60"
                             onClick={() => {
@@ -501,7 +509,7 @@ export function Product3DStudio({
                               formData.set('modelTargetId', mapTargetId);
                               if (mapAction === 'material') {
                                 formData.set('operation', 'SET_MATERIAL');
-                                formData.set('value', materialValue);
+                                formData.set('materialAssetId', materialAssetId);
                               } else {
                                 formData.set('operation', 'SET_VISIBILITY');
                                 formData.set(
@@ -521,7 +529,7 @@ export function Product3DStudio({
                                     : result.error || 'Failed.'
                                 );
                                 if (result.ok) {
-                                  setMaterialValue('');
+                                  setMaterialAssetId('');
                                   router.refresh();
                                 }
                               });

@@ -1,4 +1,4 @@
-import { buildDemoChairGlb } from './demo-chair-glb';
+import { buildDemoChairBundle } from './demo-chair-glb';
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -172,10 +172,10 @@ async function seed() {
       id: 'seed_materials_folder',
       organizationId: organization.id,
       projectId: project.id,
-      name: 'Materials',
+      name: 'Studio Chair',
       sortOrder: 0,
     },
-    update: { name: 'Materials' },
+    update: { name: 'Studio Chair' },
   });
 
   const objectsFolder = await prisma.libraryFolder.upsert({
@@ -184,53 +184,100 @@ async function seed() {
       id: 'seed_objects_folder',
       organizationId: organization.id,
       projectId: project.id,
-      name: 'Objects',
+      name: 'Furniture',
       sortOrder: 1,
     },
-    update: { name: 'Objects' },
+    update: { name: 'Furniture' },
   });
 
-  const materialDoc = await putJson(
+  const beigeDoc = await putJson(
     `${organization.id}/${project.id}/materials/beige-fabric.json`,
     {
-      type: 'physical',
-      color: '#d4c4a8',
+      shaderModel: 'PBR',
+      baseColor: '#d4c4a8',
       roughness: 0.85,
-      metalness: 0,
+      metallic: 0,
+    }
+  );
+  const walnutDoc = await putJson(
+    `${organization.id}/${project.id}/materials/walnut-wood.json`,
+    {
+      shaderModel: 'PBR',
+      baseColor: '#8A6040',
+      roughness: 0.55,
+      metallic: 0,
+    }
+  );
+  const blackDoc = await putJson(
+    `${organization.id}/${project.id}/materials/fabric-black.json`,
+    {
+      shaderModel: 'PBR',
+      baseColor: '#111111',
+      roughness: 0.75,
+      metallic: 0,
     }
   );
 
-  const existingMaterial = await prisma.materialAsset.findFirst({
-    where: { projectId: project.id, code: 'FABRIC-BEIGE' },
-  });
-  if (existingMaterial) {
-    await prisma.materialAsset.update({
-      where: { id: existingMaterial.id },
-      data: {
-        folderId: materialsFolder.id,
-        name: 'Beige Fabric',
-        documentUri: materialDoc.uri,
-        documentSha256: materialDoc.sha256,
-      },
+  async function upsertMaterial(input: {
+    code: string;
+    name: string;
+    documentUri: string;
+    documentSha256: string;
+  }) {
+    const existing = await prisma.materialAsset.findFirst({
+      where: { projectId: project.id, code: input.code },
     });
-  } else {
-    await prisma.materialAsset.create({
+    if (existing) {
+      return prisma.materialAsset.update({
+        where: { id: existing.id },
+        data: {
+          folderId: materialsFolder.id,
+          name: input.name,
+          documentUri: input.documentUri,
+          documentSha256: input.documentSha256,
+        },
+      });
+    }
+    return prisma.materialAsset.create({
       data: {
         organizationId: organization.id,
         projectId: project.id,
         folderId: materialsFolder.id,
-        name: 'Beige Fabric',
-        code: 'FABRIC-BEIGE',
-        documentUri: materialDoc.uri,
-        documentSha256: materialDoc.sha256,
+        name: input.name,
+        code: input.code,
+        documentUri: input.documentUri,
+        documentSha256: input.documentSha256,
       },
     });
   }
 
-  const chairGlb = await buildDemoChairGlb();
+  await upsertMaterial({
+    code: 'FABRIC-BEIGE',
+    name: 'Beige Fabric',
+    documentUri: beigeDoc.uri,
+    documentSha256: beigeDoc.sha256,
+  });
+  const walnutMaterial = await upsertMaterial({
+    code: 'WOOD-WALNUT',
+    name: 'Walnut Wood',
+    documentUri: walnutDoc.uri,
+    documentSha256: walnutDoc.sha256,
+  });
+  const blackMaterial = await upsertMaterial({
+    code: 'FABRIC-BLACK',
+    name: 'Fabric Black',
+    documentUri: blackDoc.uri,
+    documentSha256: blackDoc.sha256,
+  });
+
+  const { bytes: chairGlb, metadata: chairParsed } = await buildDemoChairBundle();
   const chairMeta = await putBytes(
     `${organization.id}/${project.id}/objects/chair-demo.glb`,
     chairGlb
+  );
+  const chairParsedMeta = await putJson(
+    `${organization.id}/${project.id}/objects/chair-demo/metadata/v1.json`,
+    chairParsed
   );
 
   let chairAsset = await prisma.objectAsset.findFirst({
@@ -240,10 +287,21 @@ async function seed() {
     chairAsset = await prisma.objectAsset.update({
       where: { id: chairAsset.id },
       data: {
-        folderId: objectsFolder.id,
+        folderId: materialsFolder.id,
         name: 'Demo Chair',
         fileUri: chairMeta.uri,
         fileSha256: chairMeta.sha256,
+        format: 'glb',
+        sizeBytes: chairGlb.length,
+        purpose: 'MODEL',
+        status: 'READY',
+        parsedMetadataUri: chairParsedMeta.uri,
+        parsedMetadataSha256: chairParsedMeta.sha256,
+        metadataVersion: chairParsed.metadataVersion,
+        nodeCount: chairParsed.stats.nodeCount,
+        meshCount: chairParsed.stats.meshCount,
+        materialCount: chairParsed.stats.materialCount,
+        animationCount: chairParsed.stats.animationCount,
       },
     });
   } else {
@@ -251,11 +309,22 @@ async function seed() {
       data: {
         organizationId: organization.id,
         projectId: project.id,
-        folderId: objectsFolder.id,
+        folderId: materialsFolder.id,
         name: 'Demo Chair',
         code: 'CHAIR-DEMO',
         fileUri: chairMeta.uri,
         fileSha256: chairMeta.sha256,
+        format: 'glb',
+        sizeBytes: chairGlb.length,
+        purpose: 'MODEL',
+        status: 'READY',
+        parsedMetadataUri: chairParsedMeta.uri,
+        parsedMetadataSha256: chairParsedMeta.sha256,
+        metadataVersion: chairParsed.metadataVersion,
+        nodeCount: chairParsed.stats.nodeCount,
+        meshCount: chairParsed.stats.meshCount,
+        materialCount: chairParsed.stats.materialCount,
+        animationCount: chairParsed.stats.animationCount,
       },
     });
   }
@@ -433,7 +502,7 @@ async function seed() {
       attributeValueId: frameWalnut.id,
       modelTargetId: frameTarget.id,
       operation: VisualOperation.SET_MATERIAL,
-      value: 'walnut',
+      value: { materialAssetId: walnutMaterial.id },
     },
   });
   await prisma.visualEffect.create({
@@ -441,7 +510,7 @@ async function seed() {
       attributeValueId: colorBlack.id,
       modelTargetId: bodyTarget.id,
       operation: VisualOperation.SET_MATERIAL,
-      value: 'black',
+      value: { materialAssetId: blackMaterial.id },
     },
   });
 

@@ -7,6 +7,7 @@ import { FieldLabel } from './fields';
 
 export function PreviewConfigurationSection() {
   const graphDetail = useEditorStore((state) => state.graphDetail);
+  const graphAuth = useEditorStore((state) => state.graphAuth);
   const runtime = useEditorStore((state) => state.runtime);
   const previewSelections = useEditorStore((state) => state.previewSelections);
   const setPreviewSelection = useEditorStore(
@@ -19,15 +20,23 @@ export function PreviewConfigurationSection() {
   useEffect(() => {
     if (!graphDetail || !runtime) return;
     if (Object.keys(previewSelections).length === 0) return;
-    applyPreviewConfiguration(
-      runtime.productRoot,
-      graphDetail,
-      previewSelections
-    );
-    useEditorStore.setState((state) => ({
-      outlineRevision: state.outlineRevision + 1,
-    }));
-  }, [graphDetail, runtime, previewSelections]);
+    let cancelled = false;
+    (async () => {
+      await applyPreviewConfiguration(
+        runtime.productRoot,
+        graphDetail,
+        previewSelections,
+        graphAuth
+      );
+      if (cancelled) return;
+      useEditorStore.setState((state) => ({
+        outlineRevision: state.outlineRevision + 1,
+      }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [graphDetail, graphAuth, runtime, previewSelections]);
 
   if (!graphDetail) return null;
 

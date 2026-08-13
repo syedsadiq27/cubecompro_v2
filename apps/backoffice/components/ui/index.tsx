@@ -8,11 +8,13 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="type-page max-w-xl">{title}</h1>
+        <h1 className="text-lg font-semibold text-[var(--bo-ink)]">{title}</h1>
         {description ? (
-          <p className="type-body mt-3 max-w-2xl">{description}</p>
+          <p className="mt-0.5 max-w-2xl text-sm text-[var(--bo-muted)]">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
@@ -29,7 +31,7 @@ export function Panel({
 }) {
   return (
     <div
-      className={`rounded-[10px] border border-[var(--bo-line)] bg-[var(--bo-panel)] p-5 ${className}`}
+      className={`rounded-xl border border-[var(--bo-line)] bg-[var(--bo-surface,#f7f5f1)] p-4 ${className}`}
     >
       {children}
     </div>

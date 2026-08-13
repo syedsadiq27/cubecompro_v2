@@ -9,8 +9,7 @@ export default async function CategoriesPage({
   return (
     <FeaturePlaceholder
       title="Categories"
-      description="Product taxonomy and category trees."
-      detail="Categories are deferred in CubeCom v1. Products use project-scoped codes for now."
+      description="Organize products into merchandising categories."
       href={`/${projectId}/products`}
       linkLabel="Back to products"
     />

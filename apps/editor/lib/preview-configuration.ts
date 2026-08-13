@@ -1,5 +1,11 @@
 import type { Object3D } from 'three';
-import type { GraphDetail } from '@repo/product-graph';
+import {
+  coerceMaterialDocument,
+  materialDocumentUrl,
+  type GraphDetail,
+  type GraphSessionAuth,
+} from '@repo/product-graph';
+import { applyMaterialDocumentToNode } from './apply-library-material';
 import { findNodeByPath } from './scene-tree';
 
 export type PreviewSelections = Record<string, string>;
@@ -16,11 +22,12 @@ export function defaultPreviewSelections(
   return next;
 }
 
-export function applyPreviewConfiguration(
+export async function applyPreviewConfiguration(
   root: Object3D,
   detail: GraphDetail,
-  selections: PreviewSelections
-): void {
+  selections: PreviewSelections,
+  auth?: GraphSessionAuth | null
+): Promise<void> {
   const targetsById = new Map(
     detail.models.flatMap((model) =>
       model.targets.map((target) => [target.id, target] as const)
@@ -51,15 +58,43 @@ export function applyPreviewConfiguration(
     const selectedValueId = selections[attribute.id];
     if (selectedValueId !== effect.attributeValueId) continue;
 
-    const node = findNodeByPath(root, target.nodePath);
-    if (!node) continue;
-
     if (effect.operation === 'SET_VISIBILITY') {
+      const node = findNodeByPath(root, target.nodePath);
+      if (!node) continue;
       try {
         node.visible = Boolean(JSON.parse(effect.valueJson));
       } catch {
         node.visible = effect.valueJson !== 'false';
       }
+      continue;
+    }
+
+    if (effect.operation === 'SET_MATERIAL' && auth) {
+      let materialAssetId: string | null = null;
+      try {
+        const parsed = JSON.parse(effect.valueJson) as {
+          materialAssetId?: string;
+        };
+        materialAssetId =
+          typeof parsed?.materialAssetId === 'string'
+            ? parsed.materialAssetId
+            : null;
+      } catch {
+        materialAssetId = null;
+      }
+      if (!materialAssetId) continue;
+
+      const response = await fetch(
+        materialDocumentUrl(auth.apiUrl, materialAssetId),
+        {
+          headers: { Authorization: `Bearer ${auth.token}` },
+          cache: 'no-store',
+        }
+      );
+      if (!response.ok) continue;
+      const raw = (await response.json()) as unknown;
+      const document = coerceMaterialDocument(raw);
+      applyMaterialDocumentToNode(root, target.nodePath, document);
     }
   }
 }

@@ -9,16 +9,21 @@ import {
   publishGraphVersionByIdAction,
   recreateDraftFromVersionAction,
 } from '@/actions/graph';
-import { updateProductMetadataAction } from '@/actions/products';
-import { ProductMetadataForm } from '@/components/products/product-metadata-form';
 import { CommerceTab } from '@/components/products/workspace/commerce-tab';
 import { OptionsTab } from '@/components/products/workspace/options-tab';
+import {
+  EditProductDetailsDrawer,
+  ProductOverview,
+} from '@/components/products/workspace/product-overview';
 import { RulesTab } from '@/components/products/workspace/rules-tab';
 import { ThreeDTab } from '@/components/products/workspace/three-d-tab';
-import { Panel } from '@/components/ui';
 import {
-  countValues,
+  BrowseTab,
+  BrowseWorkspace,
+} from '@/components/ui/browse-workspace';
+import {
   type GraphDetail,
+  type MaterialAssetOption,
   type ObjectAssetOption,
   type WorkspaceTab,
 } from '@/lib/product-workspace';
@@ -37,6 +42,7 @@ export function ProductWorkspace({
   product,
   detail,
   objectAssets,
+  materialAssets,
   publishedVersions,
   initialTab,
 }: {
@@ -50,6 +56,7 @@ export function ProductWorkspace({
   };
   detail: GraphDetail | null;
   objectAssets: ObjectAssetOption[];
+  materialAssets: MaterialAssetOption[];
   publishedVersions: Array<{ id: string; version: number }>;
   initialTab: WorkspaceTab;
 }) {
@@ -57,24 +64,31 @@ export function ProductWorkspace({
   const [tab, setTab] = useState<WorkspaceTab>(initialTab);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
-  const [sourceVersionId, setSourceVersionId] = useState(
-    publishedVersions[0]?.id ?? ''
-  );
+  const [editOpen, setEditOpen] = useState(false);
+  const [versionMenuOpen, setVersionMenuOpen] = useState(false);
 
   const editable = detail?.status === 'DRAFT';
   const published = detail?.status === 'PUBLISHED';
   const optionCount = detail?.attributes.length ?? 0;
-  const valueCount = countValues(detail);
-  const ruleCount = detail?.rules.length ?? 0;
   const variantCount = detail?.variants.length ?? 0;
   const latestPublished = publishedVersions[0] ?? null;
-  const statusLabel = published
-    ? 'Published'
-    : editable
-      ? 'Draft'
-      : detail
+  const modelCount = detail?.models.length ?? 0;
+  const mappingCount = detail?.visualEffects.length ?? 0;
+
+  const productStatus =
+    product.status === 'ACTIVE'
+      ? 'Active'
+      : product.status === 'ARCHIVED'
         ? 'Archived'
-        : 'No configuration';
+        : 'Draft';
+
+  const versionLabel = !detail
+    ? 'No configuration'
+    : published
+      ? `Published v${detail.version}`
+      : editable
+        ? `Draft v${detail.version}`
+        : `Archived v${detail.version}`;
 
   function selectTab(next: WorkspaceTab) {
     setTab(next);
@@ -83,109 +97,110 @@ export function ProductWorkspace({
     });
   }
 
+  function createDraft(fromVersionId?: string) {
+    startTransition(async () => {
+      const result = await createDraftGraphVersionAction(
+        projectId,
+        productId,
+        fromVersionId
+      );
+      setMessage(
+        result.ok
+          ? fromVersionId
+            ? 'Draft ready to edit.'
+            : 'Configuration started.'
+          : result.error || 'Could not create draft.'
+      );
+      setVersionMenuOpen(false);
+      if (result.ok) {
+        if (!detail) selectTab('options');
+        router.refresh();
+      }
+    });
+  }
+
+  function editConfiguration() {
+    const fromId = latestPublished?.id ?? detail?.id;
+    if (!fromId) {
+      createDraft();
+      return;
+    }
+    createDraft(fromId);
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="type-page max-w-xl">{product.name}</h1>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--bo-live-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--bo-live)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--bo-live)]" />
-              {product.status === 'ACTIVE'
-                ? 'Active'
-                : product.status === 'ARCHIVED'
-                  ? 'Archived'
-                  : 'Draft'}
+    <BrowseWorkspace
+      title={product.name}
+      meta={
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--bo-live-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--bo-live)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--bo-live)]" />
+          {productStatus}
+        </span>
+      }
+      subtitle={
+        detail ? (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>Configuration</span>
+            <span className="inline-flex items-center gap-1.5 font-medium text-[var(--bo-ink)]">
+              {versionLabel}
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  editable
+                    ? 'bg-amber-500'
+                    : published
+                      ? 'bg-[var(--bo-live)]'
+                      : 'bg-[var(--bo-muted)]'
+                }`}
+              />
             </span>
-            {detail ? (
-              <span className="rounded-full bg-[var(--bo-surface)] px-2.5 py-1 text-[11px] font-medium text-[var(--bo-muted)]">
-                Configuration · {statusLabel}
-              </span>
+            {editable ? (
+              <span className="text-[var(--bo-muted)]">Editing</span>
             ) : null}
           </div>
-          <p className="mt-2 text-[13px] text-[var(--bo-muted)]">
+        ) : (
+          <p>
             {product.key}
-            {detail ? (
-              <>
-                {' '}
-                · {optionCount} options · {valueCount} values · {ruleCount}{' '}
-                {ruleCount === 1 ? 'rule' : 'rules'} · {variantCount}{' '}
-                {variantCount === 1 ? 'variant' : 'variants'}
-              </>
-            ) : null}
+            {optionCount || variantCount
+              ? ` · ${optionCount} options · ${variantCount} variants`
+              : ''}
           </p>
-          {detail?.publishedAt ? (
-            <p className="mt-1 text-[12px] text-[var(--bo-muted)]">
-              Last published{' '}
-              {new Date(detail.publishedAt).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </p>
-          ) : editable ? (
-            <p className="mt-1 text-[12px] text-[var(--bo-muted)]">
-              Draft · Version {detail?.version}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap gap-2">
+        )
+      }
+      actions={
+        <div className="relative flex flex-wrap items-center gap-2">
           {!detail ? (
             <button
               type="button"
               disabled={pending}
-              className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
-              onClick={() => {
-                startTransition(async () => {
-                  const result = await createDraftGraphVersionAction(
-                    projectId,
-                    productId
-                  );
-                  setMessage(
-                    result.ok
-                      ? 'Configuration started.'
-                      : result.error || 'Could not start configuration.'
-                  );
-                  if (result.ok) {
-                    selectTab('options');
-                    router.refresh();
-                  }
-                });
-              }}
+              className="bo-btn-primary rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-60"
+              onClick={() => createDraft()}
             >
               {pending ? 'Starting…' : 'Start configuration'}
             </button>
-          ) : null}
-          {detail && !editable ? (
-            <button
-              type="button"
-              disabled={pending}
-              className="rounded-xl border border-[var(--bo-line)] bg-white px-4 py-2 text-sm font-medium disabled:opacity-60"
-              onClick={() => {
-                startTransition(async () => {
-                  const result = await createDraftGraphVersionAction(
-                    projectId,
-                    productId,
-                    latestPublished?.id
-                  );
-                  setMessage(
-                    result.ok
-                      ? 'Editing draft created from published configuration.'
-                      : result.error || 'Could not create draft.'
-                  );
-                  if (result.ok) router.refresh();
-                });
-              }}
-            >
-              {pending ? 'Opening…' : 'Edit configuration'}
-            </button>
-          ) : null}
-          {editable ? (
+          ) : published ? (
             <>
               <button
                 type="button"
                 disabled={pending}
-                className="rounded-xl border border-[var(--bo-line)] bg-white px-4 py-2 text-sm font-medium disabled:opacity-60"
+                className="bo-btn-primary rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-60"
+                onClick={editConfiguration}
+              >
+                {pending ? 'Opening…' : 'Edit configuration'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setVersionMenuOpen((open) => !open)}
+                className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm font-medium"
+              >
+                Versions
+              </button>
+            </>
+          ) : editable ? (
+            <>
+              <button
+                type="button"
+                disabled={pending}
+                className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm font-medium disabled:opacity-60"
                 onClick={() => {
                   if (
                     !confirm(
@@ -208,12 +223,12 @@ export function ProductWorkspace({
                   });
                 }}
               >
-                {pending ? 'Discarding…' : 'Discard draft'}
+                Discard
               </button>
               <button
                 type="button"
                 disabled={pending}
-                className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
+                className="bo-btn-primary rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-60"
                 onClick={() => {
                   startTransition(async () => {
                     const result = await publishGraphVersionByIdAction(
@@ -232,158 +247,127 @@ export function ProductWorkspace({
               >
                 {pending ? 'Publishing…' : 'Publish'}
               </button>
+              <button
+                type="button"
+                onClick={() => setVersionMenuOpen((open) => !open)}
+                className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm font-medium"
+              >
+                Versions
+              </button>
             </>
+          ) : (
+            <button
+              type="button"
+              disabled={pending}
+              className="bo-btn-primary rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-60"
+              onClick={editConfiguration}
+            >
+              {pending ? 'Opening…' : 'Edit configuration'}
+            </button>
+          )}
+
+          {versionMenuOpen && detail ? (
+            <div className="absolute top-full right-0 z-20 mt-1 w-56 overflow-hidden rounded-xl border border-[var(--bo-line)] bg-white py-1 shadow-lg">
+              {latestPublished ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  className="block w-full px-3 py-2 text-left text-sm hover:bg-black/[0.03] disabled:opacity-60"
+                  onClick={() => createDraft(latestPublished.id)}
+                >
+                  New draft from v{latestPublished.version}
+                </button>
+              ) : null}
+              {editable && latestPublished ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  className="block w-full px-3 py-2 text-left text-sm hover:bg-black/[0.03] disabled:opacity-60"
+                  onClick={() => {
+                    if (
+                      !confirm(
+                        'Replace the current draft with a copy of the published version?'
+                      )
+                    ) {
+                      return;
+                    }
+                    startTransition(async () => {
+                      const result = await recreateDraftFromVersionAction(
+                        projectId,
+                        productId,
+                        latestPublished.id
+                      );
+                      setMessage(
+                        result.ok
+                          ? 'Draft replaced from published version.'
+                          : result.error || 'Could not replace draft.'
+                      );
+                      setVersionMenuOpen(false);
+                      if (result.ok) router.refresh();
+                    });
+                  }}
+                >
+                  Replace draft from published
+                </button>
+              ) : null}
+              {!editable && !latestPublished ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  className="block w-full px-3 py-2 text-left text-sm hover:bg-black/[0.03] disabled:opacity-60"
+                  onClick={() => createDraft()}
+                >
+                  Create draft
+                </button>
+              ) : null}
+            </div>
           ) : null}
+
           <Link
             href={`/${projectId}/products`}
-            className="rounded-xl border border-[var(--bo-line)] bg-white px-4 py-2 text-sm font-medium"
+            className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm font-medium"
           >
             All products
           </Link>
         </div>
-      </div>
-
-      {publishedVersions.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-[12px] border border-[var(--bo-line)] bg-white px-4 py-3">
-          <span className="text-[13px] text-[var(--bo-muted)]">
-            New draft from
-          </span>
-          <select
-            value={sourceVersionId}
-            onChange={(event) => setSourceVersionId(event.target.value)}
-            className="rounded-lg border border-[var(--bo-line)] bg-white px-2.5 py-1.5 text-[13px]"
-          >
-            {publishedVersions.map((version) => (
-              <option key={version.id} value={version.id}>
-                Version {version.version}
-                {latestPublished?.id === version.id ? ' · published' : ''}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            disabled={pending || !sourceVersionId}
-            className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-[13px] font-medium disabled:opacity-60"
-            onClick={() => {
-              if (
-                editable &&
-                !confirm(
-                  'Replace the current draft with a copy of the selected version?'
-                )
-              ) {
-                return;
-              }
-              startTransition(async () => {
-                const result = editable
-                  ? await recreateDraftFromVersionAction(
-                      projectId,
-                      productId,
-                      sourceVersionId
-                    )
-                  : await createDraftGraphVersionAction(
-                      projectId,
-                      productId,
-                      sourceVersionId
-                    );
-                setMessage(
-                  result.ok
-                    ? 'Draft created from selected version.'
-                    : result.error || 'Could not create draft.'
-                );
-                if (result.ok) router.refresh();
-              });
-            }}
-          >
-            {editable ? 'Replace draft' : 'Create draft'}
-          </button>
-        </div>
-      ) : null}
-
-      {message ? (
-        <p className="text-[13px] text-[var(--bo-muted)]">{message}</p>
-      ) : null}
-
-      <div className="flex flex-wrap gap-1 border-b border-[var(--bo-line)]">
-        {TABS.map((entry) => {
-          const active = tab === entry.id;
-          return (
-            <button
+      }
+      filters={
+        <>
+          {TABS.map((entry) => (
+            <BrowseTab
               key={entry.id}
-              type="button"
+              label={entry.label}
+              active={tab === entry.id}
               onClick={() => selectTab(entry.id)}
-              className={`relative px-3.5 py-2.5 text-[13px] font-medium transition ${
-                active
-                  ? 'text-[var(--bo-ink)]'
-                  : 'text-[var(--bo-muted)] hover:text-[var(--bo-ink)]'
-              }`}
-            >
-              {entry.label}
-              {active ? (
-                <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[var(--bo-ink)]" />
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
+            />
+          ))}
+        </>
+      }
+      inspector={
+        <EditProductDetailsDrawer
+          projectId={projectId}
+          productId={productId}
+          product={product}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+        />
+      }
+    >
+      {message ? (
+        <p className="mb-3 text-[13px] text-[var(--bo-muted)]">{message}</p>
+      ) : null}
 
       {tab === 'product' ? (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <Panel className="space-y-4">
-            <h2 className="text-[11px] font-semibold tracking-[0.08em] text-[var(--bo-muted)] uppercase">
-              Product
-            </h2>
-            <ProductMetadataForm
-              projectId={projectId}
-              productId={productId}
-              defaults={{
-                Name: product.name,
-                key: product.key,
-              }}
-              action={updateProductMetadataAction}
-            />
-          </Panel>
-          <Panel className="space-y-4">
-            <h2 className="text-[11px] font-semibold tracking-[0.08em] text-[var(--bo-muted)] uppercase">
-              Configuration
-            </h2>
-            {!detail ? (
-              <p className="text-sm text-[var(--bo-muted)]">
-                No configuration yet. Start one to define customer options,
-                3D mappings, commerce variants, and rules.
-              </p>
-            ) : (
-              <>
-                <ul className="space-y-2 text-sm">
-                  {detail.attributes.map((attribute) => (
-                    <li
-                      key={attribute.id}
-                      className="flex items-center justify-between gap-3 border-b border-[var(--bo-line)] py-2 last:border-b-0"
-                    >
-                      <span className="font-medium">{attribute.name}</span>
-                      <span className="text-[var(--bo-muted)]">
-                        {attribute.values?.length ?? 0}{' '}
-                        {(attribute.values?.length ?? 0) === 1
-                          ? 'option'
-                          : 'options'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="rounded-xl bg-[var(--bo-surface)] px-4 py-3 text-[13px] text-[var(--bo-muted)]">
-                  Variants · {variantCount} mapped
-                  {ruleCount > 0 ? ` · ${ruleCount} rules` : ''}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => selectTab('options')}
-                  className="text-[13px] font-medium text-[var(--bo-ink)] underline-offset-2 hover:underline"
-                >
-                  + Add option
-                </button>
-              </>
-            )}
-          </Panel>
-        </div>
+        <ProductOverview
+          product={product}
+          detail={detail}
+          modelCount={modelCount}
+          mappingCount={mappingCount}
+          onEditDetails={() => setEditOpen(true)}
+          onConfigureOptions={() => selectTab('options')}
+          onOpen3d={() => selectTab('3d')}
+          onOpenCommerce={() => selectTab('commerce')}
+        />
       ) : null}
 
       {tab === 'options' ? (
@@ -392,6 +376,7 @@ export function ProductWorkspace({
           productId={productId}
           detail={detail}
           editable={editable}
+          materialAssets={materialAssets}
         />
       ) : null}
       {tab === '3d' ? (
@@ -400,6 +385,7 @@ export function ProductWorkspace({
           productId={productId}
           detail={detail}
           objectAssets={objectAssets}
+          materialAssets={materialAssets}
           editable={editable}
         />
       ) : null}
@@ -419,6 +405,6 @@ export function ProductWorkspace({
           editable={editable}
         />
       ) : null}
-    </div>
+    </BrowseWorkspace>
   );
 }

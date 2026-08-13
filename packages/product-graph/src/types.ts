@@ -86,6 +86,35 @@ export type GraphObjectAsset = {
   url: string;
   included: boolean;
   visible: boolean;
+  status?: string;
+  metadataUrl?: string | null;
+  nodeCount?: number | null;
+  meshCount?: number | null;
+  materialCount?: number | null;
+};
+
+export type ParsedObjectNode = {
+  name: string;
+  path: string;
+  type: 'mesh' | 'group' | 'node';
+  materialSlots: number[];
+  materialNames?: string[];
+  children: ParsedObjectNode[];
+};
+
+export type ParsedObjectMetadata = {
+  metadataVersion: number;
+  assetName: string;
+  format: 'glb' | 'gltf';
+  nodes: ParsedObjectNode[];
+  materials: Array<{ index: number; name: string }>;
+  animations: string[];
+  stats: {
+    nodeCount: number;
+    meshCount: number;
+    materialCount: number;
+    animationCount: number;
+  };
 };
 
 export type GraphVersionSummary = {

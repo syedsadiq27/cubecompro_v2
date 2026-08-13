@@ -23,6 +23,15 @@ export type ObjectAssetOption = {
   name: string;
   code?: string | null;
   fileUrl?: string | null;
+  status?: string | null;
+  meshCount?: number | null;
+  format?: string | null;
+};
+
+export type MaterialAssetOption = {
+  id: string;
+  name: string;
+  code?: string | null;
 };
 
 export type WorkspaceTab =
@@ -60,11 +69,24 @@ export function countValues(detail: GraphDetail | null): number {
   );
 }
 
-export function humanizeEffectValue(valueJson: string): string {
+export function humanizeEffectValue(
+  valueJson: string,
+  materialNames?: Map<string, string>
+): string {
   try {
     const parsed = JSON.parse(valueJson) as unknown;
     if (typeof parsed === 'boolean') {
       return parsed ? 'Show' : 'Hide';
+    }
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'materialAssetId' in parsed &&
+      typeof (parsed as { materialAssetId: unknown }).materialAssetId ===
+        'string'
+    ) {
+      const id = (parsed as { materialAssetId: string }).materialAssetId;
+      return materialNames?.get(id) ?? 'Library material';
     }
     if (typeof parsed === 'string' || typeof parsed === 'number') {
       return String(parsed);
@@ -73,6 +95,17 @@ export function humanizeEffectValue(valueJson: string): string {
   } catch {
     return valueJson;
   }
+}
+
+export function humanizeEffectOperation(operation: string): string {
+  const key = operation.toUpperCase();
+  if (key === 'SET_MATERIAL') return 'Set material';
+  if (key === 'SET_VISIBILITY' || key === 'VISIBILITY') return 'Set visibility';
+  if (key === 'SET_COLOR') return 'Set color';
+  return operation
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/^\w/, (char) => char.toUpperCase());
 }
 
 export function describeRule(
@@ -156,9 +189,13 @@ function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function targetLabel(target: GraphTarget): string {
+export function partLabel(target: GraphTarget): string {
   const slot = target.materialSlot || target.key.split('.')[0] || 'Part';
-  const pretty = titleCase(String(slot));
+  return titleCase(String(slot));
+}
+
+export function targetLabel(target: GraphTarget): string {
+  const pretty = partLabel(target);
   if (
     target.targetType.toUpperCase() === 'VISIBILITY' ||
     target.key.includes('visibility')
@@ -169,7 +206,7 @@ export function targetLabel(target: GraphTarget): string {
     target.targetType.toUpperCase() === 'MATERIAL' ||
     target.key.includes('material')
   ) {
-    return `${pretty} material`;
+    return pretty;
   }
   return pretty;
 }

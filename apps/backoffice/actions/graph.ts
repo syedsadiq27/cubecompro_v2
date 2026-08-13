@@ -277,6 +277,14 @@ export async function createVisualEffectAction(
     let valueJson = rawValue;
     if (operation === 'SET_VISIBILITY') {
       valueJson = JSON.stringify(rawValue === 'true' || rawValue === 'Show');
+    } else if (operation === 'SET_MATERIAL') {
+      const materialAssetId = String(
+        formData.get('materialAssetId') ?? rawValue
+      ).trim();
+      if (!materialAssetId) {
+        return { ok: false, error: 'materialAssetId is required.' };
+      }
+      valueJson = JSON.stringify({ materialAssetId });
     } else {
       try {
         JSON.parse(rawValue);

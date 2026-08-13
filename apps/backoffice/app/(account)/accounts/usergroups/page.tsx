@@ -1,9 +1,9 @@
 import {
   EmptyState,
   ErrorState,
-  PageHeader,
   Panel,
 } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import { graphRequest } from '@repo/product-graph';
 import {
   ME_QUERY,
@@ -38,13 +38,12 @@ export default async function UserGroupsPage() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Roles"
-        description="Organization roles replace legacy user groups in CubeCom v1."
-      />
+    <PageChrome
+      title="Roles"
+      description="Organization roles replace legacy user groups in CubeCom v1."
+    >
       {error ? <ErrorState message={error} /> : null}
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <Panel>
           <h3 className="mb-4 text-sm font-semibold tracking-wide uppercase">
             Create role
@@ -64,6 +63,6 @@ export default async function UserGroupsPage() {
           ))}
         </div>
       </div>
-    </div>
+    </PageChrome>
   );
 }

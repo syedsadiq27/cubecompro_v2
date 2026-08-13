@@ -1,10 +1,6 @@
-import Link from 'next/link';
-import {
-  EmptyState,
-  ErrorState,
-  PageHeader,
-  Panel,
-} from '@/components/ui';
+import { DashboardBrowse } from '@/components/dashboard/dashboard-browse';
+import { ErrorState } from '@/components/ui';
+import { PageChrome } from '@/components/ui/page-chrome';
 import { graphRequest } from '@repo/product-graph';
 import { PRODUCTS_BY_PROJECT_QUERY } from '@repo/product-graph';
 import { getProjectSession } from '@/lib/session-server';
@@ -35,40 +31,14 @@ export default async function DashboardPage({
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Dashboard"
-        description="Project overview for catalog activity."
-        actions={
-          <Link
-            href={`/${projectId}/products`}
-            className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium"
-          >
-            View products
-          </Link>
-        }
-      />
-      {error ? <ErrorState message={error} /> : null}
-      {!error ? (
-        <div className="grid gap-4 md:grid-cols-3">
-          <Panel>
-            <p className="text-sm text-[var(--bo-muted)]">Products</p>
-            <p className="mt-2 text-3xl font-semibold">{productCount}</p>
-          </Panel>
-          <Panel>
-            <p className="text-sm text-[var(--bo-muted)]">Workflows</p>
-            <p className="mt-2 text-3xl font-semibold">0</p>
-            <p className="mt-1 text-xs text-[var(--bo-muted)]">Deferred in v1</p>
-          </Panel>
-          <Panel>
-            <p className="text-sm text-[var(--bo-muted)]">Open workflows</p>
-            <p className="mt-2 text-3xl font-semibold">0</p>
-            <p className="mt-1 text-xs text-[var(--bo-muted)]">Deferred in v1</p>
-          </Panel>
+    <PageChrome flush>
+      {error ? (
+        <div className="p-4">
+          <ErrorState message={error} />
         </div>
       ) : (
-        <EmptyState message="Dashboard metrics unavailable." />
+        <DashboardBrowse projectId={projectId} productCount={productCount} />
       )}
-    </div>
+    </PageChrome>
   );
 }

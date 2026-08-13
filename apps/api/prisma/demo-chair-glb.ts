@@ -1,6 +1,18 @@
 import { Document, NodeIO } from '@gltf-transform/core';
+import {
+  buildMetadataFromDocument,
+  type ParsedObjectMetadata,
+} from '../src/library/parse-glb';
 
 export async function buildDemoChairGlb(): Promise<Buffer> {
+  const { bytes } = await buildDemoChairBundle();
+  return bytes;
+}
+
+export async function buildDemoChairBundle(): Promise<{
+  bytes: Buffer;
+  metadata: ParsedObjectMetadata;
+}> {
   const document = new Document();
   const buffer = document.createBuffer();
   const material = document
@@ -9,15 +21,18 @@ export async function buildDemoChairGlb(): Promise<Buffer> {
 
   const root = document.createNode('Chair');
 
-  const parts: Array<{ name: string; size: [number, number, number]; y: number }> =
-    [
-      { name: 'Seat', size: [1.2, 0.12, 1.1], y: 0.55 },
-      { name: 'Backrest', size: [1.15, 1.0, 0.12], y: 1.15 },
-      { name: 'LeftArm', size: [0.12, 0.35, 1.0], y: 0.75 },
-      { name: 'RightArm', size: [0.12, 0.35, 1.0], y: 0.75 },
-      { name: 'Legs', size: [1.1, 0.5, 1.0], y: 0.25 },
-      { name: 'Frame', size: [1.25, 0.08, 1.15], y: 0.48 },
-    ];
+  const parts: Array<{
+    name: string;
+    size: [number, number, number];
+    y: number;
+  }> = [
+    { name: 'Seat', size: [1.2, 0.12, 1.1], y: 0.55 },
+    { name: 'Backrest', size: [1.15, 1.0, 0.12], y: 1.15 },
+    { name: 'LeftArm', size: [0.12, 0.35, 1.0], y: 0.75 },
+    { name: 'RightArm', size: [0.12, 0.35, 1.0], y: 0.75 },
+    { name: 'Legs', size: [1.1, 0.5, 1.0], y: 0.25 },
+    { name: 'Frame', size: [1.25, 0.08, 1.15], y: 0.48 },
+  ];
 
   for (const part of parts) {
     const [sx, sy, sz] = part.size;
@@ -78,6 +93,10 @@ export async function buildDemoChairGlb(): Promise<Buffer> {
 
   document.createScene('DemoChair').addChild(root);
   const io = new NodeIO();
-  const bytes = await io.writeBinary(document);
-  return Buffer.from(bytes);
+  const bytes = Buffer.from(await io.writeBinary(document));
+  const metadata = buildMetadataFromDocument(document, {
+    assetName: 'Demo Chair',
+    format: 'glb',
+  });
+  return { bytes, metadata };
 }
