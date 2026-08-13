@@ -16,7 +16,7 @@ Published versions are immutable. Publish writes a frozen `graphUri` / `graphSha
 
 Large JSON documents live in the document store (local `.data/documents` now; GCS later).
 
-## Resolve milestone
+## Resolve milestone 
 
 ```text
 Color=Black, Size=XL, Frame=Walnut
