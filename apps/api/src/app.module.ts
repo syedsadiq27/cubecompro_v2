@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthModule } from './auth/auth.module';
 import { DocumentsModule } from './documents/documents.module';
+import { HealthController } from './health.controller';
 import { HealthResolver } from './health.resolver';
 import { LibraryModule } from './library/library.module';
 import { OrganizationModule } from './organization/organization.module';
@@ -37,6 +38,7 @@ import { SavedConfigurationModule } from './saved-configuration/saved-configurat
     ResolveModule,
     SavedConfigurationModule,
   ],
+  controllers: [HealthController],
   providers: [HealthResolver],
 })
 export class AppModule {}
