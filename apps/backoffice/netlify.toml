@@ -1,5 +1,5 @@
 [build]
-  command = "yarn build"
+  command = "yarn --cwd ../.. turbo run build --filter=backoffice"
   publish = ".next"
 
 [build.environment]
