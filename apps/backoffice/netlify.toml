@@ -1,6 +1,6 @@
 [build]
   command = "yarn --cwd ../.. build:backoffice"
-  publish = ".next"
+  publish = "apps/backoffice/.next"
 
 [build.environment]
   NETLIFY_USE_YARN = "true"
