@@ -19,7 +19,10 @@ import { SavedConfigurationModule } from './saved-configuration/saved-configurat
     ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(__dirname, '..', '..', 'src', 'schema.gql'),
+      autoSchemaFile:
+        process.env.NODE_ENV === 'development'
+          ? join(process.cwd(), 'src', 'schema.gql')
+          : true,
       sortSchema: true,
       path: '/graphql',
       context: ({ req }: { req: unknown }) => ({ req }),

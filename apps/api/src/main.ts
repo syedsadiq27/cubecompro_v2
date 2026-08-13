@@ -7,6 +7,11 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
-  await app.listen(process.env.PORT ?? 3005);
+  const port = Number(process.env.PORT ?? 3005);
+  await app.listen(port, '0.0.0.0');
 }
-void bootstrap();
+
+bootstrap().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
