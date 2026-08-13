@@ -40,22 +40,21 @@ Visual ops: `SET_MATERIAL` | `SET_VISIBILITY` | `SET_MODEL`. Commerce: exact `Va
 
 ```bash
 yarn db:up
-yarn db:migrate
-
-cd apps/api
-cp .env.example .env
-yarn dev
+cp apps/api/.env.example apps/api/.env
+yarn db:setup
+yarn workspace api dev
 ```
 
-Or from root after `.env` exists under `apps/api`:
+The API runs `prisma migrate deploy` on boot. Set `SEED=true` to also seed the demo user/product when that user is missing (`SEED=force` to always rerun).
 
 ```bash
-yarn db:up && yarn db:migrate && yarn workspace api dev
+yarn db:up && yarn db:setup && yarn workspace api dev
 ```
 
-- `yarn db:migrate` — `prisma migrate deploy`
-- `yarn db:migrate:dev` — `prisma migrate dev`
+- `yarn db:migrate` — `prisma migrate deploy` (create tables)
+- `yarn db:migrate:dev` — `prisma migrate dev` (author a new migration)
 - `yarn db:seed` — demo org / showroom / CHAIR-01 graph (published v1)
+- `yarn db:setup` — migrate deploy + seed
 
 GraphQL: [http://localhost:3005/graphql](http://localhost:3005/graphql)
 
