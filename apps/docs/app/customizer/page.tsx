@@ -1,18 +1,5 @@
-import { ProductPlaceholder } from '@/components/product-placeholder';
+import { redirect } from 'next/navigation';
 
-export const metadata = { title: 'Customizer' };
-
-export default function CustomizerDocsPage() {
-  return (
-    <ProductPlaceholder
-      title="Customizer"
-      description="Shopper-facing product configuration experience connected to commerce."
-      bullets={[
-        'Embedding and project setup',
-        'Configuration flows and variants',
-        'Pricing, cart, and checkout handoff',
-        'Theming and experience rules',
-      ]}
-    />
-  );
+export default function CustomizerRedirectPage() {
+  redirect('/start/embed');
 }

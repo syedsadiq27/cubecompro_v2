@@ -8,7 +8,7 @@ export default function ComponentsPage() {
     <>
       <PageHeader
         title="Components"
-        description="First-pass CubeCom primitives from @repo/ui. Validate brand consistency here before adopting in backoffice."
+        description="Shared primitives from @repo/ui used by Backoffice and docs."
       />
       <ComponentsGallery />
     </>

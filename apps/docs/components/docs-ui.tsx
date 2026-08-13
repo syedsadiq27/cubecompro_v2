@@ -1,3 +1,6 @@
+import { HeadingAnchor } from '@/components/heading-anchor';
+import { slugify } from '@/lib/slug';
+
 export function PageHeader({
   title,
   description,
@@ -5,9 +8,12 @@ export function PageHeader({
   title: string;
   description: string;
 }) {
+  const id = `doc-${slugify(title)}`;
   return (
     <header className="mb-16">
-      <h1 className="type-page max-w-xl">{title}</h1>
+      <h1 id={id} data-docs-title className="type-page max-w-xl scroll-mt-8">
+        {title}
+      </h1>
       <p className="type-body type-measure mt-5">{description}</p>
     </header>
   );
@@ -20,9 +26,13 @@ export function Section({
   title: string;
   children: React.ReactNode;
 }) {
+  const id = `sec-${slugify(title)}`;
   return (
-    <section className="mb-16">
-      <h2 className="type-section mb-8">{title}</h2>
+    <section id={id} data-docs-section={title} className="mb-16 scroll-mt-8">
+      <h2 className="type-section group mb-8">
+        {title}
+        <HeadingAnchor id={id} />
+      </h2>
       <div className="space-y-8">{children}</div>
     </section>
   );
@@ -73,5 +83,65 @@ export function Callout({ children }: { children: React.ReactNode }) {
     <div className="type-body rounded-[10px] bg-[var(--stage-bg)] px-5 py-4">
       {children}
     </div>
+  );
+}
+
+export function Steps({
+  items,
+}: {
+  items: Array<{ title: string; body: string }>;
+}) {
+  return (
+    <ol className="space-y-6">
+      {items.map((item, index) => (
+        <li key={item.title} className="flex gap-4">
+          <span className="type-num w-7 shrink-0 pt-0.5">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <div className="min-w-0">
+            <p className="type-item">{item.title}</p>
+            <p className="type-desc mt-1.5">{item.body}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function TermList({
+  items,
+}: {
+  items: Array<{ term: string; meaning: string }>;
+}) {
+  return (
+    <dl className="space-y-5">
+      {items.map((item) => (
+        <div key={item.term}>
+          <dt className="type-item">{item.term}</dt>
+          <dd className="type-desc mt-1">{item.meaning}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+export function Related({
+  links,
+}: {
+  links: Array<{ href: string; label: string }>;
+}) {
+  return (
+    <ul className="space-y-2">
+      {links.map((link) => (
+        <li key={link.href}>
+          <a
+            href={link.href}
+            className="type-desc font-medium text-[var(--ink)] underline-offset-2 hover:underline"
+          >
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }

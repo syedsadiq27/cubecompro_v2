@@ -1,77 +1,101 @@
-import { CubeStage, CubeSurface } from '@/components/brand';
-import { PageHeader, Section } from '@/components/docs-ui';
+import {
+  Callout,
+  CodeBlock,
+  PageHeader,
+  Prose,
+  Related,
+  Section,
+  SpecTable,
+} from '@/components/docs-ui';
 
-const PRODUCTS = [
-  {
-    href: '/backoffice',
-    title: 'Backoffice',
-    description: 'Catalog, commerce, workflow, and platform operations.',
-  },
-  {
-    href: '/3d-editor',
-    title: '3D Editor',
-    description: 'Models, materials, regions, cameras, and validation.',
-  },
-  {
-    href: '/logo-editor',
-    title: 'Logo Editor',
-    description: 'Logo placement, scaling, and artwork workflows.',
-  },
-  {
-    href: '/customizer',
-    title: 'Customizer',
-    description: 'Shopper-facing configuration and commerce experience.',
-  },
-] as const;
-
-export default function OverviewPage() {
+export default function IntroductionPage() {
   return (
     <>
-      <div className="relative -mx-10 mb-10">
-        <CubeStage product className="h-[420px] w-full" />
-      </div>
-
-      <div className="mb-16">
-        <h1 className="type-hero">
-          Configure anything.
-          <br />
-          Sell every valid state.
-        </h1>
-        <p className="type-body type-measure mt-6">
-          Physical products on a digital stage — the CubeCom signature across
-          marketing, studio, customizer, and docs.
-        </p>
-      </div>
-
       <PageHeader
-        title="Documentation"
-        description="Guides for customers and partners, plus the design principles that keep every CubeCom surface coherent."
+        title="What is CubeCom Pro?"
+        description="CubeCom Pro is a configuration platform for physical products. It does not replace your PIM, DAM, or commerce engine. It sits between them and a shopper experience, and it is the only place a combination of options becomes a look and a sellable identity."
       />
 
-      <Section title="Start here">
-        <CubeSurface href="/design-principles" className="px-7 py-8">
-          <p className="type-meta">Brand</p>
-          <p className="type-card mt-3">Design principles</p>
-          <p className="type-body type-measure mt-4">
-            The Digital Product Stage — mineral white, product as hero, violet
-            spatial light, and controlled black typography.
+      <Section title="Why it has to exist">
+        <Prose>
+          <p>
+            Commerce systems sell SKUs. 3D tools author scenes. Neither knows
+            whether Black + XL + Leather is legal, what material that choice
+            applies, or which catalog item to add to cart.
           </p>
-        </CubeSurface>
+          <p>
+            CubeCom Pro owns that contract. Merchants define a product graph.
+            Shoppers submit a configuration state. Resolve returns scene state
+            and commerce state from the same selection — or it returns
+            violations and refuses the commerce action.
+          </p>
+        </Prose>
       </Section>
 
-      <Section title="Products">
-        <div className="grid items-start gap-4 sm:grid-cols-2">
-          {PRODUCTS.map((product) => (
-            <CubeSurface
-              key={product.href}
-              href={product.href}
-              className="px-6 py-6"
-            >
-              <p className="type-card">{product.title}</p>
-              <p className="type-desc mt-3">{product.description}</p>
-            </CubeSurface>
-          ))}
-        </div>
+      <Section title="The pipeline">
+        <CodeBlock>{`Product data
+      ↓
+ConfigurationState
+      ↓
+Rules / constraints
+      ↓
+ResolvedSelection
+      ↓
+┌──────────────┬───────────────┐
+│ Scene state  │ Commerce state│
+│ materials    │ SKU           │
+│ visibility   │ price         │
+│ transforms   │ inventory     │
+└──────────────┴───────────────┘`}</CodeBlock>
+      </Section>
+
+      <Section title="Invariants">
+        <SpecTable
+          rows={[
+            {
+              label: 'Configuration ≠ SKU',
+              value: 'A ConfigurationState is a set of option values, not a catalog item.',
+            },
+            {
+              label: 'SKU is a projection',
+              value: 'A SKU may be one projection of a resolved configuration.',
+            },
+            {
+              label: 'One selection, two states',
+              value: 'Scene state and commerce state originate from the same resolved selection.',
+            },
+            {
+              label: 'Invalid never sells',
+              value: 'Invalid configurations never resolve to a commerce action.',
+            },
+          ]}
+        />
+        <Callout>
+          If a storefront can add an illegal combination to cart, CubeCom Pro
+          was bypassed — not misconfigured.
+        </Callout>
+      </Section>
+
+      <Section title="What CubeCom Pro is not">
+        <Prose>
+          <p>
+            It is not a storefront, not a renderer SDK you drop on a PDP by
+            itself, and not a replacement for commercetools or Shopify. Those
+            systems remain the system of record for price, stock, and checkout.
+            CubeCom Pro tells them which identity the current configuration
+            maps to.
+          </p>
+        </Prose>
+      </Section>
+
+      <Section title="Next">
+        <Related
+          links={[
+            { href: '/architecture', label: 'Architecture' },
+            { href: '/concepts/product-graph', label: 'Product graph' },
+            { href: '/start/project', label: 'Create a project' },
+          ]}
+        />
       </Section>
     </>
   );

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: '%s · CubeCom Pro Docs',
   },
   description:
-    'Documentation for CubeCom Pro — Backoffice, 3D Editor, Logo Editor, Customizer, and design principles.',
+    'CubeCom Pro platform docs — product graph, configuration, resolve, GraphQL, and commerce.',
 };
 
 export const viewport: Viewport = {
