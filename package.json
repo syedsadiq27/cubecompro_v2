@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "build:backoffice": "turbo run build --filter=backoffice",
+    "build:editor": "turbo run build --filter=editor",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",

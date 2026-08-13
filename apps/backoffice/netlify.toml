@@ -1,0 +1,10 @@
+[build]
+  command = "yarn --cwd ../.. build:backoffice"
+  publish = ".next"
+
+[build.environment]
+  NETLIFY_USE_YARN = "true"
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
