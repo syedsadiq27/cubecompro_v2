@@ -67,4 +67,28 @@ export const marketingRoutes = [
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   },
+  {
+    path: '/demo/tshirt',
+    title: 'Live t-shirt demo',
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  },
+  {
+    path: '/pricing',
+    title: `Pricing | ${SITE_NAME}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  },
+  {
+    path: '/privacy',
+    title: `Privacy | ${SITE_NAME}`,
+    changeFrequency: 'yearly' as const,
+    priority: 0.3,
+  },
+  {
+    path: '/terms',
+    title: `Terms | ${SITE_NAME}`,
+    changeFrequency: 'yearly' as const,
+    priority: 0.3,
+  },
 ];

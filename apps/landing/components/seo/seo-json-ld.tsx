@@ -42,6 +42,28 @@ export function SeoJsonLd({
     },
   };
 
+  const software =
+    page.path === '/product-configurator'
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'CubeCom Pro Product Configurator',
+          applicationCategory: 'BusinessApplication',
+          operatingSystem: 'Web',
+          url,
+          description: page.description,
+          provider: {
+            '@type': 'Organization',
+            name: SITE_NAME,
+            url: SITE_URL,
+            parentOrganization: {
+              '@type': 'Organization',
+              name: 'Introfinity',
+            },
+          },
+        }
+      : null;
+
   const faqPage = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -65,6 +87,12 @@ export function SeoJsonLd({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
       />
+      {software ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(software) }}
+        />
+      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPage) }}

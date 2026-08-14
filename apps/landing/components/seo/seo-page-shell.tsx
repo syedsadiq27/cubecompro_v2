@@ -13,7 +13,14 @@ export function SeoPageShell({
     <>
       <section className="border-b border-[var(--line)] bg-[var(--canvas)]">
         <div className="mx-auto max-w-[90rem] px-5 py-16 md:px-8 md:py-24 lg:py-28">
-          <p className="text-sm text-[var(--text-muted)]">{page.eyebrow}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm text-[var(--text-muted)]">{page.eyebrow}</p>
+            {page.badge ? (
+              <span className="rounded-full bg-[var(--brand-soft)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--brand)]">
+                {page.badge}
+              </span>
+            ) : null}
+          </div>
           <h1 className="type-page mt-4 max-w-4xl text-[clamp(2rem,4.5vw,3.25rem)]">
             {page.h1}
           </h1>

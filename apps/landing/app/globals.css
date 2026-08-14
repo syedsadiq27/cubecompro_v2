@@ -342,6 +342,27 @@ a {
   animation: landing-plane 8s ease-in-out infinite;
 }
 
+@keyframes pc-resolve-flash {
+  0% {
+    opacity: 0.35;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pc-resolve-flash {
+  animation: pc-resolve-flash 0.35s ease-out;
+}
+
+@media (min-width: 768px) {
+  .footer-nav-group > *:not(summary) {
+    display: block !important;
+  }
+}
+
 .landing-footer-brand span {
   color: #f2f1ed !important;
 }
@@ -354,7 +375,8 @@ a {
   .landing-rise,
   .landing-brand-in,
   .landing-product-float,
-  .landing-plane-pulse {
+  .landing-plane-pulse,
+  .pc-resolve-flash {
     animation: none;
   }
 }

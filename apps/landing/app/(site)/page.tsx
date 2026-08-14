@@ -2,6 +2,7 @@ import { Contact } from '@/components/landing/contact';
 import { Faq } from '@/components/landing/faq';
 import { Hero } from '@/components/landing/hero';
 import { HomeJsonLd } from '@/components/landing/home-json-ld';
+import { HomeSubnav } from '@/components/landing/home-subnav';
 import { Pricing } from '@/components/landing/pricing';
 import { Solutions } from '@/components/landing/solutions';
 import { StageStory } from '@/components/landing/stage-story';
@@ -12,6 +13,7 @@ export default function HomePage() {
     <>
       <HomeJsonLd />
       <Hero />
+      <HomeSubnav />
       <Why3d />
       <StageStory />
       <Solutions />

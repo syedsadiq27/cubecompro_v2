@@ -1,11 +1,3 @@
-export const nav = [
-  { href: '/#why', label: 'Why 3D' },
-  { href: '/#stage', label: 'How it works' },
-  { href: '/#surfaces', label: 'Surfaces' },
-  { href: '/#pricing', label: 'Pricing' },
-  { href: '/#contact', label: 'Session' },
-] as const;
-
 export const whyReasons = [
   {
     title: 'Photography cannot keep up with options',

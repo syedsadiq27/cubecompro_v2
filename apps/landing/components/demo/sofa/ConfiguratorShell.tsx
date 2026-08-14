@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Wordmark } from '@repo/ui/wordmark';
+import { ProductSwitcher } from '../ProductSwitcher';
 import { CommercePanel } from './CommercePanel';
 import { OptionPanel } from './OptionPanel';
 import { SofaCanvas } from './SofaCanvas';
@@ -44,12 +45,15 @@ export function ConfiguratorShell({
             Sofa · live configurator
           </p>
         </div>
-        <Link
-          href="/"
-          className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
-        >
-          Home
-        </Link>
+        <div className="flex items-center gap-3">
+          <ProductSwitcher active="sofa" />
+          <Link
+            href="/"
+            className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
+          >
+            Home
+          </Link>
+        </div>
       </header>
 
       {notice ? (

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Inter_Tight } from 'next/font/google';
 import { GeistMono } from 'geist/font/mono';
+import { OrganizationJsonLd } from '@/components/seo/organization-json-ld';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import '@repo/ui/styles.css';
 import './globals.css';
@@ -28,17 +29,6 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
-  keywords: [
-    '3D product configurator',
-    'product configurator',
-    'headless product configurator',
-    'product configuration API',
-    'Shopify 3D configurator',
-    'commercetools product configurator',
-    'furniture configurator',
-    'apparel configurator',
-    'CubeCom Pro',
-  ],
   alternates: {
     canonical: '/',
   },
@@ -49,12 +39,20 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: 'en_US',
     type: 'website',
-    images: [{ url: '/opengraph-image' }],
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} — Product Configuration Platform`,
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} — Product Configuration Platform`,
     description: SITE_DESCRIPTION,
+    images: ['/opengraph-image'],
   },
   robots: {
     index: true,
@@ -90,7 +88,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${interTight.variable} ${GeistMono.variable}`}
     >
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <OrganizationJsonLd />
+        {children}
+      </body>
     </html>
   );
 }

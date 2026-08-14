@@ -1,23 +1,37 @@
 import Link from 'next/link';
 import { plans } from '@/lib/content';
 
-export function Pricing() {
+export function Pricing({ compact = false }: { compact?: boolean }) {
   return (
     <section
       id="pricing"
-      className="border-t border-[var(--line)] bg-[var(--canvas)]"
+      className={
+        compact
+          ? 'bg-[var(--canvas)]'
+          : 'border-t border-[var(--line)] bg-[var(--canvas)]'
+      }
     >
-      <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-8 lg:py-28">
-        <p className="text-sm text-[var(--text-muted)]">Pricing</p>
-        <h2 className="type-page mt-3 max-w-2xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
-          Founding rates while we’re still early.
-        </h2>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--text-secondary)]">
-          Lock in early. Decoration and image generation stay modular — compute
-          does not inflate the base plan.
-        </p>
+      <div
+        className={`mx-auto max-w-[90rem] px-5 md:px-8 ${
+          compact ? 'pt-10 pb-16 md:pb-20' : 'py-20 lg:py-28'
+        }`}
+      >
+        {compact ? null : (
+          <>
+            <p className="text-sm text-[var(--text-muted)]">Pricing</p>
+            <h2 className="type-page mt-3 max-w-2xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
+              Founding rates while we’re still early.
+            </h2>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--text-secondary)]">
+              Lock in early. Decorations and image generation stay modular —
+              compute does not inflate the base plan.
+            </p>
+          </>
+        )}
 
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+        <div
+          className={`grid gap-5 lg:grid-cols-3 ${compact ? '' : 'mt-14'}`}
+        >
           {plans.map((plan) => (
             <div
               key={plan.name}

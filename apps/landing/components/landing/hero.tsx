@@ -36,7 +36,7 @@ export function Hero() {
         <div className="landing-rise flex flex-col justify-center px-5 py-12 md:px-8 md:py-16 lg:py-20">
           <Wordmark size="lg" showPro className="landing-brand-in" />
           <p className="mt-5 text-sm tracking-[0.02em] text-[var(--text-muted)]">
-            The Digital Product Stage
+            3D Product Configuration Platform for Ecommerce
           </p>
           <h1 className="type-hero mt-4 max-w-[16ch] text-[clamp(2.35rem,5vw,3.6rem)]">
             Stage the product. Sell the state.
@@ -57,7 +57,7 @@ export function Hero() {
               href="/#contact"
               className="rounded-lg border border-[var(--border-strong)] px-5 py-3 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--ink)]"
             >
-              Book a CubeCom session
+              Book a solution session
             </Link>
           </div>
 

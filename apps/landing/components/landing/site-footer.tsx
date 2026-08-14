@@ -1,88 +1,85 @@
+'use client';
+
 import Link from 'next/link';
 import { Wordmark } from '@repo/ui/wordmark';
-import { nav } from '@/lib/content';
-import { seoPages } from '@/lib/seo-pages';
-import { SITE_EMAIL } from '@/lib/site';
+import {
+  footerCompany,
+  footerDevelopers,
+  footerLegal,
+  footerProduct,
+  type NavLink,
+} from '@/lib/navigation';
+
+function FooterLink({ item }: { item: NavLink }) {
+  if (item.external) {
+    return (
+      <a href={item.href} className="hover:text-white" rel="noopener noreferrer">
+        {item.label}
+      </a>
+    );
+  }
+  return (
+    <Link href={item.href} className="hover:text-white">
+      {item.label}
+    </Link>
+  );
+}
+
+function FooterGroup({
+  title,
+  items,
+}: {
+  title: string;
+  items: NavLink[];
+}) {
+  return (
+    <details className="footer-nav-group group border-b border-white/10 md:border-0">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-[11px] font-medium tracking-[0.12em] text-white/40 uppercase md:pointer-events-none md:cursor-default md:py-0 [&::-webkit-details-marker]:hidden">
+        <span>{title}</span>
+        <span className="font-mono text-white/35 transition group-open:rotate-45 md:hidden" aria-hidden>
+          +
+        </span>
+      </summary>
+      <ul className="space-y-2 pb-4 text-[15px] text-white/65 md:mt-3 md:pb-0 md:text-sm">
+        {items.map((item) => (
+          <li key={`${item.href}-${item.label}`}>
+            <FooterLink item={item} />
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-16 md:px-8 md:py-20">
-        <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between">
+      <div className="mx-auto max-w-[90rem] px-5 py-8 md:px-8 md:py-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2.4fr)] lg:gap-12">
           <div>
-            <div className="landing-footer-brand">
-              <Wordmark size="lg" showPro />
-            </div>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/55">
-              The Digital Product Stage — configure the product, sell the state.
+            <Wordmark size="lg" showPro />
+            <p className="mt-3 max-w-xs text-[15px] leading-relaxed text-white/55 md:text-sm">
+              Product configuration infrastructure for visual commerce.
             </p>
           </div>
 
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <p className="text-[11px] font-medium tracking-[0.12em] text-white/40 uppercase">
-                On this site
-              </p>
-              <ul className="mt-3 space-y-2 text-sm text-white/65">
-                {nav.map((item) => (
-                  <li key={item.href}>
-                    <Link href={item.href} className="hover:text-white">
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-                <li>
-                  <Link href="/demo" className="hover:text-white">
-                    Live demo
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="https://docs.cubecompro.com"
-                    className="hover:text-white"
-                  >
-                    Documentation
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium tracking-[0.12em] text-white/40 uppercase">
-                Solutions
-              </p>
-              <ul className="mt-3 space-y-2 text-sm text-white/65">
-                {seoPages.map((page) => (
-                  <li key={page.path}>
-                    <Link href={page.path} className="hover:text-white">
-                      {page.eyebrow}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium tracking-[0.12em] text-white/40 uppercase">
-                Contact
-              </p>
-              <ul className="mt-3 space-y-2 text-sm text-white/65">
-                <li>
-                  <Link href="/#contact" className="hover:text-white">
-                    Book a session
-                  </Link>
-                </li>
-                <li>
-                  <a href={`mailto:${SITE_EMAIL}`} className="hover:text-white">
-                    {SITE_EMAIL}
-                  </a>
-                </li>
-              </ul>
-            </div>
+          <div className="md:grid md:grid-cols-3 md:gap-8">
+            <FooterGroup title="Product" items={footerProduct} />
+            <FooterGroup title="Developers" items={footerDevelopers} />
+            <FooterGroup title="Company" items={footerCompany} />
           </div>
         </div>
 
-        <p className="mt-14 text-xs text-white/35">
-          © {new Date().getFullYear()} CubeCom Pro. The Digital Product Stage.
-        </p>
+        <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-5 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between md:mt-10 md:pt-6">
+          <p>© {new Date().getFullYear()} CubeCom Pro</p>
+          <ul className="flex gap-5">
+            {footerLegal.map((item) => (
+              <li key={item.href}>
+                <FooterLink item={item} />
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </footer>
   );
