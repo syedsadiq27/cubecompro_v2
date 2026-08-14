@@ -5,10 +5,13 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthModule } from './auth/auth.module';
 import { DocumentsModule } from './documents/documents.module';
+import { EntitlementModule } from './entitlements/entitlement.module';
 import { HealthController } from './health.controller';
 import { HealthResolver } from './health.resolver';
+import { LeadsModule } from './leads/leads.module';
 import { LibraryModule } from './library/library.module';
 import { OrganizationModule } from './organization/organization.module';
+import { PlatformModule } from './platform/platform.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductModule } from './product/product.module';
 import { ProjectModule } from './project/project.module';
@@ -32,6 +35,9 @@ import { SavedConfigurationModule } from './saved-configuration/saved-configurat
     DocumentsModule,
     AuthModule,
     OrganizationModule,
+    EntitlementModule,
+    LeadsModule,
+    PlatformModule,
     ProjectModule,
     ProductModule,
     LibraryModule,

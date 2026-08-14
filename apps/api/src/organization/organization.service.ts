@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { OrganizationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 const DEFAULT_ENTITLEMENTS: Record<string, Prisma.InputJsonValue> = {
@@ -62,6 +62,14 @@ export class OrganizationService {
           value,
         })),
       });
+
+      const starter = await tx.plan.findUnique({ where: { key: 'starter' } });
+      if (starter) {
+        await tx.organization.update({
+          where: { id: organization.id },
+          data: { planId: starter.id, status: OrganizationStatus.TRIAL },
+        });
+      }
 
       return { organization, ownerRoleId: role.id };
     });

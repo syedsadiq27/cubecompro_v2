@@ -27,8 +27,9 @@ export default function DeploymentPage() {
         <Prose>
           <p>
             Required API env: DATABASE_URL, JWT_SECRET, API_PUBLIC_URL.
-            DOCUMENT_STORE_PATH for object bytes. Prisma generate runs at
-            image build; migrate against the target database before traffic.
+            DOCUMENT_STORE_PATH for object bytes. SEED=true loads the demo
+            user on boot if missing; SEED=force reruns seed. Prisma generate
+            runs at image build. migrate deploy always runs on boot.
           </p>
         </Prose>
         <Callout>

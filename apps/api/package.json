@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "prisma generate && nest build && npm run seed:build",
-    "seed:build": "tsc prisma/seed.ts --module commonjs --esModuleInterop --skipLibCheck --rootDir prisma --outDir prisma --target ES2020 --moduleResolution node",
+    "seed:build": "tsc -p prisma/tsconfig.seed.json",
     "dev": "nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main.js",

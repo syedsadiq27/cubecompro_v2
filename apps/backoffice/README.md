@@ -30,7 +30,7 @@ Runs on [http://localhost:3002](http://localhost:3002).
 
 ```bash
 # terminal 1
-yarn db:up && yarn db:migrate && yarn db:seed
+yarn db:up && yarn db:setup
 yarn workspace api dev
 
 # terminal 2

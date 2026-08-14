@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "ES2020",
+    "rootDir": "..",
+    "outDir": "../dist/seed",
+    "strict": false
+  },
+  "files": ["./seed.ts", "./demo-chair-glb.ts", "../src/library/parse-glb.ts"]
+}

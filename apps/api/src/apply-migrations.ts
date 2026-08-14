@@ -29,8 +29,14 @@ function runPrisma(root: string, args: string[]) {
 }
 
 function runSeed(root: string) {
-  const seedJs = join(root, 'prisma', 'seed.js');
-  if (existsSync(seedJs)) {
+  const compiled = join(root, 'dist', 'seed', 'prisma', 'seed.js');
+  const legacy = join(root, 'prisma', 'seed.js');
+  const seedJs = existsSync(compiled)
+    ? compiled
+    : existsSync(legacy)
+      ? legacy
+      : null;
+  if (seedJs) {
     execFileSync(process.execPath, [seedJs], {
       cwd: root,
       stdio: 'inherit',

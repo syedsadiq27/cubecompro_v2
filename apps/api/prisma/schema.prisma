@@ -33,14 +33,117 @@ enum VisualOperation {
   SET_MODEL
 }
 
-model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum OrganizationStatus {
+  ACTIVE
+  TRIAL
+  SUSPENDED
+}
 
+enum EntitlementKind {
+  CAPABILITY
+  LIMIT
+}
+
+model Plan {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  name         String
+  parentPlanId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  parent        Plan?              @relation("PlanTree", fields: [parentPlanId], references: [id], onDelete: SetNull)
+  children      Plan[]             @relation("PlanTree")
+  entitlements  PlanEntitlement[]
+  organizations Organization[]
+}
+
+model PlanEntitlement {
+  id     String          @id @default(cuid())
+  planId String
+  key    String
+  kind   EntitlementKind
+  value  String
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, key])
+  @@index([planId])
+}
+
+model OrganizationOverride {
+  id             String          @id @default(cuid())
+  organizationId String
+  key            String
+  kind           EntitlementKind
+  value          String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model UsageCounter {
+  id             String @id @default(cuid())
+  organizationId String
+  key            String
+  period         String
+  used           Int    @default(0)
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key, period])
+  @@index([organizationId])
+}
+
+model AuditEvent {
+  id             String   @id @default(cuid())
+  actorUserId    String?
+  actorEmail     String?
+  action         String
+  organizationId String?
+  targetType     String
+  targetId       String?
+  summary        String
+  metadata       String?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([createdAt])
+}
+
+model LeadFunnelStatus {
+  id          String   @id @default(cuid())
+  email       String
+  submittedAt String
+  status      String
+  updatedAt   DateTime @updatedAt
+
+  @@unique([email, submittedAt])
+  @@index([status])
+}
+
+model Organization {
+  id          String             @id @default(cuid())
+  name        String
+  slug        String             @unique
+  planId      String?
+  status      OrganizationStatus @default(ACTIVE)
+  trialEndsAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  plan                Plan?                     @relation(fields: [planId], references: [id], onDelete: SetNull)
   entitlements        OrganizationEntitlement[]
+  overrides           OrganizationOverride[]
+  usage               UsageCounter[]
+  auditEvents         AuditEvent[]
   memberships         OrganizationMembership[]
   roles               Role[]
   projects            Project[]
@@ -443,6 +546,17 @@ model ObjectAsset {
 
   @@index([organizationId, projectId])
   @@index([folderId])
+}
+
+model PlatformSetting {
+  id        String   @id @default(cuid())
+  app       String
+  key       String
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+
+  @@unique([app, key])
+  @@index([app])
 }
 
 model SavedConfiguration {

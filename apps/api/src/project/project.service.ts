@@ -3,27 +3,33 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EntitlementService } from '../entitlements/entitlement.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly entitlements: EntitlementService
+  ) {}
 
   async create(organizationId: string, name: string, slug: string) {
-    const maxProjects = await this.prisma.organizationEntitlement.findUnique({
-      where: {
-        organizationId_key: { organizationId, key: 'maxProjects' },
-      },
-    });
-    const limit =
-      typeof maxProjects?.value === 'number'
-        ? maxProjects.value
-        : Number(maxProjects?.value ?? 5);
+    const allowed = await this.entitlements.can(
+      organizationId,
+      'backoffice.products'
+    );
+    if (!allowed) {
+      throw new ForbiddenException('Missing capability backoffice.products');
+    }
 
+    const limit = await this.entitlements.getLimit(
+      organizationId,
+      'limits.projects'
+    );
     const count = await this.prisma.project.count({ where: { organizationId } });
-    if (count >= limit) {
+    if (limit > 0 && count >= limit) {
       throw new ForbiddenException(
-        `Organization entitlement maxProjects (${limit}) reached`
+        `Organization limit limits.projects (${limit}) reached`
       );
     }
 

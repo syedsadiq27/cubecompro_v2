@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { config as loadEnv } from 'dotenv';
 import {
   AttributeType,
+  EntitlementKind,
   GraphVersionStatus,
   Prisma,
   PrismaClient,
@@ -68,10 +69,112 @@ async function seed() {
     });
   }
 
+  const starter = await prisma.plan.upsert({
+    where: { key: 'starter' },
+    create: { key: 'starter', name: 'Starter' },
+    update: { name: 'Starter' },
+  });
+  const pro = await prisma.plan.upsert({
+    where: { key: 'pro' },
+    create: {
+      key: 'pro',
+      name: 'Pro',
+      parentPlanId: starter.id,
+    },
+    update: { name: 'Pro', parentPlanId: starter.id },
+  });
+
+  const starterCaps = [
+    'backoffice.products',
+    '3d.editor',
+    'api.access',
+  ] as const;
+  const starterLimits: Record<string, string> = {
+    'limits.products': '10',
+    'limits.models': '5',
+    'limits.storage.gb': '2',
+    'limits.users': '3',
+    'limits.projects': '2',
+    'limits.ai.generations.monthly': '0',
+  };
+  const proCaps = [
+    '3d.publish',
+    '2d.editor',
+    'ai.generate',
+    'backoffice.analytics',
+  ] as const;
+  const proLimits: Record<string, string> = {
+    'limits.products': '100',
+    'limits.models': '50',
+    'limits.storage.gb': '20',
+    'limits.users': '25',
+    'limits.projects': '20',
+    'limits.ai.generations.monthly': '500',
+  };
+
+  async function putPlanRows(
+    planId: string,
+    caps: readonly string[],
+    limits: Record<string, string>
+  ) {
+    for (const key of caps) {
+      await prisma.planEntitlement.upsert({
+        where: { planId_key: { planId, key } },
+        create: {
+          planId,
+          key,
+          kind: EntitlementKind.CAPABILITY,
+          value: 'true',
+        },
+        update: { kind: EntitlementKind.CAPABILITY, value: 'true' },
+      });
+    }
+    for (const [key, value] of Object.entries(limits)) {
+      await prisma.planEntitlement.upsert({
+        where: { planId_key: { planId, key } },
+        create: { planId, key, kind: EntitlementKind.LIMIT, value },
+        update: { kind: EntitlementKind.LIMIT, value },
+      });
+    }
+  }
+
+  await putPlanRows(starter.id, starterCaps, starterLimits);
+  await putPlanRows(pro.id, proCaps, proLimits);
+
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 9);
+
   const organization = await prisma.organization.upsert({
     where: { slug: 'demo' },
-    create: { name: 'Demo Organization', slug: 'demo' },
-    update: { name: 'Demo Organization' },
+    create: {
+      name: 'Acme Corp',
+      slug: 'demo',
+      planId: pro.id,
+      status: 'ACTIVE',
+    },
+    update: {
+      name: 'Acme Corp',
+      planId: pro.id,
+      status: 'ACTIVE',
+      trialEndsAt: null,
+    },
+  });
+
+  await prisma.organization.upsert({
+    where: { slug: 'nike-demo' },
+    create: {
+      name: 'Nike Demo',
+      slug: 'nike-demo',
+      planId: starter.id,
+      status: 'TRIAL',
+      trialEndsAt,
+    },
+    update: {
+      name: 'Nike Demo',
+      planId: starter.id,
+      status: 'TRIAL',
+      trialEndsAt,
+    },
   });
 
   for (const [key, value] of Object.entries(DEFAULT_ENTITLEMENTS)) {
@@ -570,6 +673,25 @@ async function seed() {
       status: ProductStatus.ACTIVE,
     },
   });
+
+  const apiUrl = process.env.API_PUBLIC_URL ?? 'http://localhost:3005';
+  const platformDefaults: Array<{ app: string; key: string; value: string }> = [
+    { app: 'api', key: 'publicUrl', value: apiUrl },
+    { app: 'backoffice', key: 'publicUrl', value: 'http://localhost:3002' },
+    { app: 'backoffice', key: 'apiUrl', value: apiUrl },
+    { app: 'editor', key: 'publicUrl', value: 'http://localhost:3003' },
+    { app: 'editor', key: 'apiUrl', value: apiUrl },
+    { app: 'customizer', key: 'publicUrl', value: 'http://localhost:3001' },
+    { app: 'customizer', key: 'apiUrl', value: apiUrl },
+    { app: 'customizer', key: 'defaultProjectId', value: project.id },
+  ];
+  for (const row of platformDefaults) {
+    await prisma.platformSetting.upsert({
+      where: { app_key: { app: row.app, key: row.key } },
+      create: row,
+      update: {},
+    });
+  }
 
   console.log('Seed complete');
   console.log(

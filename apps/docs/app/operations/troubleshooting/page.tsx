@@ -26,6 +26,10 @@ export default function TroubleshootingPage() {
               value: 'Set on the service. Prisma generate can use a dummy URL.',
             },
             {
+              label: 'public.User does not exist',
+              value: 'Schema not applied. Restart API with DATABASE_URL (auto-migrate). Set SEED=true for the demo user, or yarn db:setup locally.',
+            },
+            {
               label: '401 on resolve',
               value: 'Expired JWT (7d) or missing Bearer.',
             },

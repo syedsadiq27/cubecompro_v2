@@ -9,6 +9,7 @@ import {
   ObjectAssetStatus,
 } from '@prisma/client';
 import { DocumentStoreService } from '../documents/document-store.service';
+import { EntitlementService } from '../entitlements/entitlement.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseGlbMetadata } from './parse-glb';
 
@@ -16,7 +17,8 @@ import { parseGlbMetadata } from './parse-glb';
 export class LibraryService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly documents: DocumentStoreService
+    private readonly documents: DocumentStoreService,
+    private readonly entitlements: EntitlementService
   ) {}
 
   private async assertProject(organizationId: string, projectId: string) {
@@ -92,17 +94,12 @@ export class LibraryService {
     documentJson: string;
   }) {
     await this.assertProject(input.organizationId, input.projectId);
-    const materialsEnabled =
-      await this.prisma.organizationEntitlement.findUnique({
-        where: {
-          organizationId_key: {
-            organizationId: input.organizationId,
-            key: 'materialsEnabled',
-          },
-        },
-      });
-    if (materialsEnabled && materialsEnabled.value === false) {
-      throw new ForbiddenException('materialsEnabled entitlement is false');
+    const allowed = await this.entitlements.can(
+      input.organizationId,
+      '3d.editor'
+    );
+    if (!allowed) {
+      throw new ForbiddenException('Missing capability 3d.editor');
     }
 
     let document: unknown;

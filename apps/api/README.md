@@ -60,6 +60,10 @@ GraphQL: [http://localhost:3005/graphql](http://localhost:3005/graphql)
 
 Login: `owner@demo.cubecom.dev` / `demo1234`
 
+Admin control plane: `yarn workspace admin dev` → http://localhost:3006
+
+Apps must call `can(organizationId, key)` / `resolvedAccess`. Do not branch on plan name.
+
 Infra lives in the monorepo root `docker-compose.yml`:
 
 | Service | URL / port |

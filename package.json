@@ -5,6 +5,7 @@
     "build": "turbo run build",
     "build:backoffice": "turbo run build --filter=backoffice",
     "build:editor": "turbo run build --filter=editor",
+    "build:admin": "turbo run build --filter=admin",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
@@ -14,7 +15,8 @@
     "db:logs": "docker compose logs -f postgres redis pgadmin",
     "db:migrate": "yarn workspace api prisma migrate deploy",
     "db:migrate:dev": "yarn workspace api prisma migrate dev",
-    "db:seed": "yarn workspace api prisma db seed"
+    "db:seed": "yarn workspace api prisma db seed",
+    "db:setup": "yarn workspace api run db:setup"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",

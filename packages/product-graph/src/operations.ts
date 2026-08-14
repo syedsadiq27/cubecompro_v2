@@ -462,6 +462,275 @@ export const CREATE_PRODUCT_VARIANT_MUTATION = `
   }
 `;
 
+export const TENANTS_QUERY = `
+  query Tenants {
+    tenants {
+      id
+      name
+      slug
+      status
+      trialEndsAt
+      memberCount
+      planId
+      planName
+      planKey
+    }
+  }
+`;
+
+export const TENANT_USERS_QUERY = `
+  query TenantUsers {
+    tenantUsers {
+      id
+      userId
+      email
+      name
+      roleName
+      organizationId
+      organizationName
+      planName
+    }
+  }
+`;
+
+export const PLANS_QUERY = `
+  query Plans {
+    plans {
+      id
+      key
+      name
+      parentPlanId
+      parentName
+      entitlements {
+        id
+        key
+        kind
+        value
+      }
+    }
+  }
+`;
+
+export const ENTITLEMENT_CATALOG_QUERY = `
+  query EntitlementCatalog {
+    entitlementCatalog {
+      applications { id label gate }
+      capabilities { key shortKey label application }
+      limits { key shortKey label application unit }
+    }
+  }
+`;
+
+export const RESOLVED_ACCESS_QUERY = `
+  query ResolvedAccess($organizationId: String!) {
+    resolvedAccess(organizationId: $organizationId) {
+      organizationId
+      organizationName
+      slug
+      status
+      trialEndsAt
+      planId
+      planName
+      planKey
+      parentPlanName
+      capabilities {
+        key
+        shortKey
+        application
+        kind
+        value
+        baseValue
+        enabled
+        source
+        label
+      }
+      limits {
+        key
+        shortKey
+        application
+        kind
+        value
+        baseValue
+        enabled
+        limit
+        used
+        source
+        label
+      }
+      applications {
+        id
+        label
+        gate
+        enabled
+        source
+      }
+      overrides {
+        id
+        key
+        kind
+        value
+      }
+      members {
+        id
+        userId
+        email
+        name
+        roleName
+      }
+    }
+  }
+`;
+
+export const AUDIT_EVENTS_QUERY = `
+  query AuditEvents($organizationId: String) {
+    auditEvents(organizationId: $organizationId) {
+      id
+      actorEmail
+      action
+      organizationId
+      targetType
+      targetId
+      summary
+      metadata
+      createdAt
+    }
+  }
+`;
+
+export const CAN_QUERY = `
+  query Can($organizationId: String!, $key: String!) {
+    can(organizationId: $organizationId, key: $key)
+  }
+`;
+
+export const ASSIGN_PLAN_MUTATION = `
+  mutation AssignPlan($organizationId: String!, $planId: String!) {
+    assignPlan(organizationId: $organizationId, planId: $planId) {
+      organizationId
+      planName
+    }
+  }
+`;
+
+export const SET_TENANT_STATUS_MUTATION = `
+  mutation SetTenantStatus(
+    $organizationId: String!
+    $status: OrganizationStatus!
+    $trialEndsAt: DateTime
+  ) {
+    setTenantStatus(
+      organizationId: $organizationId
+      status: $status
+      trialEndsAt: $trialEndsAt
+    ) {
+      organizationId
+      status
+    }
+  }
+`;
+
+export const UPSERT_OVERRIDE_MUTATION = `
+  mutation UpsertOverride($input: UpsertOverrideInput!) {
+    upsertOverride(input: $input) {
+      organizationId
+    }
+  }
+`;
+
+export const DELETE_OVERRIDE_MUTATION = `
+  mutation DeleteOverride($organizationId: String!, $key: String!) {
+    deleteOverride(organizationId: $organizationId, key: $key) {
+      organizationId
+    }
+  }
+`;
+
+export const CREATE_TENANT_MUTATION = `
+  mutation CreateTenant($input: CreateTenantInput!) {
+    createTenant(input: $input) {
+      organizationId
+    }
+  }
+`;
+
+export const UPDATE_TENANT_MUTATION = `
+  mutation UpdateTenant($organizationId: String!, $input: UpdateTenantInput!) {
+    updateTenant(organizationId: $organizationId, input: $input) {
+      organizationId
+    }
+  }
+`;
+
+export const CREATE_PLAN_MUTATION = `
+  mutation CreatePlan($input: CreatePlanInput!) {
+    createPlan(input: $input) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_PLAN_MUTATION = `
+  mutation UpdatePlan($planId: String!, $input: UpdatePlanInput!) {
+    updatePlan(planId: $planId, input: $input) {
+      id
+    }
+  }
+`;
+
+export const LEAD_FUNNEL_STATUSES_QUERY = `
+  query LeadFunnelStatuses {
+    leadFunnelStatuses {
+      id
+      email
+      submittedAt
+      status
+    }
+  }
+`;
+
+export const SET_LEAD_FUNNEL_STATUS_MUTATION = `
+  mutation SetLeadFunnelStatus(
+    $email: String!
+    $submittedAt: String!
+    $status: String!
+  ) {
+    setLeadFunnelStatus(
+      email: $email
+      submittedAt: $submittedAt
+      status: $status
+    ) {
+      id
+      email
+      submittedAt
+      status
+    }
+  }
+`;
+
+export const PLATFORM_SETTINGS_QUERY = `
+  query PlatformSettings($app: String) {
+    platformSettings(app: $app) {
+      id
+      app
+      key
+      value
+      updatedAt
+    }
+  }
+`;
+
+export const UPSERT_PLATFORM_SETTINGS_MUTATION = `
+  mutation UpsertPlatformSettings($input: [UpsertPlatformSettingInput!]!) {
+    upsertPlatformSettings(input: $input) {
+      id
+      app
+      key
+      value
+      updatedAt
+    }
+  }
+`;
+
 export const CREATE_VARIANT_SELECTION_MUTATION = `
   mutation CreateVariantSelection($input: CreateVariantSelectionInput!) {
     createVariantSelection(input: $input) {

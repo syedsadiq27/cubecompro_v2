@@ -7,7 +7,7 @@ export default defineConfig({
     path: 'prisma/migrations',
     seed:
       process.env.NODE_ENV === 'production'
-        ? 'node prisma/seed.js'
+        ? 'node dist/seed/prisma/seed.js'
         : 'ts-node --compiler-options {"module":"CommonJS"} prisma/seed.ts',
   },
   engine: 'classic',
