@@ -20,8 +20,8 @@ const interTight = Inter_Tight({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — The Digital Product Stage`,
-    template: `%s · ${SITE_NAME}`,
+    default: `${SITE_NAME} — Product Configuration Platform`,
+    template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
@@ -34,25 +34,26 @@ export const metadata: Metadata = {
     'headless product configurator',
     'product configuration API',
     'Shopify 3D configurator',
+    'commercetools product configurator',
     'furniture configurator',
     'apparel configurator',
     'CubeCom Pro',
-    'Digital Product Stage',
   ],
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: `${SITE_NAME} — The Digital Product Stage`,
+    title: `${SITE_NAME} — Product Configuration Platform`,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: 'en_US',
     type: 'website',
+    images: [{ url: '/opengraph-image' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} — The Digital Product Stage`,
+    title: `${SITE_NAME} — Product Configuration Platform`,
     description: SITE_DESCRIPTION,
   },
   robots: {

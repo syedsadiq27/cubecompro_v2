@@ -22,6 +22,15 @@ export const metadata: Metadata = {
   },
   description:
     'Product operations backoffice for CubeCom Pro — catalog, commerce, and experience.',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
 };
 
 export const viewport: Viewport = {

@@ -21,6 +21,15 @@ export const metadata: Metadata = {
     template: '%s · Admin',
   },
   description: 'CubeCom Pro control plane — organizations, plans, entitlements.',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
 };
 
 export const viewport: Viewport = {

@@ -7,8 +7,13 @@ import {
   Section,
   SpecTable,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'API overview' };
+export const metadata = docsMeta(
+  'API overview',
+  '/developers/api',
+  'CubeCom Pro API surface — GraphQL for authoring and resolve, REST for document bytes and health.'
+);
 
 export default function ApiOverviewPage() {
   return (

@@ -7,8 +7,13 @@ import {
   Section,
   SpecTable,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'GraphQL API' };
+export const metadata = docsMeta(
+  'GraphQL API',
+  '/developers/graphql',
+  'CubeCom Pro GraphQL API — authoring mutations and resolveConfiguration for storefronts.'
+);
 
 export default function GraphQlPage() {
   return (

@@ -7,8 +7,13 @@ import {
   Section,
   SpecTable,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'Architecture' };
+export const metadata = docsMeta(
+  'Architecture',
+  '/architecture',
+  'CubeCom Pro architecture — authorship, assets, resolve, and experience as separate runtimes on one product graph.'
+);
 
 export default function ArchitecturePage() {
   return (

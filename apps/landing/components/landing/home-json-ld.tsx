@@ -1,5 +1,11 @@
 import { faqs } from '@/lib/content';
-import { SITE_DESCRIPTION, SITE_EMAIL, SITE_NAME, SITE_URL } from '@/lib/site';
+import {
+  DOCS_URL,
+  SITE_DESCRIPTION,
+  SITE_EMAIL,
+  SITE_NAME,
+  SITE_URL,
+} from '@/lib/site';
 
 export function HomeJsonLd() {
   const organization = {
@@ -33,10 +39,15 @@ export function HomeJsonLd() {
     '@type': 'SoftwareApplication',
     name: SITE_NAME,
     applicationCategory: 'BusinessApplication',
-    applicationSubCategory: 'Digital Product Stage',
+    applicationSubCategory: 'Product Configuration Platform',
     operatingSystem: 'Web',
     url: SITE_URL,
     description: SITE_DESCRIPTION,
+    softwareHelp: {
+      '@type': 'CreativeWork',
+      url: DOCS_URL,
+      name: 'CubeCom Pro Documentation',
+    },
     offers: [
       {
         '@type': 'Offer',

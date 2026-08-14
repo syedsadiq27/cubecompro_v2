@@ -19,6 +19,21 @@ change the product → CubeCom understands the state → commerce updates correc
 - https://cubecompro.com/integrations/commercetools
 - https://cubecompro.com/industries/furniture
 - https://cubecompro.com/industries/apparel
+- https://docs.cubecompro.com/
+- https://docs.cubecompro.com/developers/api
+- https://docs.cubecompro.com/developers/graphql
+- https://docs.cubecompro.com/integrations/commercetools
+- https://docs.cubecompro.com/guides/resolve-sku
+
+## Indexable surfaces
+- Marketing: cubecompro.com
+- Docs: docs.cubecompro.com
+
+## Non-indexable surfaces
+- backoffice.cubecompro.com — authenticated product
+- admin.cubecompro.com — internal control plane
+- 3d.cubecompro.com — editor application
+- api.cubecompro.com — machine API
 
 ## Surfaces
 - Backoffice — catalog & rules

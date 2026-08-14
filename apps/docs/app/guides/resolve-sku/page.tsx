@@ -6,8 +6,13 @@ import {
   Related,
   Section,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'Resolve configuration → SKU' };
+export const metadata = docsMeta(
+  'SKU Resolution',
+  '/guides/resolve-sku',
+  'Resolve a CubeCom Pro configuration state to a sellable SKU, price, and inventory identity.'
+);
 
 export default function ResolveSkuPage() {
   return (

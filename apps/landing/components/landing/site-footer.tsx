@@ -36,6 +36,14 @@ export function SiteFooter() {
                     Live demo
                   </Link>
                 </li>
+                <li>
+                  <a
+                    href="https://docs.cubecompro.com"
+                    className="hover:text-white"
+                  >
+                    Documentation
+                  </a>
+                </li>
               </ul>
             </div>
             <div>

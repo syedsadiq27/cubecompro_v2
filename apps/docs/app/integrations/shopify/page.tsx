@@ -1,6 +1,11 @@
 import { Planned } from '@/components/planned';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'Shopify' };
+export const metadata = docsMeta(
+  'Shopify',
+  '/integrations/shopify',
+  'Map CubeCom Pro resolved selections to Shopify variants while cart and checkout stay in Shopify.'
+);
 
 export default function ShopifyPage() {
   return (

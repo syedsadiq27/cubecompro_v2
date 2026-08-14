@@ -20,7 +20,17 @@ export const metadata: Metadata = {
     default: 'CubeCom Pro · 3D Editor',
     template: '%s · CubeCom Pro',
   },
-  description: '3D product editor for CubeCom Pro — stage, materials, and configuration.',
+  description:
+    '3D product editor for CubeCom Pro — stage, materials, and configuration.',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
 };
 
 export const viewport: Viewport = {

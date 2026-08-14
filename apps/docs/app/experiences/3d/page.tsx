@@ -5,8 +5,13 @@ import {
   Related,
   Section,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: '3D' };
+export const metadata = docsMeta(
+  '3D Scene API',
+  '/experiences/3d',
+  'CubeCom Pro 3D experience — GLB viewer driven by ResolvedSelection.threeD from the product graph.'
+);
 
 export default function Experience3dPage() {
   return (

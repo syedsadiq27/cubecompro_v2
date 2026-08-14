@@ -7,10 +7,19 @@ import {
   Section,
   SpecTable,
 } from '@/components/docs-ui';
+import { DocsJsonLd } from '@/components/docs-json-ld';
+import { docsMeta } from '@/lib/site';
+
+export const metadata = docsMeta(
+  'What is CubeCom Pro?',
+  '/',
+  'CubeCom Pro is a configuration platform for physical products — product graph, rules, resolve, and commerce without replacing your PIM or commerce engine.'
+);
 
 export default function IntroductionPage() {
   return (
     <>
+      <DocsJsonLd />
       <PageHeader
         title="What is CubeCom Pro?"
         description="CubeCom Pro is a configuration platform for physical products. It does not replace your PIM, DAM, or commerce engine. It sits between them and a shopper experience, and it is the only place a combination of options becomes a look and a sellable identity."

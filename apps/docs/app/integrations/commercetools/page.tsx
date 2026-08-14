@@ -7,8 +7,13 @@ import {
   Section,
   SpecTable,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'commercetools' };
+export const metadata = docsMeta(
+  'commercetools',
+  '/integrations/commercetools',
+  'Connect CubeCom Pro resolved configurations to commercetools products and variants.'
+);
 
 export default function CommercetoolsPage() {
   return (

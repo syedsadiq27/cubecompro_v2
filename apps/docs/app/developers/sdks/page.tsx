@@ -1,6 +1,11 @@
 import { Planned } from '@/components/planned';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'SDKs' };
+export const metadata = docsMeta(
+  'Web SDK',
+  '/developers/sdks',
+  'CubeCom Pro client SDKs — generate typed GraphQL operations from schema.gql until a first-party package ships.'
+);
 
 export default function SdksPage() {
   return (

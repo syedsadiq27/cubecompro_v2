@@ -27,9 +27,21 @@ export function SiteHeader() {
           ))}
           <Link
             href="/demo"
-            className="rounded-lg bg-[var(--ink)] px-3.5 py-2 text-xs font-medium tracking-[0.04em] text-white transition hover:bg-[var(--ink)]/90"
+            className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
           >
             Live demo
+          </Link>
+          <a
+            href="https://docs.cubecompro.com"
+            className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
+          >
+            Docs
+          </a>
+          <Link
+            href="/#contact"
+            className="rounded-lg bg-[var(--ink)] px-3.5 py-2 text-xs font-medium tracking-[0.04em] text-white transition hover:bg-[var(--ink)]/90"
+          >
+            Book a session
           </Link>
         </nav>
 
@@ -67,6 +79,13 @@ export function SiteHeader() {
             >
               Live demo
             </Link>
+            <a
+              href="https://docs.cubecompro.com"
+              onClick={() => setOpen(false)}
+              className="py-2 text-sm font-medium text-[var(--ink)]"
+            >
+              Docs
+            </a>
             <Link
               href="/#contact"
               onClick={() => setOpen(false)}

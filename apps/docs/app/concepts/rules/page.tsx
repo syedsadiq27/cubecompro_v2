@@ -7,8 +7,13 @@ import {
   Section,
   SpecTable,
 } from '@/components/docs-ui';
+import { docsMeta } from '@/lib/site';
 
-export const metadata = { title: 'Rules & constraints' };
+export const metadata = docsMeta(
+  'Configuration Rules',
+  '/concepts/rules',
+  'Rules and constraints in CubeCom Pro — what makes a configuration legal before commerce resolve.'
+);
 
 export default function RulesConceptPage() {
   return (
