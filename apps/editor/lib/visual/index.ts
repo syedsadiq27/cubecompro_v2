@@ -31,6 +31,13 @@ export {
   VisualTargetResolveError,
 } from './resolve-target';
 export { defaultVisualSelection } from './selection';
+export {
+  evaluateConfiguratorPreview,
+  isChoiceValueAvailable,
+  toKernelChoices,
+  toKernelConstraints,
+} from './configurator-preview';
+export type { ConfiguratorPreviewState } from './configurator-preview';
 export type {
   ChoiceKey,
   ChoiceValueKey,

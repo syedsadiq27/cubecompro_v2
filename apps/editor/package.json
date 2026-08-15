@@ -60,7 +60,9 @@
       ]
     },
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1"
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@repo/product-graph$": "<rootDir>/../../packages/product-graph/src/index.ts",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "testEnvironment": "node"
   }

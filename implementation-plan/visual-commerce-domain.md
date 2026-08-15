@@ -590,21 +590,12 @@ real API Choices / VisualEffects
 Naming:
 
 ```text
-2B.5 Visual Projection Proof  = mapping debugger / projection harness
-Configurator Preview (later)  = Selection + validate + availability + visual + commerce
+2B.5 Visual Projection Proof     = mapping / projection harness
+2B.6 Constraint-aware 3D Preview = same Preview UI + kernel + projection
+Configurator Preview             = name for 2B.6 inside the 3D editor
 ```
 
-Preview UI in this phase is a **visual projection debugger**. It may emphasize bound Choices. It must not claim to be the full configurator experience.
-
-Do **not** mix constraints into `deriveVisualState()`. Kernel composition belongs in Configurator Preview:
-
-```text
-Selection
-  ↙ validate          ↘ deriveAvailability
-UI feedback / disabled values
-        ↓
-deriveVisualState → reconcileScene → Three.js
-```
+Do **not** mix constraints into `deriveVisualState()`.
 
 Acceptance requires at least one automated test that drives a real loaded scene graph (GLB-shaped hierarchy under a mount wrapper) and asserts the resolved `THREE.Mesh` material / visibility — not manual “you should see X” alone.
 
@@ -615,19 +606,57 @@ Requirements:
 - Click handlers only update Selection (no direct Three.js mutation from the click)
 - `deriveVisualState` stays pure / constraint-free
 - Do not implement Save in this phase
-- Do not implement Configurator Preview (validation + availability composition) in this phase
 
 ---
 
-## 15.6. Later — Configurator Preview
+## 15.6. Phase 2B.6 — Constraint-aware 3D Preview
 
-Compose kernel + visual (+ eventually commerce). All Choices belong in Selection (Warranty, Size, Shipping, …), including those with no visual binding. Illegal combos are prevented or exposed via `validateSelection` / `deriveAvailability` while the visual engine stays independent.
+Still the **same** 3D Editor Preview — not a separate configurator product.
+
+```text
+Current 3D Editor Preview
+        +
+Choices / Selection UI
+        +
+validateSelection()
+        +
+deriveAvailability()
+        ↓
+same Three.js projection
+```
+
+Integrated proof:
+
+```text
+Choices + Constraints + Selection
+        ↓
+validate / deriveAvailability
+        ↓
+UI disables unavailable values / surfaces invalid Selection
+        ↓
+deriveVisualState → reconcileScene → Three.js
+```
+
+In scope:
+
+- disable illegal / unavailable ChoiceValues
+- show validation feedback
+- valid Selection still changes the real 3D model
+- A → B → A remains deterministic
+
+Out of scope (creep):
+
+- shopper storefront UX / mobile configurator
+- price / inventory / cart / commerce adapters
+- save/share configuration
+- analytics / publication workflow
+- fancy swatch layouts
 
 ---
 
 ## 16. Phase 2C — Save later
 
-Only after 2B.5 Visual Projection Proof works.
+Only after 2B.5 / 2B.6 Preview proof works.
 
 Then:
 
@@ -796,8 +825,9 @@ Order:
 ```text
 2A — normalizeVisualDocument
 2B — baseline + deriveVisualState + reconcileScene + determinism tests
-2B.5 — Visual Projection Proof (Selection → real THREE.Mesh change; not Configurator Preview)
-2C — Save only after 2B.5 passes
+2B.5 — Visual Projection Proof
+2B.6 — Constraint-aware 3D Preview (same Preview + validate + availability)
+2C — Save only after Preview proof passes
 ```
 
 Do not:
