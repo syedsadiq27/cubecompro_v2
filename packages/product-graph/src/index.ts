@@ -78,3 +78,18 @@ export type {
   ValidationIssue,
   ValidationIssueCode,
 } from './kernel-validate.js';
+export {
+  CommerceNormalizeError,
+  canonicalizeCommerceIdentity,
+  normalizeCommerceMappingSet,
+} from './commerce.js';
+export type {
+  CommerceExternalReference,
+  CommerceIdentity,
+  CommerceMapping,
+  CommerceMappingSet,
+  CommerceRevisionChoice,
+  NormalizeCommerceMappingInput,
+  NormalizeCommerceMappingSetInput,
+  NormalizeCommerceMappingTermInput,
+} from './commerce.js';

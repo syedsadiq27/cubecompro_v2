@@ -190,6 +190,52 @@ input UpdateVisualEffectInput {
   valueJson: String
 }
 
+input ReplaceCommerceMappingInput {
+  choiceValueIds: [String!]!
+  externalId: String!
+  sku: String
+}
+
+input ReplaceCommerceMappingSetInput {
+  identityChoiceIds: [String!]!
+  mappings: [ReplaceCommerceMappingInput!]!
+  productRevisionId: String!
+  provider: String!
+}
+
+type CommerceIdentityChoiceModel {
+  choiceId: String!
+  choiceKey: String!
+  mappingSetId: String!
+  sortOrder: Float!
+}
+
+type CommerceMappingTermModel {
+  choiceKey: String!
+  choiceValueId: String!
+  choiceValueKey: String!
+  mappingId: String!
+}
+
+type CommerceMappingModel {
+  externalId: String!
+  externalType: String!
+  id: ID!
+  identitySignature: String!
+  mappingSetId: String!
+  sku: String
+  terms: [CommerceMappingTermModel!]!
+}
+
+type CommerceMappingSetModel {
+  domainJson: String!
+  id: ID!
+  identityChoices: [CommerceIdentityChoiceModel!]!
+  mappings: [CommerceMappingModel!]!
+  productRevisionId: String!
+  provider: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -255,6 +301,7 @@ type Mutation {
   createVariantSelection(input: CreateVariantSelectionInput!): VariantSelectionModel!
   createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!
   deleteChoiceValue(id: String!): Boolean!
+  deleteCommerceMappingSet(id: String!): Boolean!
   deleteConstraint(id: String!): Boolean!
   deleteObjectAsset(id: String!): Boolean!
   deleteProduct(id: String!): Boolean!
@@ -263,6 +310,7 @@ type Mutation {
   discardDraftProductRevision(productId: String!): Boolean!
   login(input: LoginInput!): AuthPayloadModel!
   publishProductRevision(id: String!): ProductRevisionModel!
+  replaceCommerceMappingSet(input: ReplaceCommerceMappingSetInput!): CommerceMappingSetModel!
   saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!
   setChoiceDefault(input: SetChoiceDefaultInput!): ChoiceModel!
   updateMaterialAsset(input: UpdateMaterialAssetInput!): MaterialAssetModel!
@@ -349,6 +397,7 @@ type ChoiceModel {
 
 type ProductRevisionDetailModel {
   choices: [ChoiceModel!]!
+  commerceMappingSets: [CommerceMappingSetModel!]!
   constraints: [ConstraintModel!]!
   graphSha256: String
   graphUri: String
@@ -434,6 +483,8 @@ type Query {
   productRevisionDetail(id: String!): ProductRevisionDetailModel!
   productRevisions(productId: String!): [ProductRevisionModel!]!
   productsByProject(projectId: String!): [ProductModel!]!
+  commerceMappingSet(productRevisionId: String!, provider: String!): CommerceMappingSetModel!
+  commerceMappingSetsByRevision(productRevisionId: String!): [CommerceMappingSetModel!]!
   constraintsByRevision(productRevisionId: String!): [ConstraintModel!]!
   project(id: String!): ProjectModel!
   projectsByOrganization(organizationId: String!): [ProjectModel!]!

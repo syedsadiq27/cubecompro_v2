@@ -403,6 +403,28 @@ export const PRODUCT_REVISION_DETAIL_QUERY = `
           choiceValueId
         }
       }
+      commerceMappingSets {
+        id
+        provider
+        identityChoices {
+          choiceId
+          choiceKey
+          sortOrder
+        }
+        mappings {
+          id
+          identitySignature
+          externalType
+          externalId
+          sku
+          terms {
+            choiceValueId
+            choiceKey
+            choiceValueKey
+          }
+        }
+        domainJson
+      }
     }
   }
 `;
@@ -527,6 +549,68 @@ export const UPDATE_VISUAL_EFFECT_MUTATION = `
 export const DELETE_VISUAL_EFFECT_MUTATION = `
   mutation DeleteVisualEffect($id: String!) {
     deleteVisualEffect(id: $id)
+  }
+`;
+
+export const REPLACE_COMMERCE_MAPPING_SET_MUTATION = `
+  mutation ReplaceCommerceMappingSet($input: ReplaceCommerceMappingSetInput!) {
+    replaceCommerceMappingSet(input: $input) {
+      id
+      productRevisionId
+      provider
+      identityChoices {
+        choiceId
+        choiceKey
+        sortOrder
+      }
+      mappings {
+        id
+        identitySignature
+        externalType
+        externalId
+        sku
+        terms {
+          choiceValueId
+          choiceKey
+          choiceValueKey
+        }
+      }
+      domainJson
+    }
+  }
+`;
+
+export const COMMERCE_MAPPING_SETS_BY_REVISION_QUERY = `
+  query CommerceMappingSetsByRevision($productRevisionId: String!) {
+    commerceMappingSetsByRevision(productRevisionId: $productRevisionId) {
+      id
+      productRevisionId
+      provider
+      identityChoices {
+        choiceId
+        choiceKey
+        sortOrder
+      }
+      mappings {
+        id
+        identitySignature
+        externalType
+        externalId
+        sku
+        terms {
+          choiceValueId
+          choiceKey
+          choiceValueKey
+        }
+      }
+      domainJson
+    }
+  }
+`;
+
+export const DELETE_COMMERCE_MAPPING_SET_MUTATION = `
+  mutation DeleteCommerceMappingSet($id: String!) {
+    deleteCommerceMappingSet(id: $id)
   }
 `;
 

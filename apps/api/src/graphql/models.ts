@@ -307,6 +307,81 @@ export class ProductVariantModel {
 }
 
 @ObjectType()
+export class CommerceIdentityChoiceModel {
+  @Field()
+  mappingSetId: string;
+
+  @Field()
+  choiceId: string;
+
+  @Field()
+  choiceKey: string;
+
+  @Field()
+  sortOrder: number;
+}
+
+@ObjectType()
+export class CommerceMappingTermModel {
+  @Field()
+  mappingId: string;
+
+  @Field()
+  choiceValueId: string;
+
+  @Field()
+  choiceKey: string;
+
+  @Field()
+  choiceValueKey: string;
+}
+
+@ObjectType()
+export class CommerceMappingModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  mappingSetId: string;
+
+  @Field()
+  identitySignature: string;
+
+  @Field()
+  externalType: string;
+
+  @Field()
+  externalId: string;
+
+  @Field(() => String, { nullable: true })
+  sku?: string | null;
+
+  @Field(() => [CommerceMappingTermModel])
+  terms: CommerceMappingTermModel[];
+}
+
+@ObjectType()
+export class CommerceMappingSetModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  productRevisionId: string;
+
+  @Field()
+  provider: string;
+
+  @Field(() => [CommerceIdentityChoiceModel])
+  identityChoices: CommerceIdentityChoiceModel[];
+
+  @Field(() => [CommerceMappingModel])
+  mappings: CommerceMappingModel[];
+
+  @Field()
+  domainJson: string;
+}
+
+@ObjectType()
 export class ProductRevisionDetailModel extends ProductRevisionModel {
   @Field(() => [ChoiceModel])
   choices: ChoiceModel[];
@@ -325,6 +400,9 @@ export class ProductRevisionDetailModel extends ProductRevisionModel {
 
   @Field(() => [ProductVariantModel])
   variants: ProductVariantModel[];
+
+  @Field(() => [CommerceMappingSetModel])
+  commerceMappingSets: CommerceMappingSetModel[];
 }
 
 @ObjectType()
@@ -829,6 +907,33 @@ export class CreateVariantSelectionInput {
 
   @Field()
   choiceValueId: string;
+}
+
+@InputType()
+export class ReplaceCommerceMappingInput {
+  @Field(() => [String])
+  choiceValueIds: string[];
+
+  @Field()
+  externalId: string;
+
+  @Field(() => String, { nullable: true })
+  sku?: string;
+}
+
+@InputType()
+export class ReplaceCommerceMappingSetInput {
+  @Field()
+  productRevisionId: string;
+
+  @Field()
+  provider: string;
+
+  @Field(() => [String])
+  identityChoiceIds: string[];
+
+  @Field(() => [ReplaceCommerceMappingInput])
+  mappings: ReplaceCommerceMappingInput[];
 }
 
 @InputType()

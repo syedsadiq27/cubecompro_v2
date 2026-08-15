@@ -2,6 +2,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   ChoiceModel,
   ChoiceValueModel,
+  CommerceMappingSetModel,
   ConfigurationRuleModel,
   ConstraintModel,
   CreateChoiceInput,
@@ -21,11 +22,13 @@ import {
   ProductRevisionDetailModel,
   ProductRevisionModel,
   ProductVariantModel,
+  ReplaceCommerceMappingSetInput,
   SetChoiceDefaultInput,
   UpdateProductInput,
   VariantSelectionModel,
   VisualEffectModel,
 } from '../graphql/models';
+import { CommerceMappingService } from './commerce-mapping.service';
 import { ConstraintService } from './constraint.service';
 import { ProductService } from './product.service';
 
@@ -33,7 +36,8 @@ import { ProductService } from './product.service';
 export class ProductResolver {
   constructor(
     private readonly products: ProductService,
-    private readonly constraints: ConstraintService
+    private readonly constraints: ConstraintService,
+    private readonly commerceMappings: CommerceMappingService
   ) {}
 
   @Mutation(() => ProductModel)
@@ -91,7 +95,13 @@ export class ProductResolver {
   @Query(() => ProductRevisionDetailModel)
   async productRevisionDetail(@Args('id') id: string) {
     const detail = await this.products.getGraphVersionDetail(id);
-    return mapVersionDetail(detail);
+    const commerceMappingSets = await Promise.all(
+      detail.commerceMappingSets.map(async (set) => {
+        const domain = await this.commerceMappings.normalizePersisted(set);
+        return mapCommerceMappingSet(set, domain);
+      })
+    );
+    return mapVersionDetail(detail, commerceMappingSets);
   }
 
   @Mutation(() => ProductRevisionModel)
@@ -140,6 +150,46 @@ export class ProductResolver {
   @Mutation(() => Boolean)
   deleteConstraint(@Args('id') id: string) {
     return this.constraints.deleteConstraint(id);
+  }
+
+  @Query(() => [CommerceMappingSetModel])
+  async commerceMappingSetsByRevision(
+    @Args('productRevisionId') productRevisionId: string
+  ) {
+    const sets = await this.commerceMappings.listByRevision(productRevisionId);
+    return Promise.all(
+      sets.map(async (set) => {
+        const domain = await this.commerceMappings.normalizePersisted(set);
+        return mapCommerceMappingSet(set, domain);
+      })
+    );
+  }
+
+  @Query(() => CommerceMappingSetModel)
+  async commerceMappingSet(
+    @Args('productRevisionId') productRevisionId: string,
+    @Args('provider') provider: string
+  ) {
+    const set = await this.commerceMappings.getByRevisionProvider(
+      productRevisionId,
+      provider
+    );
+    const domain = await this.commerceMappings.normalizePersisted(set);
+    return mapCommerceMappingSet(set, domain);
+  }
+
+  @Mutation(() => CommerceMappingSetModel)
+  async replaceCommerceMappingSet(
+    @Args('input') input: ReplaceCommerceMappingSetInput
+  ) {
+    const set = await this.commerceMappings.replaceMappingSet(input);
+    const domain = await this.commerceMappings.normalizePersisted(set);
+    return mapCommerceMappingSet(set, domain);
+  }
+
+  @Mutation(() => Boolean)
+  deleteCommerceMappingSet(@Args('id') id: string) {
+    return this.commerceMappings.deleteMappingSet(id);
   }
 
   @Mutation(() => ConfigurationRuleModel)
@@ -220,8 +270,41 @@ function mapConstraints(
   return constraints.map(mapConstraint);
 }
 
+function mapCommerceMappingSet(
+  set: Awaited<ReturnType<CommerceMappingService['listByRevision']>>[number],
+  domain: Awaited<ReturnType<CommerceMappingService['normalizePersisted']>>
+): CommerceMappingSetModel {
+  return {
+    id: set.id,
+    productRevisionId: set.productRevisionId,
+    provider: set.provider,
+    identityChoices: set.identityChoices.map((entry) => ({
+      mappingSetId: entry.mappingSetId,
+      choiceId: entry.choiceId,
+      choiceKey: entry.choice.key,
+      sortOrder: entry.sortOrder,
+    })),
+    mappings: set.mappings.map((mapping) => ({
+      id: mapping.id,
+      mappingSetId: mapping.mappingSetId,
+      identitySignature: mapping.identitySignature,
+      externalType: mapping.externalType,
+      externalId: mapping.externalId,
+      sku: mapping.sku,
+      terms: mapping.terms.map((term) => ({
+        mappingId: term.mappingId,
+        choiceValueId: term.choiceValueId,
+        choiceKey: term.choiceValue.choice.key,
+        choiceValueKey: term.choiceValue.key,
+      })),
+    })),
+    domainJson: JSON.stringify(domain),
+  };
+}
+
 function mapVersionDetail(
-  detail: Awaited<ReturnType<ProductService['getGraphVersionDetail']>>
+  detail: Awaited<ReturnType<ProductService['getGraphVersionDetail']>>,
+  commerceMappingSets: CommerceMappingSetModel[]
 ): ProductRevisionDetailModel {
   return {
     id: detail.id,
@@ -267,5 +350,6 @@ function mapVersionDetail(
       ...variant,
       selections: variant.selections,
     })),
+    commerceMappingSets,
   };
 }

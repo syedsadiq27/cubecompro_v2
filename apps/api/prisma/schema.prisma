@@ -294,6 +294,7 @@ model ProductRevision {
   constraints         Constraint[]
   models              ProductModel[]
   variants            ProductVariant[]
+  commerceMappingSets CommerceMappingSet[]
   savedConfigurations SavedConfiguration[]
 
   @@unique([productId, version])
@@ -314,8 +315,9 @@ model Choice {
 
   productRevision   ProductRevision    @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
   defaultValue      ChoiceValue?       @relation("ChoiceDefault", fields: [defaultValueId], references: [id], onDelete: SetNull)
-  values            ChoiceValue[]      @relation("ChoiceValues")
-  variantSelections VariantSelection[]
+  values                   ChoiceValue[]             @relation("ChoiceValues")
+  variantSelections        VariantSelection[]
+  commerceIdentityChoices  CommerceIdentityChoice[]
 
   @@unique([productRevisionId, key])
   @@index([productRevisionId])
@@ -335,6 +337,7 @@ model ChoiceValue {
   visualEffects     VisualEffect[]
   variantSelections VariantSelection[]
   constraintTerms   ConstraintTerm[]
+  commerceTerms     CommerceMappingTerm[]
 
   @@unique([choiceId, key])
   @@index([choiceId])
@@ -445,6 +448,57 @@ model VariantSelection {
 
   @@unique([variantId, choiceId])
   @@index([variantId])
+  @@index([choiceValueId])
+}
+
+model CommerceMappingSet {
+  id                String @id @default(cuid())
+  productRevisionId String
+  provider          String
+
+  productRevision ProductRevision          @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  identityChoices CommerceIdentityChoice[]
+  mappings        CommerceMapping[]
+
+  @@unique([productRevisionId, provider])
+  @@index([productRevisionId])
+}
+
+model CommerceIdentityChoice {
+  mappingSetId String
+  choiceId     String
+  sortOrder    Int    @default(0)
+
+  mappingSet CommerceMappingSet @relation(fields: [mappingSetId], references: [id], onDelete: Cascade)
+  choice     Choice             @relation(fields: [choiceId], references: [id], onDelete: Restrict)
+
+  @@id([mappingSetId, choiceId])
+  @@index([choiceId])
+}
+
+model CommerceMapping {
+  id                String @id @default(cuid())
+  mappingSetId      String
+  identitySignature String
+  externalType      String @default("VARIANT")
+  externalId        String
+  sku               String?
+
+  mappingSet CommerceMappingSet    @relation(fields: [mappingSetId], references: [id], onDelete: Cascade)
+  terms      CommerceMappingTerm[]
+
+  @@unique([mappingSetId, identitySignature])
+  @@index([mappingSetId])
+}
+
+model CommerceMappingTerm {
+  mappingId     String
+  choiceValueId String
+
+  mapping     CommerceMapping @relation(fields: [mappingId], references: [id], onDelete: Cascade)
+  choiceValue ChoiceValue     @relation(fields: [choiceValueId], references: [id], onDelete: Restrict)
+
+  @@id([mappingId, choiceValueId])
   @@index([choiceValueId])
 }
 

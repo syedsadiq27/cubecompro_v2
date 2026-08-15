@@ -18,6 +18,7 @@ import {
   assertKernelAuthoringAttributeType,
 } from './kernel-authoring';
 import { ConstraintService } from './constraint.service';
+import { CommerceMappingService } from './commerce-mapping.service';
 
 const graphDetailInclude = {
   choices: {
@@ -38,6 +39,25 @@ const graphDetailInclude = {
   },
   models: { include: { targets: true } },
   variants: { include: { selections: true } },
+  commerceMappingSets: {
+    include: {
+      identityChoices: {
+        include: { choice: true },
+        orderBy: { sortOrder: 'asc' as const },
+      },
+      mappings: {
+        include: {
+          terms: {
+            include: {
+              choiceValue: { include: { choice: true } },
+            },
+          },
+        },
+        orderBy: { id: 'asc' as const },
+      },
+    },
+    orderBy: { provider: 'asc' as const },
+  },
 } satisfies Prisma.ProductRevisionInclude;
 
 @Injectable()
@@ -45,7 +65,8 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly documents: DocumentStoreService,
-    private readonly constraints: ConstraintService
+    private readonly constraints: ConstraintService,
+    private readonly commerceMappings: CommerceMappingService
   ) {}
 
   async create(input: {
@@ -375,6 +396,47 @@ export class ProductService {
         }
       }
 
+      for (const mappingSet of source.commerceMappingSets) {
+        const identityChoiceCreates = mappingSet.identityChoices
+          .map((entry) => {
+            const choiceId = choiceIdMap.get(entry.choiceId);
+            if (!choiceId) return null;
+            return { choiceId, sortOrder: entry.sortOrder };
+          })
+          .filter((entry): entry is { choiceId: string; sortOrder: number } =>
+            Boolean(entry)
+          );
+
+        await tx.commerceMappingSet.create({
+          data: {
+            productRevisionId: draft.id,
+            provider: mappingSet.provider,
+            identityChoices: {
+              create: identityChoiceCreates,
+            },
+            mappings: {
+              create: mappingSet.mappings.map((mapping) => ({
+                identitySignature: mapping.identitySignature,
+                externalType: mapping.externalType,
+                externalId: mapping.externalId,
+                sku: mapping.sku,
+                terms: {
+                  create: mapping.terms
+                    .map((term) => {
+                      const choiceValueId = valueIdMap.get(term.choiceValueId);
+                      return choiceValueId ? { choiceValueId } : null;
+                    })
+                    .filter(
+                      (term): term is { choiceValueId: string } =>
+                        Boolean(term)
+                    ),
+                },
+              })),
+            },
+          },
+        });
+      }
+
       return draft;
     });
   }
@@ -504,6 +566,7 @@ export class ProductService {
     }
     await this.assertDraft(value.choice.productRevisionId);
     await this.constraints.assertChoiceValueNotReferenced(id);
+    await this.commerceMappings.assertChoiceValueNotReferenced(id);
     await this.prisma.choiceValue.delete({ where: { id } });
     return true;
   }
