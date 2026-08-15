@@ -1,8 +1,9 @@
 'use client';
 
+import { Wordmark } from '@repo/ui';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Wordmark } from '@repo/ui/wordmark';
+
 import { AdminNav } from './admin-nav';
 
 export function AdminShell({

@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { Card, Grid, Stack, Typography } from '@repo/ui';
 import { getSeoBody } from '@/lib/seo-bodies';
 import { getSeoPage } from '@/lib/seo-pages';
+import { SolutionBridge } from '@/components/solutions/solution-bridge';
 import { SeoCta } from './seo-cta';
 import { SeoDemoEmbed } from './seo-demo-embed';
 import { SeoFaq } from './seo-faq';
@@ -9,58 +12,68 @@ import { SeoPageShell } from './seo-page-shell';
 import { SeoRelated } from './seo-related';
 import { SeoSection } from './seo-section';
 
-export function SeoMarketingPage({ path }: { path: string }) {
+export function SeoMarketingPage({
+  path,
+  visual,
+  intro,
+}: {
+  path: string;
+  visual?: ReactNode;
+  intro?: ReactNode;
+}) {
   const page = getSeoPage(path);
   const body = getSeoBody(path);
+  const bridge = page.related[0];
 
   return (
     <>
       <SeoJsonLd page={page} faqs={body.faqs} />
-      <SeoPageShell page={page}>
+      <SeoPageShell page={page} visual={visual}>
+        {intro}
         {body.sections.map((section) => (
           <SeoSection
             key={section.title}
-            eyebrow={section.eyebrow}
             title={section.title}
             description={section.description}
             tone={section.tone}
           >
             {section.kind === 'bullets' ? (
-              <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
+              <Grid as="ul" cols="md-2" gap="md" className="max-w-4xl">
                 {section.bullets.map((item) => (
-                  <li
-                    key={item}
-                    className="border-t border-[var(--line)] pt-4 text-base leading-relaxed text-[var(--text-secondary)]"
-                  >
-                    {item}
-                  </li>
+                  <Card as="li" key={item} padding="md">
+                    <Typography variant="body">{item}</Typography>
+                  </Card>
                 ))}
-              </ul>
+              </Grid>
             ) : null}
 
             {section.kind === 'columns' ? (
-              <div
-                className={`grid max-w-5xl gap-10 ${
-                  section.columns.length > 2
-                    ? 'md:grid-cols-3'
-                    : 'md:grid-cols-2'
-                }`}
+              <Grid
+                cols={section.columns.length > 2 ? 'md-3' : 'md-2'}
+                gap="md"
+                className="max-w-5xl"
               >
                 {section.columns.map((column) => (
-                  <div key={column.title}>
-                    <h3 className="type-section text-[18px]">{column.title}</h3>
-                    <ul className="mt-4 space-y-3 text-[var(--text-secondary)]">
-                      {column.items.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  <Card key={column.title} padding="md">
+                    <Stack gap="md">
+                      <Typography variant="title">{column.title}</Typography>
+                      <Stack
+                        as="ul"
+                        gap="sm"
+                        className="text-[15px] text-[var(--text-secondary)]"
+                      >
+                        {column.items.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </Card>
                 ))}
-              </div>
+              </Grid>
             ) : null}
 
             {section.kind === 'links' ? (
-              <ul className="flex flex-wrap gap-3">
+              <Stack as="ul" direction="row" gap="md" wrap>
                 {section.links.map((item) => {
                   const external = item.href.startsWith('http');
                   const className =
@@ -83,104 +96,129 @@ export function SeoMarketingPage({ path }: { path: string }) {
                     </li>
                   );
                 })}
-              </ul>
+              </Stack>
             ) : null}
 
             {section.kind === 'prose' ? (
-              <div className="max-w-3xl space-y-4 text-base leading-relaxed text-[var(--text-secondary)]">
+              <Stack gap="md" className="max-w-3xl">
                 {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                  <Typography key={paragraph} variant="body">
+                    {paragraph}
+                  </Typography>
                 ))}
-              </div>
+              </Stack>
             ) : null}
 
             {section.kind === 'steps' ? (
-              <ol className="grid max-w-4xl gap-8 md:grid-cols-3">
-                {section.steps.map((step) => (
-                  <li key={step.title} className="border-t border-[var(--line)] pt-4">
-                    <h3 className="text-[15px] font-semibold text-[var(--ink)]">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-                      {step.body}
-                    </p>
-                  </li>
+              <Grid as="ol" cols="md-3" gap="md" className="max-w-4xl">
+                {section.steps.map((step, index) => (
+                  <Card as="li" key={step.title} padding="md">
+                    <Stack gap="sm">
+                      <Typography variant="code" tone="accent">
+                        {String(index + 1).padStart(2, '0')}
+                      </Typography>
+                      <Typography variant="bodyStrong" as="h3">
+                        {step.title}
+                      </Typography>
+                      <Typography variant="support">{step.body}</Typography>
+                    </Stack>
+                  </Card>
                 ))}
-              </ol>
+              </Grid>
             ) : null}
 
             {section.kind === 'proof' ? (
-              <div className="grid max-w-4xl gap-8 md:grid-cols-2">
-                <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] p-5">
-                  <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">
-                    Configuration
-                  </p>
-                  <dl className="mt-4 space-y-2 text-sm">
-                    {section.configuration.map((row) => (
-                      <div
-                        key={row.label}
-                        className="flex justify-between gap-3 border-b border-[var(--line)] py-2"
-                      >
-                        <dt className="text-[var(--text-muted)]">{row.label}</dt>
-                        <dd className="font-medium text-[var(--ink)]">
-                          {row.value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-                <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] p-5">
-                  <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">
-                    Resolved output
-                  </p>
-                  <dl className="mt-4 space-y-2 font-mono text-sm">
-                    {section.resolved.map((row) => (
-                      <div
-                        key={row.label}
-                        className="flex justify-between gap-3 border-b border-[var(--line)] py-2"
-                      >
-                        <dt className="font-sans text-[var(--text-muted)]">
-                          {row.label}
-                        </dt>
-                        <dd className="text-right text-[var(--ink)]">
-                          {row.value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
+              <Grid cols="md-2" gap="md" className="max-w-4xl">
+                <Card padding="md">
+                  <Stack gap="md">
+                    <Typography variant="mono" tone="secondary">
+                      Configuration
+                    </Typography>
+                    <dl className="space-y-2 text-sm">
+                      {section.configuration.map((row) => (
+                        <div
+                          key={row.label}
+                          className="flex justify-between gap-3 border-b border-[var(--line)] py-2"
+                        >
+                          <dt className="text-[var(--text-muted)]">{row.label}</dt>
+                          <dd className="font-medium text-[var(--ink)]">
+                            {row.value}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </Stack>
+                </Card>
+                <Card variant="ink" padding="md">
+                  <Stack gap="md">
+                    <Typography variant="mono" tone="ink">
+                      Sellable state
+                    </Typography>
+                    <dl className="space-y-2 font-mono text-sm">
+                      {section.resolved.map((row) => (
+                        <div
+                          key={row.label}
+                          className="flex justify-between gap-3 border-b border-white/15 py-2"
+                        >
+                          <dt className="font-sans text-white/45">{row.label}</dt>
+                          <dd className="text-right text-white">{row.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </Stack>
+                </Card>
                 {section.note ? (
-                  <p className="type-meta md:col-span-2">{section.note}</p>
+                  <Typography
+                    variant="support"
+                    tone="muted"
+                    className="md:col-span-2"
+                  >
+                    {section.note}
+                  </Typography>
                 ) : null}
-              </div>
+              </Grid>
             ) : null}
 
             {section.kind === 'math' ? (
-              <div className="max-w-4xl">
-                <p className="rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] px-5 py-4 font-mono text-sm text-[var(--ink)] md:text-base">
+              <Stack gap="lg" className="max-w-4xl">
+                <Card
+                  as="p"
+                  padding="sm"
+                  className="font-mono text-sm text-[var(--ink)] md:text-base"
+                >
                   {section.equation}
-                </p>
-                <div className="mt-8 grid gap-10 md:grid-cols-2">
+                </Card>
+                <Grid cols="md-2" gap="md">
                   {[section.left, section.right].map((column) => (
-                    <div key={column.title}>
-                      <h3 className="type-section text-[18px]">{column.title}</h3>
-                      <ul className="mt-4 space-y-3 text-[var(--text-secondary)]">
-                        {column.items.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    <Card key={column.title} padding="md">
+                      <Stack gap="md">
+                        <Typography variant="title">{column.title}</Typography>
+                        <Stack
+                          as="ul"
+                          gap="sm"
+                          className="text-[15px] text-[var(--text-secondary)]"
+                        >
+                          {column.items.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </Stack>
+                      </Stack>
+                    </Card>
                   ))}
-                </div>
-              </div>
+                </Grid>
+              </Stack>
             ) : null}
 
             {section.kind === 'code' ? (
               <div className="max-w-4xl overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--ink)]">
                 {section.caption ? (
-                  <p className="border-b border-white/10 px-4 py-2 text-[11px] tracking-[0.06em] text-white/50 uppercase">
+                  <Typography
+                    variant="mono"
+                    tone="ink"
+                    className="border-b border-white/10 px-4 py-2 tracking-[0.06em]"
+                  >
                     {section.caption}
-                  </p>
+                  </Typography>
                 ) : null}
                 <pre className="overflow-x-auto p-4 text-[12px] leading-relaxed text-[#f2f1ed] md:text-[13px]">
                   <code>{section.code}</code>
@@ -193,10 +231,21 @@ export function SeoMarketingPage({ path }: { path: string }) {
             ) : null}
           </SeoSection>
         ))}
+
+        {bridge ? (
+          <SolutionBridge
+            title={`${bridge.blurb}`}
+            href={bridge.href}
+            label={`See ${bridge.label}`}
+            tone="muted"
+          />
+        ) : null}
+
         <SeoFaq
           items={body.faqs}
           title={body.faqTitle}
           description={body.faqDescription}
+          compact
         />
         <SeoRelated page={page} />
         <SeoCta {...body.cta} />

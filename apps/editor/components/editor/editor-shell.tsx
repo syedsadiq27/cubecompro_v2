@@ -1,6 +1,6 @@
 'use client';
 
-import { Stage } from '@repo/ui/stage';
+import { Stage } from '@repo/ui';
 import { useEditorProductLoad } from '@/hooks/use-editor-product-load';
 import { useEditorStore } from '@/lib/editor-store';
 import { DrawerHost } from './drawer-host';

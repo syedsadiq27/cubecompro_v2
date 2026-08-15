@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Typography } from '@repo/ui';
 import { FABRICS, FRAMES, LEGS } from '@/components/demo/sofa/catalog';
 import { SofaCanvas } from '@/components/demo/sofa/SofaCanvas';
 import { useSofaConfigurator } from '@/components/demo/sofa/useSofaConfigurator';
@@ -52,14 +53,18 @@ function SofaSeoEmbed() {
         </div>
         <div className="flex flex-col gap-5 border-t border-[var(--line)] p-5 lg:border-t-0 lg:border-l lg:p-6">
           <div>
-            <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">
-              Live configuration
-            </p>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            <Typography variant="label">Live configuration</Typography>
+            <Typography variant="support" className="mt-1">
               {resolved.labels.frame} / {resolved.labels.fabric} /{' '}
               {resolved.labels.legs}
-            </p>
+            </Typography>
           </div>
+
+          <ResolvedCommerce
+            sku={resolved.sku}
+            price={resolved.price}
+            inventory={resolved.inventory}
+          />
 
           <OptionRow
             label="Frame"
@@ -83,13 +88,12 @@ function SofaSeoEmbed() {
             onChange={setLegs}
           />
 
-          <ResolvedCommerce
-            sku={resolved.sku}
-            price={resolved.price}
-            inventory={resolved.inventory}
+          <Link
             href="/demo"
-            label="Open full sofa demo"
-          />
+            className="inline-flex self-start rounded-lg bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white"
+          >
+            Open full sofa demo
+          </Link>
         </div>
       </div>
     </div>
@@ -121,14 +125,18 @@ function TshirtSeoEmbed() {
         </div>
         <div className="flex flex-col gap-5 border-t border-[var(--line)] p-5 lg:border-t-0 lg:border-l lg:p-6">
           <div>
-            <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">
-              Live configuration
-            </p>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            <Typography variant="label">Live configuration</Typography>
+            <Typography variant="support" className="mt-1">
               {resolved.labels.color} / {resolved.labels.fit} /{' '}
               {resolved.labels.size}
-            </p>
+            </Typography>
           </div>
+
+          <ResolvedCommerce
+            sku={resolved.sku}
+            price={resolved.price}
+            inventory={resolved.inventory}
+          />
 
           <OptionRow
             label="Color"
@@ -152,13 +160,12 @@ function TshirtSeoEmbed() {
             onChange={setSize}
           />
 
-          <ResolvedCommerce
-            sku={resolved.sku}
-            price={resolved.price}
-            inventory={resolved.inventory}
+          <Link
             href="/demo/tshirt"
-            label="Open full tee demo"
-          />
+            className="inline-flex self-start rounded-lg bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white"
+          >
+            Open full tee demo
+          </Link>
         </div>
       </div>
     </div>
@@ -169,41 +176,31 @@ function ResolvedCommerce({
   sku,
   price,
   inventory,
-  href,
-  label,
 }: {
   sku: string;
   price: number;
   inventory: number;
-  href: string;
-  label: string;
 }) {
   return (
-    <>
-      <dl className="mt-auto space-y-2 border-t border-[var(--line)] pt-4 font-mono text-sm">
+    <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--canvas)] px-3 py-3">
+      <Typography variant="label">Commerce resolve</Typography>
+      <dl className="mt-2.5 space-y-2 font-mono text-sm">
         <div className="flex justify-between gap-3">
           <dt className="text-[var(--text-muted)]">SKU</dt>
-          <dd>{sku}</dd>
+          <dd className="text-[var(--ink)]">{sku}</dd>
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-[var(--text-muted)]">Price</dt>
-          <dd>{formatPrice(price)}</dd>
+          <dd className="text-[var(--ink)]">{formatPrice(price)}</dd>
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-[var(--text-muted)]">Inventory</dt>
-          <dd>
+          <dd className="text-[var(--ink)]">
             {inventory > 0 ? `${inventory} in stock` : 'Out of stock'}
           </dd>
         </div>
       </dl>
-
-      <Link
-        href={href}
-        className="inline-flex self-start rounded-lg bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white"
-      >
-        {label}
-      </Link>
-    </>
+    </div>
   );
 }
 
@@ -222,9 +219,9 @@ function OptionRow<T extends string>({
 }) {
   return (
     <div>
-      <p className="mb-2 text-[11px] font-medium tracking-[0.06em] text-[var(--text-muted)] uppercase">
+      <Typography variant="label" className="mb-2">
         {label}
-      </p>
+      </Typography>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
           const isDisabled = disabled(option.id);

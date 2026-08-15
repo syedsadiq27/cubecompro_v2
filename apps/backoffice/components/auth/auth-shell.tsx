@@ -1,6 +1,5 @@
+import { Stage, Wordmark } from '@repo/ui';
 import Link from 'next/link';
-import { Stage } from '@repo/ui/stage';
-import { Wordmark } from '@repo/ui/wordmark';
 
 export function AuthShell({
   title,

@@ -1,15 +1,16 @@
 'use client';
 
+import { Button, Typography, Wordmark } from '@repo/ui';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
-import { Wordmark } from '@repo/ui/wordmark';
+
 import {
   bookSessionCta,
   developersNav,
   docsNav,
   industriesNav,
+  integrationsNav,
   pricingNav,
-  productNav,
   solutionsNav,
   type NavLink,
 } from '@/lib/navigation';
@@ -126,14 +127,9 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 xl:flex">
-          <Link
-            href={productNav.href}
-            className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
-          >
-            {productNav.label}
-          </Link>
           <NavDropdown label="Solutions" items={solutionsNav} />
           <NavDropdown label="Industries" items={industriesNav} />
+          <NavDropdown label="Integrations" items={integrationsNav} />
           <NavDropdown label="Developers" items={developersNav} />
           <Link
             href={pricingNav.href}
@@ -147,12 +143,9 @@ export function SiteHeader() {
           >
             {docsNav.label}
           </Link>
-          <Link
-            href={bookSessionCta.href}
-            className="rounded-lg bg-[var(--ink)] px-3.5 py-2 text-xs font-medium tracking-[0.04em] text-white transition hover:bg-[var(--ink)]/90"
-          >
+          <Button as={Link} href={bookSessionCta.href} variant="primary" size="nav">
             {bookSessionCta.label}
-          </Link>
+          </Button>
         </nav>
 
         <button
@@ -172,13 +165,6 @@ export function SiteHeader() {
           className="max-h-[min(70vh,32rem)] overflow-y-auto border-t border-[var(--line)] px-5 py-4 xl:hidden"
         >
           <div className="flex flex-col gap-5">
-            <MobileGroup title="Product">
-              <NavItemLink
-                item={productNav}
-                onNavigate={close}
-                className="py-1.5 text-sm text-[var(--text-secondary)]"
-              />
-            </MobileGroup>
             <MobileGroup title="Solutions">
               {solutionsNav.map((item) => (
                 <NavItemLink
@@ -191,6 +177,16 @@ export function SiteHeader() {
             </MobileGroup>
             <MobileGroup title="Industries">
               {industriesNav.map((item) => (
+                <NavItemLink
+                  key={item.href}
+                  item={item}
+                  onNavigate={close}
+                  className="py-1.5 text-sm text-[var(--text-secondary)]"
+                />
+              ))}
+            </MobileGroup>
+            <MobileGroup title="Integrations">
+              {integrationsNav.map((item) => (
                 <NavItemLink
                   key={item.href}
                   item={item}
@@ -242,9 +238,7 @@ function MobileGroup({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-medium tracking-[0.1em] text-[var(--text-muted)] uppercase">
-        {title}
-      </p>
+      <Typography variant="label">{title}</Typography>
       <div className="mt-1.5 flex flex-col">{children}</div>
     </div>
   );

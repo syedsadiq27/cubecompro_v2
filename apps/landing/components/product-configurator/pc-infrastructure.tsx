@@ -1,3 +1,5 @@
+import { Card, Container, Grid, Heading, Stack, Typography } from '@repo/ui';
+
 const SYSTEMS = [
   {
     tag: 'RULES',
@@ -28,34 +30,34 @@ const SYSTEMS = [
 export function PcInfrastructure() {
   return (
     <section className="border-t border-[var(--line)] bg-[var(--surface)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-10 md:px-8 md:py-16">
-        <p className="text-sm text-[var(--text-muted)]">Infrastructure</p>
-        <h2 className="type-page mt-3 max-w-3xl text-[clamp(1.75rem,3.5vw,2.6rem)]">
-          Configuration as commerce infrastructure
-        </h2>
+      <Container padding="sectionCompact">
+        <Heading as="h2" variant="section">
+          Configuration belongs between the catalog and the cart.
+        </Heading>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 md:mt-10 md:gap-4 lg:grid-cols-4">
+        <Grid cols={2} gap="sm" className="mt-8 md:mt-10 md:gap-4 lg:grid-cols-4">
           {SYSTEMS.map((system) => (
-            <article
+            <Card
+              as="article"
               key={system.name}
-              className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-3.5 md:rounded-2xl md:p-5"
+              variant="soft"
+              padding="tight"
+              className="md:rounded-2xl md:p-5"
             >
-              <p className="font-mono text-[11px] tracking-[0.14em] text-[var(--ink)]">
-                {system.tag}
-              </p>
-              <h3 className="type-section mt-2 text-[15px] md:mt-3 md:text-[17px]">
-                {system.name}
-              </h3>
-              <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-[var(--text-muted)] md:mt-2">
-                {system.io}
-              </p>
-              <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-secondary)] md:mt-3 md:text-sm">
-                {system.body}
-              </p>
-            </article>
+              <Stack gap="sm">
+                <Typography variant="code" tone="strong">
+                  {system.tag}
+                </Typography>
+                <Typography variant="titleSm">{system.name}</Typography>
+                <Typography variant="code" tone="muted">
+                  {system.io}
+                </Typography>
+                <Typography variant="support">{system.body}</Typography>
+              </Stack>
+            </Card>
           ))}
-        </div>
-      </div>
+        </Grid>
+      </Container>
     </section>
   );
 }

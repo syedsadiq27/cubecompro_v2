@@ -98,226 +98,50 @@ export type SeoBody = {
 export const seoBodies: SeoBody[] = [
   {
     path: '/3d-product-configurator',
-    sections: [
-      {
-        kind: 'demo',
-        eyebrow: 'Live proof',
-        title: 'Configure a sofa. Watch commerce update.',
-        description:
-          'This is not a static render. Change frame, fabric, and legs — SKU, price, and inventory resolve from the same configuration state a cart would receive.',
-      },
-      {
-        kind: 'proof',
-        tone: 'muted',
-        eyebrow: 'Resolved output',
-        title: 'What “sell the state” actually means',
-        description:
-          'Buyers and search engines both need evidence. Here is a concrete configuration and the commerce payload it produces.',
-        configuration: [
-          { label: 'Frame', value: 'Walnut' },
-          { label: 'Fabric', value: 'Beige' },
-          { label: 'Legs', value: 'Brass' },
-        ],
-        resolved: [
-          { label: 'SKU', value: 'SOFA-WAL-BEI-BRA' },
-          { label: 'Price', value: '$2,399' },
-          { label: 'Inventory', value: '4 available' },
-          {
-            label: 'Cart payload',
-            value: '{ sku, price, qty: 1, configurationId }',
-          },
-        ],
-        note: 'Exact codes and pricing come from your product graph. The demo uses a sofa family to prove the loop.',
-      },
-      {
-        kind: 'steps',
-        eyebrow: 'How it works',
-        title: 'From visual choice to purchasable identity',
-        description:
-          'A 3D product configurator for ecommerce has to close a loop — not just orbit a model.',
-        steps: [
-          {
-            title: '1. Shopper changes the product',
-            body: 'Materials, components, and finishes update in the scene. Invalid options are blocked before they become a look.',
-          },
-          {
-            title: '2. CubeCom understands the state',
-            body: 'Configuration state is evaluated against the product graph: attributes, rules, and commerce references.',
-          },
-          {
-            title: '3. Commerce updates correctly',
-            body: 'Resolve returns SKU, price, inventory, and a cart-ready line — the same identity sales and support can reopen from a share link.',
-          },
-        ],
-      },
-      {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Comparison',
-        title: 'Ordinary 3D viewer vs CubeCom',
-        description:
-          'Most “3D configurators” stop at visualization. Ecommerce needs the purchase identity to match what the shopper saw.',
-        columns: [
-          {
-            title: 'Ordinary 3D viewer',
-            items: [
-              'Material swaps and camera controls',
-              'Looks great in screenshots',
-              'Rules live in the frontend (or nowhere)',
-              'Cart still guesses a variant',
-              'Sales cannot reopen the exact state',
-            ],
-          },
-          {
-            title: 'CubeCom Pro',
-            items: [
-              'Same visual options, constraint-aware',
-              'Looks that are also sellable states',
-              'Rules on the product graph',
-              'SKU / price / inventory from resolve',
-              'Shareable configuration identity',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'prose',
-        eyebrow: 'Architecture',
-        title: 'Product graph → scene state → commerce state',
-        paragraphs: [
-          'CubeCom sits between catalog truth and the shopper experience. Merchants author a product graph: options, values, constraints, 3D bindings, and commerce references.',
-          'Shoppers submit a configuration state. Resolve returns two synchronized outcomes: scene state for the viewer and commerce state for SKU, price, inventory, and cart handoff.',
-          'That is why the 3D surface is not a separate product. It is one experience on the same graph that powers API clients, embeds, and sales tools.',
-        ],
-      },
-      {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Implementation options',
-        title: 'Embed, SDK, or API — same graph',
-        columns: [
-          {
-            title: 'Embed',
-            items: [
-              'Drop a configurator experience on a PDP',
-              'Keep checkout on Shopify or your cart',
-              'Best for teams that want a shipped surface fast',
-            ],
-          },
-          {
-            title: 'SDK / custom UI',
-            items: [
-              'Own the design system and layout',
-              'Drive options from resolve responses',
-              'Use CubeCom 3D or your own renderer',
-            ],
-          },
-          {
-            title: 'Configuration API',
-            items: [
-              'Call resolve from services and agents',
-              'Validate state without a viewer',
-              'Feed middleware, CPQ, and storefronts',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'bullets',
-        eyebrow: 'Performance',
-        title: 'What production 3D ecommerce actually needs',
-        description:
-          'A configurator that cannot load or update options will not convert — regardless of how accurate the SKU mapping is.',
-        bullets: [
-          'GLB-first assets with materials applied as configuration effects',
-          'Option changes update state without full page reloads',
-          'Constraints evaluated before invalid looks are shown',
-          'Commerce resolve is a discrete call — not a client-side guess',
-          'Share links restore the same graph state, not a screenshot',
-        ],
-      },
-      {
-        kind: 'columns',
-        eyebrow: 'Industries',
-        title: 'Where 3D configuration pays for itself',
-        columns: [
-          {
-            title: 'Furniture',
-            items: [
-              'Frames, fabrics, legs, modular pieces',
-              'Photography budgets that cannot cover every combo',
-              'Showroom and web sharing the same state',
-            ],
-          },
-          {
-            title: 'Other hard goods',
-            items: [
-              'Configured finishes and components',
-              'Accessory compatibility rules',
-              'Sales-assisted quoting on the same graph',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'links',
-        tone: 'muted',
-        eyebrow: 'Go deeper',
-        title: 'Related resources',
-        links: [
-          { href: '/product-configurator', label: 'Rules & variant explosion' },
-          {
-            href: '/product-configuration-api',
-            label: 'Configuration API contracts',
-          },
-          { href: '/industries/furniture', label: 'Furniture vertical' },
-          { href: '/demo', label: 'Full sofa demo' },
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'What is a 3D product configurator for ecommerce?',
         answer:
-          'An interactive experience that lets shoppers change product options in 3D and purchase a specific configuration. In CubeCom Pro, that configuration state must resolve to SKU, price, and inventory before checkout — not only update a render.',
+          'An interactive buying experience where shoppers change materials, parts, and options in 3D — and every visual state stays sellable. In CubeCom Pro, scene state stays synchronized with SKU, price, inventory, and cart.',
       },
       {
-        question: 'How is CubeCom different from a WebGL product viewer?',
+        question: 'How is this different from a WebGL product viewer?',
         answer:
-          'A viewer shows a model. CubeCom binds visual choices to a product graph with constraints and commerce resolution, so the look and the cart line are the same state.',
+          'A viewer shows a model. A configurator blocks invalid looks, updates the scene from real configuration state, and hands a matching commerce identity to cart — not a decorative orbit.',
       },
       {
         question: 'Can invalid option combinations be blocked in 3D?',
         answer:
-          'Yes. The constraint engine can disable or rewrite incompatible choices so shoppers cannot build unsellable states in the scene.',
+          'Yes. Invalid visual combinations are blocked before they become a look shoppers think they can buy.',
       },
       {
         question: 'Does the 3D configuration match what goes into the cart?',
         answer:
-          'That is the requirement. Resolve returns commerce data for the visible configuration so the cart reflects the same SKU and price the shopper configured.',
+          'That is the requirement. Commerce resolve follows the scene state so checkout matches what they configured.',
       },
       {
-        question: 'Do we have to use CubeCom’s 3D viewer?',
+        question: 'How does this relate to the Product Configurator page?',
         answer:
-          'No. You can embed CubeCom surfaces or drive your own renderer from the same resolved scene state and commerce outcomes.',
+          '3D is one surface. Rules, dependencies, and commerce resolution come from the Product Configurator engine. This page is the visual buying experience powered by that engine.',
       },
       {
         question: 'Where should we start?',
         answer:
-          'Open the live sofa demo to see the loop, then book a session with one product family from your catalog — options, constraints, and how you sell variants today.',
+          'Open the live sofa demo to feel the visual-to-commerce loop, then book a session with one product family you want shoppers to configure in 3D.',
       },
     ],
     faqTitle: '3D product configurator FAQ',
     faqDescription:
-      'Practical answers for merchants evaluating 3D configurators for ecommerce — not generic WebGL glossary entries.',
+      'For teams evaluating a sellable 3D buying experience — not a standalone WebGL viewer.',
     cta: {
-      title: 'Make your 3D configurator purchasable.',
+      title: 'Make your 3D experience sellable.',
       description:
         'Book a solution session with one SKU family, or keep exploring the live sofa.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a solution session',
-      secondaryHref: '/demo',
-      secondaryLabel: 'Open full sofa demo',
+      secondaryHref: '/product-configurator',
+      secondaryLabel: 'See the configuration engine',
     },
   },
   {
@@ -327,136 +151,60 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Do I need 3D to use a CubeCom product configurator?',
         answer:
-          'No. 3D is optional. The same product graph can power 2D UI, embeds, and APIs — with optional 3D when the category needs it.',
+          'No. This page is about configuration logic and commerce resolution. 3D is optional — the same engine powers 2D UIs, APIs, and the 3D Product Configurator when you need a visual surface.',
       },
       {
         question: 'How is this different from Shopify options or variant matrices?',
         answer:
-          'Variant matrices explode and still miss cross-option constraints. CubeCom encodes rules and resolves sellable state instead of pre-generating every combination.',
+          'Variant matrices explode and still miss cross-option constraints. CubeCom encodes dependencies and exclusions, resolves a valid state at runtime, then projects SKU, price, and inventory — without publishing every combination.',
       },
       {
-        question: 'Can we keep our existing storefront?',
+        question: 'What kinds of rules can we model?',
         answer:
-          'Yes. CubeCom sits beside your storefront and PIM. Configuration runs in the experience layer; resolved SKUs hand off to cart.',
+          'Option dependencies, exclusion rules, conditional availability, and product-family constraints — so illegal combinations never become sellable states.',
+      },
+      {
+        question: 'What is commerce resolution?',
+        answer:
+          'Mapping a valid configuration to SKU, price, inventory, and cart-ready identity so every legal state is sellable across channels.',
+      },
+      {
+        question: 'When should I look at the 3D Product Configurator?',
+        answer:
+          'When shoppers need to change materials, parts, or geometry visually. The 3D page is the buying experience; this page is the engine underneath.',
       },
     ],
-    faqTitle: 'FAQ',
-    faqDescription: undefined,
+    faqTitle: 'Product configurator FAQ',
+    faqDescription:
+      'For teams modeling catalog complexity — dependencies, exclusions, and sellable state — with or without 3D.',
     cta: {
-      title: 'Map your catalog rules onto the product graph.',
+      title: 'Bring the product family you’ve outgrown.',
       description:
-        'Bring one product family. We show what belongs in the graph versus the storefront.',
+        'We’ll map the options, constraints, and commerce resolution together.',
       primaryHref: '/#contact',
       primaryLabel: 'Book a solution session',
-      secondaryHref: '/demo',
-      secondaryLabel: 'Open live demo',
+      secondaryHref: '/3d-product-configurator',
+      secondaryLabel: 'Need visual 3D?',
     },
   },
   {
     path: '/headless-product-configurator',
-    sections: [
-      {
-        kind: 'prose',
-        eyebrow: 'Architecture intent',
-        title: 'Keep your frontend. Run configuration as infrastructure.',
-        paragraphs: [
-          'A headless product configurator separates presentation from sellable-state logic. Your Next.js app, custom storefront, or design system owns UX. CubeCom owns the product graph, constraints, and resolve.',
-          'That is different from a theme plugin that owns the entire configurator UI, and different from a pure 3D viewer that never touches commerce.',
-        ],
-      },
-      {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Ownership boundary',
-        title: 'Frontend owns presentation. CubeCom owns sellable state.',
-        columns: [
-          {
-            title: 'You own',
-            items: [
-              'Design system and storefront UX',
-              'CMS and merchandising content',
-              'Checkout platform of record',
-              'Deployment and CI for your apps',
-            ],
-          },
-          {
-            title: 'CubeCom owns',
-            items: [
-              'Configuration rules and validity',
-              'State → SKU / price / inventory',
-              'Shareable configuration identity',
-              'Optional 3D / embed surfaces',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'steps',
-        eyebrow: 'Composable pattern',
-        title: 'How headless teams typically wire CubeCom',
-        steps: [
-          {
-            title: 'Author the graph',
-            body: 'Options, constraints, and commerce references live in CubeCom — not in React state alone.',
-          },
-          {
-            title: 'Render your UI',
-            body: 'Call resolve as shoppers change options. Drive your components (or CubeCom embeds) from the response.',
-          },
-          {
-            title: 'Hand off to cart',
-            body: 'Pass the resolved SKU or line payload into Shopify, commercetools, or a custom cart adapter.',
-          },
-        ],
-      },
-      {
-        kind: 'bullets',
-        tone: 'muted',
-        eyebrow: 'SDK posture',
-        title: 'Bring your GraphQL client',
-        description:
-          'Until a first-party package ships, generate typed operations from the CubeCom schema and call POST /graphql with a bearer token.',
-        bullets: [
-          'Works with fetch, urql, Apollo, or your internal client',
-          'Same resolve contract for web and agents',
-          'Optional CubeCom UI when you do not want to build every control',
-        ],
-      },
-      {
-        kind: 'links',
-        eyebrow: 'Engineer next steps',
-        title: 'Contracts and surfaces',
-        links: [
-          {
-            href: '/product-configuration-api',
-            label: 'Configuration API',
-          },
-          {
-            href: 'https://docs.cubecompro.com/developers/graphql',
-            label: 'GraphQL docs',
-          },
-          {
-            href: '/3d-product-configurator',
-            label: 'Optional 3D surface',
-          },
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'Is CubeCom a headless CMS?',
         answer:
-          'No. It is configuration infrastructure for purchasable product state — not a content CMS or full ecommerce platform.',
+          'No. It is configuration infrastructure for sellable product state — not a content CMS or full ecommerce platform.',
       },
       {
         question: 'Can we use Next.js or a custom storefront?',
         answer:
-          'Yes. Embed the experience or call the configuration API from your app while checkout stays on your commerce platform.',
+          'Yes. You own the frontend and design system. Call resolve from your app while checkout stays on your commerce platform.',
       },
       {
-        question: 'Does headless mean we must build our own 3D viewer?',
+        question: 'Who owns configuration rules in a headless stack?',
         answer:
-          'No. You can use CubeCom surfaces or bring your own renderer against the same graph.',
+          'CubeCom owns configuration truth — the product graph, constraints, and resolve. Your storefronts, sales tools, and agents consume the same sellable state instead of re-implementing rules per channel.',
       },
       {
         question: 'How does this relate to composable commerce?',
@@ -472,118 +220,12 @@ export const seoBodies: SeoBody[] = [
       primaryHref: '/#contact',
       primaryLabel: 'Book a solution session',
       secondaryHref: '/product-configuration-api',
-      secondaryLabel: 'Configuration API',
+      secondaryLabel: 'Product Configuration API',
     },
   },
   {
     path: '/product-configuration-api',
-    sections: [
-      {
-        kind: 'prose',
-        eyebrow: 'For engineers',
-        title: 'Resolve configuration state to commerce payloads',
-        paragraphs: [
-          'This page is about contracts — not brand positioning. The product configuration API validates and advances configuration state, then returns sellable outcomes your storefront or middleware can trust.',
-          'UI is optional. The same resolve path powers embeds, custom React apps, sales tools, and agents.',
-        ],
-      },
-      {
-        kind: 'code',
-        tone: 'muted',
-        eyebrow: 'Example',
-        title: 'resolveConfiguration',
-        description:
-          'Illustrative GraphQL shape. Exact fields ship in schema.gql — treat that as the machine contract.',
-        caption: 'Query',
-        code: `query ResolveSofa($input: ConfigurationStateInput!) {
-  resolveConfiguration(input: $input) {
-    valid
-    violations { code message }
-    commerce {
-      sku
-      price
-      currency
-      inventory
-    }
-    scene {
-      materials { target color roughness }
-      visibility { node visible }
-    }
-  }
-}`,
-      },
-      {
-        kind: 'code',
-        eyebrow: 'Example input',
-        title: 'Configuration state',
-        caption: 'Variables',
-        code: `{
-  "input": {
-    "productId": "sofa-01",
-    "selectionsJson": "{\\"frame\\":\\"walnut\\",\\"fabric\\":\\"beige\\",\\"legs\\":\\"brass\\"}"
-  }
-}`,
-      },
-      {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Request / response concerns',
-        title: 'What callers typically need',
-        columns: [
-          {
-            title: 'Inbound',
-            items: [
-              'Product / graph version identity',
-              'Selection map (attribute → value)',
-              'Auth for authoring vs public resolve',
-            ],
-          },
-          {
-            title: 'Outbound',
-            items: [
-              'Validity + violation list',
-              'Resolved SKU / price / inventory',
-              'Scene effects for viewers',
-              'Cart / CPQ handoff fields',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'bullets',
-        eyebrow: 'Integration notes',
-        title: 'Not a replacement commerce platform',
-        bullets: [
-          'Checkout and orders stay on Shopify, commercetools, or your cart',
-          'PIM remains catalog source of truth — CubeCom references it',
-          'Generate clients from schema.gql until an official SDK ships',
-          'Docs: authentication, GraphQL, and resolve guides on docs.cubecompro.com',
-        ],
-      },
-      {
-        kind: 'links',
-        eyebrow: 'Docs',
-        title: 'Read the technical pages',
-        links: [
-          {
-            href: 'https://docs.cubecompro.com/developers/api',
-            label: 'API overview',
-          },
-          {
-            href: 'https://docs.cubecompro.com/developers/graphql',
-            label: 'GraphQL API',
-          },
-          {
-            href: 'https://docs.cubecompro.com/guides/resolve-sku',
-            label: 'Resolve → SKU guide',
-          },
-          {
-            href: '/headless-product-configurator',
-            label: 'Headless architecture',
-          },
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'Is the API a replacement for our commerce platform?',
@@ -608,11 +250,11 @@ export const seoBodies: SeoBody[] = [
     ],
     faqTitle: 'Configuration API FAQ',
     cta: {
-      title: 'Discuss API access for your stack.',
+      title: 'Bring the systems that need configuration truth.',
       description:
-        'Tell us your storefront, PIM, and cart path — we map the integration surface.',
+        'We’ll map the contract from selection to commerce.',
       primaryHref: '/#contact',
-      primaryLabel: 'Book a solution session',
+      primaryLabel: 'Discuss API access',
       secondaryHref: 'https://docs.cubecompro.com/developers/graphql',
       secondaryLabel: 'GraphQL docs',
     },
@@ -623,36 +265,16 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'prose',
         eyebrow: 'Integration preview',
-        title: 'Shopify stays checkout. CubeCom resolves the product decision.',
+        title: 'Shopify keeps checkout. CubeCom resolves the product decision.',
         paragraphs: [
           'This page describes the intended Shopify pattern: configure beside the PDP, resolve to a sellable Shopify variant or line item, keep cart and checkout on Shopify.',
           'A first-party Shopify app (theme extension, metafields sync) is not shipping yet. Treat this as early access architecture — not an installable App Store listing.',
         ],
       },
       {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Division of labor',
-        title: 'What each system owns',
-        columns: [
-          {
-            title: 'Shopify keeps',
-            items: ['Catalog & inventory', 'Cart & checkout', 'Orders & payments'],
-          },
-          {
-            title: 'CubeCom adds',
-            items: [
-              'Configuration rules',
-              '3D / decoration experiences',
-              'State → sellable variant resolution',
-            ],
-          },
-        ],
-      },
-      {
         kind: 'bullets',
         eyebrow: 'What works today',
-        title: 'Practical path while the app is early',
+        title: 'Ship the shopper loop before the App Store listing.',
         bullets: [
           'Model options and constraints in CubeCom',
           'Resolve to a Shopify variant id / SKU you already sell',
@@ -694,34 +316,10 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'prose',
         eyebrow: 'Integration preview',
-        title: 'Configuration beside commercetools — not instead of it',
+        title: 'Configuration beside commercetools — not instead of it.',
         paragraphs: [
           'The intended pattern: commercetools remains catalog, cart, and checkout. CubeCom owns configuration rules and optional 3D, then hands a resolved SKU / variant into commercetools line items.',
           'This is early access / architecture guidance for composable teams. Do not expect a turnkey marketplace connector yet.',
-        ],
-      },
-      {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Fit',
-        title: 'Built for teams already on commercetools',
-        columns: [
-          {
-            title: 'You keep',
-            items: [
-              'commercetools catalog & cart',
-              'Your frontend and design system',
-              'Existing OMS / fulfillment',
-            ],
-          },
-          {
-            title: 'You add',
-            items: [
-              'Constraint-aware configuration',
-              'Optional 3D experiences',
-              'Shareable configuration state',
-            ],
-          },
         ],
       },
       {
@@ -735,7 +333,7 @@ export const seoBodies: SeoBody[] = [
           },
           {
             href: '/product-configuration-api',
-            label: 'Configuration API',
+            label: 'Product Configuration API',
           },
         ],
       },
@@ -766,17 +364,10 @@ export const seoBodies: SeoBody[] = [
     path: '/industries/furniture',
     sections: [
       {
-        kind: 'demo',
-        eyebrow: 'Live furniture proof',
-        title: 'Sofa: frame, fabric, legs — sellable state',
-        description:
-          'Furniture is the cleanest starting vertical for CubeCom: material and component choices explode photography budgets, and shoppers need to see the look before they buy.',
-      },
-      {
         kind: 'prose',
         tone: 'muted',
         eyebrow: 'Category depth',
-        title: 'Beyond a single sofa SKU',
+        title: 'Furniture catalogs explode. Photography does not scale.',
         paragraphs: [
           'The demo proves the loop on a sofa. Production furniture catalogs usually need the same graph thinking across sectionals, modular systems, chairs, tables, and case goods — with dimensions, fabrics, finishes, and dependency rules that photography cannot cover.',
           'CubeCom is not “a sofa viewer.” It is configuration infrastructure for furniture brands that need every valid look to remain a fulfillable commerce state.',
@@ -785,7 +376,7 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'columns',
         eyebrow: 'Product types',
-        title: 'Furniture configuration patterns',
+        title: 'Upholstery, case goods, and fulfillment constraints.',
         columns: [
           {
             title: 'Upholstery',
@@ -817,7 +408,7 @@ export const seoBodies: SeoBody[] = [
         kind: 'steps',
         tone: 'muted',
         eyebrow: 'Configuration flow',
-        title: 'A furniture PDP that does not lie',
+        title: 'Structure → materials → sellable state.',
         steps: [
           {
             title: 'Choose structure',
@@ -836,7 +427,7 @@ export const seoBodies: SeoBody[] = [
       {
         kind: 'bullets',
         eyebrow: 'Also on the roadmap for furniture teams',
-        title: 'Room-scale and custom order paths',
+        title: 'AR and custom orders still start from the same graph.',
         description:
           'AR placement and deep BOM/ERP sync vary by engagement. The product graph is designed so those surfaces consume the same configuration state.',
         bullets: [
@@ -883,18 +474,10 @@ export const seoBodies: SeoBody[] = [
     path: '/industries/apparel',
     sections: [
       {
-        kind: 'demo',
-        product: 'tshirt',
-        eyebrow: 'Live apparel proof',
-        title: 'Configure a tee. Watch commerce update.',
-        description:
-          'Color, fit, and size are not visual presets — they resolve to SKU, price, and inventory on the same product graph as furniture.',
-      },
-      {
         kind: 'proof',
         tone: 'muted',
         eyebrow: 'Resolved output',
-        title: 'A sellable apparel state',
+        title: 'Color + fit + size becomes a sellable state.',
         configuration: [
           { label: 'Color', value: 'Navy' },
           { label: 'Fit', value: 'Regular' },
@@ -934,14 +517,14 @@ export const seoBodies: SeoBody[] = [
         kind: 'columns',
         tone: 'muted',
         eyebrow: 'Surfaces',
-        title: 'Built for soft goods teams',
+        title: 'Soft goods need rules, not orphaned presets.',
         columns: [
           {
-            title: 'Create',
+            title: 'Configure',
             items: [
-              '3D Editor for form',
-              'Logo Editor for decoration',
-              'Backoffice for rules',
+              'Colorways, fits, and sizes',
+              'Decoration placement rules',
+              'Availability constraints',
             ],
           },
           {
@@ -949,7 +532,7 @@ export const seoBodies: SeoBody[] = [
             items: [
               'Configurator embed on PDP',
               'Shareable configuration links',
-              'Resolved cart handoff',
+              'Sellable cart handoff',
             ],
           },
         ],

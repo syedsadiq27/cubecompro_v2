@@ -25,19 +25,19 @@ export const seoPages: SeoPageDef[] = [
     path: '/3d-product-configurator',
     title: `3D Product Configurator for Ecommerce | ${SITE_NAME}`,
     description:
-      'A 3D product configurator for ecommerce that connects visual choices to SKU, price, inventory, and cart — not just a pretty 3D viewer. Live sofa demo, architecture, and implementation options.',
+      'Let shoppers configure products in 3D while every visual state stays tied to a valid SKU, price, inventory, and cart — a sellable experience, not just a WebGL viewer.',
     eyebrow: '3D Product Configurator',
     h1: '3D Product Configurator for Ecommerce',
-    lead: 'Let shoppers configure products in 3D and buy what they see — materials, options, and combinations that stay sellable.',
+    lead: 'How do you let shoppers visually configure a product while keeping every visual choice sellable? Real-time 3D that stays synchronized with commerce state.',
     reframe:
-      'Unlike a typical 3D configurator focused on visualization, CubeCom Pro binds every configuration state to SKU, pricing, inventory, and cart on one product graph.',
+      'Unlike a typical 3D viewer, CubeCom Pro binds scene state to the Product Configurator engine — so materials, parts, and looks resolve to SKU, price, inventory, and cart.',
     primaryCta: { href: '/demo', label: 'Open live demo' },
     secondaryCta: { href: '/#contact', label: 'Book a solution session' },
     related: [
       {
         href: '/product-configurator',
         label: 'Product configurator',
-        blurb: 'Rules, variants, and sellable combinations beyond the 3D surface.',
+        blurb: 'The rules engine and commerce resolution behind the 3D surface.',
       },
       {
         href: '/integrations/shopify',
@@ -55,19 +55,22 @@ export const seoPages: SeoPageDef[] = [
     path: '/product-configurator',
     title: `Product Configurator Software for Ecommerce | ${SITE_NAME}`,
     description:
-      'Product configurator software for ecommerce. Model dependency rules, prevent invalid combinations, and resolve each configuration to SKU, price, inventory, and cart.',
+      'Model product options, dependencies, and exclusions once. Resolve every valid configuration to SKU, price, inventory, and cart — without exploding your catalog. 3D optional.',
     eyebrow: 'Product Configurator',
     h1: 'Product Configurator for Ecommerce',
-    lead: 'Stop pre-generating thousands of variants. Encode dependency rules once, block invalid combinations, and resolve every legal state to SKU, price, and inventory — with or without 3D.',
+    lead: 'How do you model options, dependencies, exclusions, and valid sellable states without exploding your catalog? Encode rules once; resolve commerce on every legal state.',
     reframe:
-      'CubeCom Pro treats the configurator as a commerce surface on a product graph: rules prevent invalid states, and every valid state resolves to SKU, price, inventory, and cart actions — without a variant matrix of every combination.',
+      'CubeCom Pro is the configuration engine: product graph, rules, and commerce projection. 3D is optional — the same engine powers 2D UIs, APIs, and the 3D Product Configurator surface.',
     primaryCta: { href: '/#contact', label: 'Book a solution session' },
-    secondaryCta: { href: '/demo', label: 'Open live demo' },
+    secondaryCta: {
+      href: '/3d-product-configurator',
+      label: 'Need visual 3D?',
+    },
     related: [
       {
         href: '/3d-product-configurator',
         label: '3D product configurator',
-        blurb: 'When the experience needs interactive 3D, not only option pickers.',
+        blurb: 'The visual buying experience powered by this engine.',
       },
       {
         href: '/headless-product-configurator',
@@ -75,9 +78,9 @@ export const seoPages: SeoPageDef[] = [
         blurb: 'Separate the configuration engine from your storefront UI.',
       },
       {
-        href: '/integrations/shopify',
-        label: 'Shopify integration',
-        blurb: 'Configure products without replacing Shopify checkout.',
+        href: '/product-configuration-api',
+        label: 'Product configuration API',
+        blurb: 'Call the same resolve path from services and agents.',
       },
     ],
   },
@@ -123,37 +126,32 @@ export const seoPages: SeoPageDef[] = [
     path: '/product-configuration-api',
     title: `Product Configuration API | ${SITE_NAME}`,
     description:
-      'Product configuration API contracts: resolve configuration state to SKU, price, inventory, and cart-ready payloads — with example GraphQL requests and responses for engineers.',
+      'Send configuration state. Get a sellable result — validate selections and resolve SKU, price, and inventory through one configuration contract.',
     eyebrow: 'Product Configuration API',
     h1: 'Product Configuration API',
-    lead: 'Engineer-facing contracts for resolve: selection input in, validity + commerce + scene effects out. Same truth for storefronts, middleware, and agents.',
+    lead: 'Send configuration state. Get a sellable result. One resolve contract for storefronts, middleware, and agents.',
     reframe:
-      'CubeCom Pro exposes configuration as an API-backed product graph — not a closed plugin UI — so your services, storefronts, and agents can call the same truth layer shoppers see in the experience.',
+      'CubeCom Pro exposes configuration as an API-backed contract — selection in, validity plus commerce payload out — so every caller shares the same sellable state.',
     primaryCta: { href: '/#contact', label: 'Request API access discussion' },
     secondaryCta: {
-      href: '/headless-product-configurator',
-      label: 'Headless architecture',
+      href: 'https://docs.cubecompro.com/developers/graphql',
+      label: 'GraphQL docs',
     },
     related: [
       {
         href: '/headless-product-configurator',
         label: 'Headless product configurator',
-        blurb: 'Where the API sits relative to your frontend and commerce platform.',
-      },
-      {
-        href: '/integrations/shopify',
-        label: 'Shopify integration',
-        blurb: 'How resolved SKUs land in Shopify cart flows.',
-      },
-      {
-        href: '/integrations/commercetools',
-        label: 'commercetools integration',
-        blurb: 'Product configuration on commercetools storefronts.',
+        blurb: 'Ownership boundaries when your frontend calls resolve.',
       },
       {
         href: '/product-configurator',
         label: 'Product configurator',
-        blurb: 'Business rules and buyer outcomes the API is encoding.',
+        blurb: 'The rules engine behind the configuration contract.',
+      },
+      {
+        href: '/3d-product-configurator',
+        label: '3D product configurator',
+        blurb: 'Visual surfaces that call the same resolve path.',
       },
     ],
   },
@@ -168,8 +166,8 @@ export const seoPages: SeoPageDef[] = [
     lead: 'Add configuration and 3D experiences to Shopify without ripping out cart, checkout, or inventory — as an early-access architecture, not a finished App Store listing.',
     reframe:
       'CubeCom Pro sits beside Shopify: your catalog and checkout stay Shopify; CubeCom enforces configuration rules and resolves configuration state to the Shopify variant or line item you can actually sell.',
-    primaryCta: { href: '/demo', label: 'See live demo' },
-    secondaryCta: { href: '/#contact', label: 'Map your Shopify catalog' },
+    primaryCta: { href: '/#contact', label: 'Book a solution session' },
+    secondaryCta: { href: '/demo', label: 'Open live demo' },
     related: [
       {
         href: '/integrations/commercetools',
@@ -199,10 +197,10 @@ export const seoPages: SeoPageDef[] = [
     lead: 'Add product configuration to your commercetools storefront while catalog, cart, and checkout stay on commercetools — currently offered as early-access architecture.',
     reframe:
       'CubeCom Pro supports commercetools alongside Shopify and other commerce platforms — configuration experiences that work with the tools you already run.',
-    primaryCta: { href: '/#contact', label: 'Talk about commercetools' },
+    primaryCta: { href: '/#contact', label: 'Book a solution session' },
     secondaryCta: {
-      href: '/integrations/shopify',
-      label: 'Shopify integration',
+      href: '/headless-product-configurator',
+      label: 'Headless model',
     },
     related: [
       {
@@ -233,7 +231,7 @@ export const seoPages: SeoPageDef[] = [
     reframe:
       'CubeCom Pro is not only a furniture viewer. Frame, fabric, legs, and modular options become configuration state that resolves to SKU, price, and inventory on one product graph.',
     primaryCta: { href: '/demo', label: 'Open sofa demo' },
-    secondaryCta: { href: '/#contact', label: 'Map a furniture catalog' },
+    secondaryCta: { href: '/#contact', label: 'Book a solution session' },
     related: [
       {
         href: '/3d-product-configurator',

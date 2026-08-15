@@ -1,35 +1,33 @@
+import { Button, FaqList, Section } from '@repo/ui';
+import Link from 'next/link';
+
 import { faqs } from '@/lib/content';
 
 export function Faq() {
   return (
-    <section id="faq" className="border-t border-[var(--line)] bg-[var(--surface)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-8 lg:py-28">
-        <p className="text-sm text-[var(--text-muted)]">FAQ</p>
-        <h2 className="type-page mt-3 max-w-xl text-[clamp(1.85rem,3.5vw,2.85rem)]">
-          Before you book a session.
-        </h2>
-
-        <div className="mt-12 max-w-3xl divide-y divide-[var(--line)] border-y border-[var(--line)]">
-          {faqs.map((item) => (
-            <details key={item.question} className="group py-5">
-              <summary className="cursor-pointer list-none text-base font-medium tracking-tight text-[var(--ink)] marker:content-none [&::-webkit-details-marker]:hidden">
-                <span className="flex items-start justify-between gap-6">
-                  {item.question}
-                  <span
-                    aria-hidden
-                    className="mt-0.5 shrink-0 text-[var(--text-muted)] transition group-open:rotate-45"
-                  >
-                    +
-                  </span>
-                </span>
-              </summary>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)]">
-                {item.answer}
-              </p>
-            </details>
-          ))}
+    <Section id="faq" tone="muted" spacing="default">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)] lg:gap-16">
+        <div>
+          <Section.Title>
+            Questions teams ask before adopting CubeCom
+          </Section.Title>
+          <Section.Description>
+            Still mapping your catalog, rules, or commerce path? Bring one
+            product and we’ll show where CubeCom should sit.
+          </Section.Description>
+          <Button
+            as={Link}
+            href="/#contact"
+            variant="primary"
+            size="lg"
+            className="mt-8"
+          >
+            Book a solution session
+          </Button>
         </div>
+
+        <FaqList items={faqs} variant="rail" />
       </div>
-    </section>
+    </Section>
   );
 }

@@ -1,4 +1,6 @@
+import { Heading } from '@repo/ui';
 import type { Metadata } from 'next';
+
 import { SITE_EMAIL, SITE_NAME } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -9,7 +11,9 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <article className="mx-auto max-w-3xl px-5 py-16 md:px-8 md:py-20">
-      <h1 className="type-page text-[clamp(1.85rem,3.5vw,2.5rem)]">Terms</h1>
+      <Heading as="h1" variant="doc">
+        Terms
+      </Heading>
       <p className="mt-4 text-sm text-[var(--text-muted)]">
         Last updated: August 14, 2026
       </p>

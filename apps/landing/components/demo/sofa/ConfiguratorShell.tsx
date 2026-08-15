@@ -1,7 +1,8 @@
 'use client';
 
+import { Heading, Typography, Wordmark } from '@repo/ui';
 import Link from 'next/link';
-import { Wordmark } from '@repo/ui/wordmark';
+
 import { ProductSwitcher } from '../ProductSwitcher';
 import { CommercePanel } from './CommercePanel';
 import { OptionPanel } from './OptionPanel';
@@ -41,9 +42,9 @@ export function ConfiguratorShell({
           <Link href="/" aria-label="CubeCom Pro home">
             <Wordmark size="nav" showPro />
           </Link>
-          <p className="mt-1 text-xs tracking-wide text-[var(--text-muted)]">
+          <Typography variant="meta" className="mt-1 tracking-wide">
             Sofa · live configurator
-          </p>
+          </Typography>
         </div>
         <div className="flex items-center gap-3">
           <ProductSwitcher active="sofa" />
@@ -72,13 +73,13 @@ export function ConfiguratorShell({
 
         <section className="flex flex-col gap-8 bg-[var(--surface)] px-5 py-6 md:px-8 md:py-8">
           <div>
-            <h1 className="type-page text-[clamp(1.75rem,3vw,2.5rem)]">
+            <Heading as="h1" variant="page">
               Change the product. Watch commerce follow.
-            </h1>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
+            </Heading>
+            <Typography variant="support" className="mt-2 max-w-md">
               Options, constraints, shareable state, and cart resolution — the
               working product graph, not a slideshow.
-            </p>
+            </Typography>
           </div>
 
           <OptionPanel

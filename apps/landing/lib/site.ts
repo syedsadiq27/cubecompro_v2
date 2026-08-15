@@ -4,7 +4,7 @@ export const SITE_NAME = 'CubeCom Pro';
 export const SITE_EMAIL = 'hello@cubecompro.com';
 
 export const SITE_DESCRIPTION =
-  'Build interactive, rule-driven product experiences connected to SKU, pricing, inventory and commerce.';
+  'Product configuration infrastructure for visual commerce. Rules, 3D state, SKU, price, inventory, and cart stay aligned as shoppers configure.';
 
 export const marketingRoutes = [
   {
@@ -12,6 +12,12 @@ export const marketingRoutes = [
     title: `${SITE_NAME} — Product Configuration Platform`,
     changeFrequency: 'weekly' as const,
     priority: 1,
+  },
+  {
+    path: '/solutions',
+    title: `Solutions | ${SITE_NAME}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
   },
   {
     path: '/3d-product-configurator',

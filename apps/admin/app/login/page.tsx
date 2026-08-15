@@ -1,4 +1,5 @@
-import { Wordmark } from '@repo/ui/wordmark';
+
+import { Wordmark } from '@repo/ui';
 import { LoginForm } from '@/components/login-form';
 
 export default function LoginPage() {

@@ -1,7 +1,8 @@
 'use client';
 
+import { Wordmark } from '@repo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { Wordmark } from '@repo/ui/wordmark';
+
 import { EDITOR_EMBED } from '@repo/product-graph';
 import { useEditorStore } from '@/lib/editor-store';
 

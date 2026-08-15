@@ -1,10 +1,12 @@
 export function Wordmark({
   size = 'md',
   showPro = false,
+  tone = 'default',
   className = '',
 }: {
   size?: 'sm' | 'md' | 'lg' | 'nav';
   showPro?: boolean;
+  tone?: 'default' | 'inverse';
   className?: string;
 }) {
   const word =
@@ -19,11 +21,17 @@ export function Wordmark({
     size === 'lg' || size === 'nav'
       ? 'ui:h-[0.72em] ui:w-[0.72em]'
       : 'ui:h-[0.7em] ui:w-[0.7em]';
+  const mark =
+    tone === 'inverse' ? 'ui:text-[#f2f1ed]' : 'ui:text-current';
+  const pro =
+    tone === 'inverse'
+      ? 'ui:text-white/45'
+      : 'ui:text-[var(--text-muted)]';
 
   return (
     <div className={`ui:flex ui:items-baseline ui:gap-2.5 ${className}`}>
       <span
-        className={`ui:inline-flex ui:items-baseline ui:font-semibold ui:text-[var(--ink)] ui:lowercase ${word}`}
+        className={`ui:inline-flex ui:items-baseline ui:font-semibold ui:lowercase ${mark} ${word}`}
       >
         cubec
         <span
@@ -36,7 +44,9 @@ export function Wordmark({
         m
       </span>
       {showPro ? (
-        <span className="ui:text-[11px] ui:font-medium ui:tracking-[0.08em] ui:text-[var(--text-muted)] ui:uppercase">
+        <span
+          className={`ui:text-[11px] ui:font-medium ui:tracking-[0.08em] ui:uppercase ${pro}`}
+        >
           Pro
         </span>
       ) : null}

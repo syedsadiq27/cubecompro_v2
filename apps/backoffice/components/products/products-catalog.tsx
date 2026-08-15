@@ -1,8 +1,9 @@
 'use client';
 
+import { Stage } from '@repo/ui';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Stage } from '@repo/ui/stage';
+
 import { ProductInspector } from '@/components/products/product-inspector';
 import {
   BrowseSearch,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Container, Heading } from '@repo/ui';
 
 const PIPELINE = [
   'Product graph',
@@ -35,12 +36,10 @@ export function PcStatement() {
 
   return (
     <section className="border-t border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-10 md:px-8 md:py-11">
-        <p className="text-sm text-white/45">Dependency logic — not 3D</p>
-        <h2 className="type-page mt-3 max-w-4xl text-[clamp(1.65rem,3.4vw,2.45rem)] text-[var(--canvas)]">
-          What can combine, what must block, and how a valid state becomes
-          sellable.
-        </h2>
+      <Container className="py-10 md:py-11">
+        <Heading as="h2" variant="section" className="max-w-4xl text-white">
+          Every choice has a consequence. CubeCom resolves it.
+        </Heading>
 
         <div className="mt-6 md:hidden">
           <ol className="space-y-0">
@@ -102,7 +101,7 @@ export function PcStatement() {
             })}
           </ol>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

@@ -1,6 +1,7 @@
 @import "tailwindcss" prefix(ui);
 @import "@repo/tailwind-config";
 
+@source "./";
 @source "../../customizer-ui/src";
 @source "../../color-config/src";
 @source "../../colorways/src";
@@ -89,6 +90,32 @@
   line-height: 1.4;
   font-weight: 450;
   color: var(--text-muted);
+}
+
+.ui-section-eyebrow {
+  color: var(--text-muted);
+}
+
+.ui-section-title {
+  color: var(--ink);
+}
+
+.ui-section-description {
+  max-width: 36rem;
+  color: var(--text-secondary);
+}
+
+[data-section-tone='ink'] .ui-section-eyebrow {
+  color: rgb(255 255 255 / 0.45);
+}
+
+[data-section-tone='ink'] .ui-section-title {
+  color: var(--canvas);
+}
+
+[data-section-tone='ink'] .ui-section-description {
+  max-width: 42rem;
+  color: rgb(255 255 255 / 0.6);
 }
 
 .ui-stage {

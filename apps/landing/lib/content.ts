@@ -1,89 +1,21 @@
-export const whyReasons = [
-  {
-    title: 'Photography cannot keep up with options',
-    body: 'A sofa with three frames, four fabrics, and three legs is already dozens of looks. Your catalog has more. Interactive 3D shows every valid combination without another shoot.',
-  },
-  {
-    title: 'Shoppers buy what they can see clearly',
-    body: 'Proportion, finish, and combination in context beat a flat swatch grid. Fewer “not what I expected” returns.',
-  },
-  {
-    title: 'A look must become a line item',
-    body: 'Pretty 3D is not enough. CubeCom resolves the visible product to SKU, price, and inventory — ready for cart, quote, or a shared link.',
-  },
-  {
-    title: 'One product truth across web and sales',
-    body: 'The state a shopper configures is the same state a salesperson opens. No parallel spreadsheets. No mismatched quotes.',
-  },
+export const problemFlow = [
+  'Shopper changes product',
+  'Rules validate',
+  'Visual state updates',
+  'Commerce state resolves',
 ] as const;
 
-export const howItWorksSteps = [
-  {
-    label: 'Shopper makes a choice',
-    detail:
-      'They choose a walnut frame, beige fabric, and brass legs. The 3D product updates instantly.',
-  },
-  {
-    label: 'CubeCom checks what is actually possible',
-    detail:
-      'CubeCom applies your product rules and knows which combinations, variants, prices, and inventory are valid.',
-  },
-  {
-    label: 'The correct product goes to commerce',
-    detail:
-      'The shopper’s final configuration resolves to the right SKU, price, inventory, and cart data.',
-  },
+export const benefitOutcomes = [
+  'No duplicated rules',
+  'No variant explosion',
+  'No viewer / cart mismatch',
+  'One sellable state',
 ] as const;
 
-export const howItWorksFlow = [
-  {
-    title: 'Your catalog',
-    items: ['Products', 'Options', 'Variants', 'Prices', 'Inventory'],
-    emphasized: false,
-  },
-  {
-    title: 'CubeCom',
-    items: ['Rules + 3D configuration'],
-    emphasized: true,
-  },
-  {
-    title: 'Your storefront',
-    items: [
-      'Correct product',
-      'Correct price',
-      'Correct SKU',
-      'Add to cart',
-    ],
-    emphasized: false,
-  },
-] as const;
-
-export const solutions = [
-  {
-    name: 'Backoffice',
-    role: 'Catalog & rules',
-    body: 'Where products enter the system — graphs, constraints, pricing, and commerce mappings.',
-  },
-  {
-    name: '3D Editor',
-    role: 'Scene authoring',
-    body: 'Compose the physical product: objects, materials, and configuration structure for live experiences.',
-  },
-  {
-    name: 'Logo Editor',
-    role: '2D decoration',
-    body: 'Place artwork on apparel and branded goods without leaving the same product truth.',
-  },
-  {
-    name: 'AI Image Generator',
-    role: 'Visual output',
-    body: 'Pull catalog and campaign stills from configuration state — not from another shoot for every SKU.',
-  },
-  {
-    name: 'Commerce SDK',
-    role: 'Storefront embed',
-    body: 'Embed the experience on your commerce page. Resolved SKU, price, inventory, and cart stay wired.',
-  },
+export const audiences = [
+  { label: 'Furniture', href: '/industries/furniture' },
+  { label: 'Apparel', href: '/industries/apparel' },
+  { label: 'Configurable goods', href: '/solutions' },
 ] as const;
 
 export const plans = [
@@ -150,24 +82,24 @@ export const plans = [
 
 export const faqs = [
   {
-    question: 'Why does my brand need 3D?',
+    question: 'Why does my brand need product configuration infrastructure?',
     answer:
-      'Because options outrun photography, and a flat PDP cannot carry every valid look. Interactive 3D lets shoppers see the real combination — and CubeCom still resolves it to something you can sell.',
+      'Because options outrun photography and flat PDPs. Configurable products need a live state that stays aligned with what you can actually sell.',
   },
   {
     question: 'What is CubeCom Pro?',
     answer:
-      'CubeCom Pro is the Digital Product Stage: commerce infrastructure that turns product data into interactive, rule-bound 3D experiences. Configuration rules, 3D state, SKU, pricing, inventory, and cart stay on one product graph — not a viewer bolted onto checkout.',
+      'CubeCom Pro is product configuration infrastructure for visual commerce. Rules, 3D state, SKU, price, inventory, and cart stay on one product graph — not a viewer bolted onto checkout.',
   },
   {
     question: 'Is CubeCom just a 3D plugin or viewer kit?',
     answer:
-      'No. Viewers display models. CubeCom keeps configuration and commerce synchronized: changing the object updates the sellable line together.',
+      'No. 3D is one surface. The core is a configuration engine that resolves valid state for any experience that sells the product.',
   },
   {
     question: 'What surfaces do we get?',
     answer:
-      'Backoffice, 3D Editor, Logo Editor, AI Image Generator, and a Commerce SDK — each working from the same product graph.',
+      'Product Configurator, 3D Product Configurator, Headless Product Configurator, and Product Configuration API — each resolving to the same sellable state.',
   },
   {
     question: 'How does a configuration become a sellable SKU?',
@@ -177,7 +109,7 @@ export const faqs = [
   {
     question: 'Do we replace our PIM or storefront?',
     answer:
-      'No. CubeCom sits beside them. Catalog in, configurator experience in the middle, resolved commerce out — through embed, API, or cart integration.',
+      'No. CubeCom sits beside them. Catalog in, configuration in the middle, resolved commerce out — through embed, API, or cart integration.',
   },
   {
     question: 'Which products are a good fit?',
@@ -192,7 +124,7 @@ export const faqs = [
   {
     question: 'How does pricing work?',
     answer:
-      'Founding plans are on this page. Enterprise is scoped to your catalogs and stack. Decoration and image generation stay modular.',
+      'Founding plans are on this page. Enterprise is scoped to your catalogs and stack. Decorations and image generation stay modular.',
   },
   {
     question: 'What is a CubeCom session?',

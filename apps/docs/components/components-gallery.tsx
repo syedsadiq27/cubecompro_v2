@@ -1,29 +1,8 @@
 'use client';
 
+import { Badge, Button, Checkbox, EmptyState, Field, Input, Panel, Select, Spinner, Stage, StatusPill, Surface, Switch, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, Tooltip, Body, Display, Meta, PageTitle, TextSectionTitle } from '@repo/ui';
 import { useState } from 'react';
-import { Badge } from '@repo/ui/badge';
-import { Button } from '@repo/ui/button';
-import { Checkbox } from '@repo/ui/checkbox';
-import { EmptyState } from '@repo/ui/empty-state';
-import { Field } from '@repo/ui/field';
-import { Input } from '@repo/ui/input';
-import { Panel } from '@repo/ui/panel';
-import { Select } from '@repo/ui/select';
-import { Spinner } from '@repo/ui/spinner';
-import { Stage } from '@repo/ui/stage';
-import { StatusPill } from '@repo/ui/status-pill';
-import { Surface } from '@repo/ui/surface';
-import { Switch } from '@repo/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui/tabs';
-import { Textarea } from '@repo/ui/textarea';
-import { Tooltip } from '@repo/ui/tooltip';
-import {
-  Body,
-  Display,
-  Meta,
-  PageTitle,
-  SectionTitle,
-} from '@repo/ui/typography';
+
 import { Callout, Section } from './docs-ui';
 
 function DemoBlock({
@@ -90,7 +69,7 @@ export function ComponentsGallery() {
         <div className="space-y-6">
           <Display className="!text-[40px] sm:!text-[56px]">Display</Display>
           <PageTitle>Page title</PageTitle>
-          <SectionTitle>Section title</SectionTitle>
+          <TextSectionTitle>Section title</TextSectionTitle>
           <Body>
             Body text uses Inter at 14 / 1.55 with secondary color and a quiet
             measure for reading.
@@ -107,6 +86,25 @@ export function ComponentsGallery() {
           <Button variant="danger">Danger</Button>
           <Button size="sm">Small</Button>
           <Button disabled>Disabled</Button>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button variant="primary" size="lg">
+            Landing primary
+          </Button>
+          <Button variant="secondary" size="lg">
+            Landing secondary
+          </Button>
+          <Button variant="primary" size="nav">
+            Nav CTA
+          </Button>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[10px] bg-[var(--ink)] p-4">
+          <Button variant="inverse" size="lg">
+            On ink
+          </Button>
+          <Button variant="inverseSecondary" size="lg">
+            On ink secondary
+          </Button>
         </div>
       </Section>
 

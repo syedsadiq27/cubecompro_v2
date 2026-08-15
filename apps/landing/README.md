@@ -24,7 +24,7 @@ Runs on [http://localhost:3004](http://localhost:3004) (docs stays on `3000`).
 
 - Metadata, Open Graph, Twitter cards, robots, sitemap
 - JSON-LD on homepage + keyword pages
-- Keyword routes: `/3d-product-configurator`, `/product-configurator`, `/headless-product-configurator`, `/product-configuration-api`, `/integrations/*`, `/industries/*`
+- Keyword routes: `/solutions`, `/product-configurator`, `/3d-product-configurator`, `/headless-product-configurator`, `/product-configuration-api`, `/integrations/*`, `/industries/*`
 - `public/llms.txt` for agents
 
 ## Demo

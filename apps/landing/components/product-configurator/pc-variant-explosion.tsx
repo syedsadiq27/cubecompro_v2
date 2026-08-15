@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Container, Frame, Grid, Heading, Typography } from '@repo/ui';
 
 const FLOW = [
   'Options',
   'Constraints',
   'Valid State',
-  'Commerce Resolution',
+  'SKU / Price / Inventory',
 ] as const;
 
 export function PcVariantExplosion() {
@@ -23,18 +24,23 @@ export function PcVariantExplosion() {
 
   return (
     <section className="border-t border-[var(--line)] bg-[var(--surface)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-10 md:px-8 md:py-16">
-        <p className="text-sm text-[var(--text-muted)]">The real problem</p>
-        <h2 className="type-page mt-3 max-w-[18ch] text-[clamp(1.65rem,3.2vw,2.75rem)] md:max-w-3xl">
+      <Container padding="sectionCompact">
+        <Heading
+          as="h2"
+          variant="section"
+          className="max-w-[18ch] md:max-w-3xl"
+        >
           Variant matrices explode. Rules do not.
-        </h2>
+        </Heading>
+        <Typography variant="body" className="mt-4 max-w-2xl md:text-base">
+          Options → Constraints → Valid State → SKU / Price / Inventory. That is
+          the engine path — whether or not a 3D scene is attached.
+        </Typography>
 
-        <div className="mt-8 grid gap-4 md:mt-10 md:gap-5 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-pure)]">
+        <Grid cols="lg-2" gap="md" className="mt-8 md:mt-10 md:gap-5">
+          <Frame className="bg-[var(--surface-pure)]">
             <div className="border-b border-[var(--line)] px-4 py-3 md:px-5 md:py-4">
-              <p className="text-[11px] font-medium tracking-[0.1em] text-[var(--text-muted)] uppercase">
-                Traditional model
-              </p>
+              <Typography variant="label">Traditional model</Typography>
               <p className="mt-2 font-mono text-sm text-[var(--ink)] md:text-base">
                 10 × 8 × 6 × 5 ={' '}
                 <span className="font-semibold">2,400 variants</span>
@@ -43,13 +49,13 @@ export function PcVariantExplosion() {
             <div className="p-4 md:p-5">
               <MatrixVisual />
             </div>
-          </div>
+          </Frame>
 
-          <div className="overflow-hidden rounded-2xl border border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
+          <Frame className="border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
             <div className="border-b border-white/10 px-4 py-3 md:px-5 md:py-4">
-              <p className="text-[11px] font-medium tracking-[0.1em] text-white/45 uppercase">
+              <Typography variant="label" tone="ink">
                 CubeCom model
-              </p>
+              </Typography>
               <p className="mt-2 font-mono text-sm md:text-base">
                 4 dimensions + 12 rules → runtime resolve
               </p>
@@ -69,9 +75,9 @@ export function PcVariantExplosion() {
                             : 'border-white/10 bg-transparent hover:bg-white/[0.04]'
                         }`}
                       >
-                        <span className="font-mono text-[11px] text-white/45">
+                        <Typography variant="code" tone="ink">
                           0{index + 1}
-                        </span>
+                        </Typography>
                         <span className="text-sm font-medium">{step}</span>
                       </button>
                       {index < FLOW.length - 1 ? (
@@ -89,15 +95,15 @@ export function PcVariantExplosion() {
                   );
                 })}
               </ol>
-              <p className="mt-4 font-mono text-[11px] text-white/45">
-                {FLOW[active] === 'Commerce Resolution'
-                  ? 'SKU · price · inventory · cart'
+              <Typography variant="code" tone="ink" className="mt-4">
+                {FLOW[active] === 'SKU / Price / Inventory'
+                  ? 'Sellable state from one resolve'
                   : `Step ${active + 1} of ${FLOW.length}`}
-              </p>
+              </Typography>
             </div>
-          </div>
-        </div>
-      </div>
+          </Frame>
+        </Grid>
+      </Container>
     </section>
   );
 }
@@ -126,10 +132,10 @@ function MatrixVisual() {
           />
         ))}
       </div>
-      <p className="mt-3 text-[11px] text-[var(--text-muted)]">
+      <Typography variant="meta" className="mt-3">
         Dense catalog matrix — red cells still fail after publishing every
         variant.
-      </p>
+      </Typography>
     </div>
   );
 }

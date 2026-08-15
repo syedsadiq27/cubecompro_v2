@@ -8,9 +8,24 @@
     "dist"
   ],
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./styles.css": "./dist/index.css",
     "./cn": "./dist/lib/cn.js",
     "./button": "./dist/primitives/button.js",
+    "./container": "./dist/primitives/container.js",
+    "./section": "./dist/primitives/section.js",
+    "./heading": "./dist/primitives/heading.js",
+    "./card": "./dist/primitives/card.js",
+    "./compare": "./dist/primitives/compare.js",
+    "./faq-list": "./dist/primitives/faq-list.js",
+    "./page-hero": "./dist/primitives/page-hero.js",
+    "./stack": "./dist/primitives/stack.js",
+    "./grid": "./dist/primitives/grid.js",
+    "./frame": "./dist/primitives/frame.js",
+    "./divided-list": "./dist/primitives/divided-list.js",
     "./label": "./dist/primitives/label.js",
     "./input": "./dist/primitives/input.js",
     "./field": "./dist/primitives/field.js",

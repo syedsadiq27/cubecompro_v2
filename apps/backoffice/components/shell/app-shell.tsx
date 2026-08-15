@@ -1,9 +1,10 @@
 'use client';
 
+import { Wordmark } from '@repo/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Wordmark } from '@repo/ui/wordmark';
+
 import { AppSidebar } from './app-sidebar';
 
 export function AppShell({

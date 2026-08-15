@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Typography } from '@repo/ui';
 import {
   applyPcConstraints,
   describeBlock,
@@ -53,9 +54,7 @@ export function PcOptionGraph({
           compact ? 'px-3 py-2.5' : 'px-4 py-3'
         }`}
       >
-        <p className="font-mono text-[11px] tracking-[0.06em] text-[var(--text-muted)] uppercase">
-          Live option graph
-        </p>
+        <Typography variant="mono">Live option graph</Typography>
         {notice ? (
           <p className="max-w-[18rem] truncate text-right text-[12px] leading-snug text-[var(--ink)] md:max-w-[22rem]">
             {notice}
@@ -147,9 +146,7 @@ export function PcOptionGraph({
             compact ? 'p-3 md:p-5' : 'p-4 md:p-5'
           }`}
         >
-          <p className="text-[10px] tracking-[0.08em] text-[var(--text-muted)] uppercase">
-            Resolution
-          </p>
+          <Typography variant="label">Resolution</Typography>
           <div
             key={flash}
             className={`pc-resolve-flash mt-2.5 ${
@@ -184,9 +181,9 @@ function OptionGroup({
 }) {
   return (
     <div>
-      <p className="mb-2 text-[10px] font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">
+      <Typography variant="label" className="mb-2">
         {label}
-      </p>
+      </Typography>
       <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   );
@@ -244,9 +241,7 @@ function Metric({
 }) {
   return (
     <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] px-3 py-2.5">
-      <p className="text-[10px] tracking-[0.08em] text-[var(--text-muted)] uppercase">
-        {label}
-      </p>
+      <Typography variant="label">{label}</Typography>
       <p
         className={`mt-0.5 text-sm font-medium ${
           tone === 'ok'

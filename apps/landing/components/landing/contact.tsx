@@ -1,7 +1,9 @@
 'use client';
 
+import { Button, Heading, Lede } from '@repo/ui';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
+
 import { SITE_EMAIL } from '@/lib/site';
 
 type Interest =
@@ -106,7 +108,7 @@ function ContactForm() {
     'mt-1.5 w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-pure)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--ink)]';
 
   return (
-    <form onSubmit={onSubmit} className="mt-10 grid gap-5 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className="grid gap-5 sm:grid-cols-2">
       <label className="block text-sm text-[var(--text-secondary)]">
         Name
         <input
@@ -177,13 +179,15 @@ function ContactForm() {
       </label>
 
       <div className="sm:col-span-2">
-        <button
+        <Button
           type="submit"
           disabled={status === 'sending'}
-          className="rounded-lg bg-[var(--ink)] px-5 py-3 text-sm font-medium text-white transition hover:bg-[var(--ink)]/90 disabled:opacity-60"
+          variant="primary"
+          size="lg"
+          className="disabled:opacity-60"
         >
           {status === 'sending' ? 'Sending…' : 'Request a session'}
-        </button>
+        </Button>
         {status === 'sent' ? (
           <p className="mt-3 text-sm text-[var(--success)]">
             Thanks — we’ll follow up shortly.
@@ -205,19 +209,24 @@ export function Contact() {
       id="contact"
       className="border-t border-[var(--line)] bg-[var(--canvas)]"
     >
-      <div className="mx-auto grid max-w-[90rem] gap-12 px-5 py-20 md:px-8 lg:grid-cols-[1fr_1.1fr] lg:py-28">
-        <div>
-          <p className="text-sm text-[var(--text-muted)]">CubeCom session</p>
-          <h2 className="type-page mt-3 max-w-md text-[clamp(1.85rem,3.5vw,2.85rem)]">
+      <div className="mx-auto grid max-w-[90rem] gap-12 px-5 py-14 md:px-8 md:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-16">
+        <div className="max-w-lg">
+          <Heading as="h2" variant="section">
             Thirty minutes on your product — not our slides.
-          </h2>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-[var(--text-secondary)]">
+          </Heading>
+          <Lede>
             Bring a catalog slice, your option rules, and how you sell today.
             We map the right surfaces and where the product graph should sit.
-          </p>
+          </Lede>
         </div>
-        <Suspense fallback={<div className="mt-10 h-64 animate-pulse rounded-lg bg-[var(--surface)]" />}>
-          <ContactForm />
+        <Suspense
+          fallback={
+            <div className="h-64 max-w-xl animate-pulse rounded-2xl bg-[var(--surface)]" />
+          }
+        >
+          <div className="w-full max-w-xl lg:justify-self-end">
+            <ContactForm />
+          </div>
         </Suspense>
       </div>
     </section>

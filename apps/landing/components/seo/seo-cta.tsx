@@ -1,25 +1,33 @@
+import { Button, Section } from '@repo/ui';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 
-function CtaLink({
+function CtaButton({
   href,
-  className,
+  variant,
   children,
 }: {
   href: string;
-  className: string;
-  children: React.ReactNode;
+  variant: 'inverse' | 'inverseSecondary';
+  children: ReactNode;
 }) {
   if (href.startsWith('http')) {
     return (
-      <a href={href} className={className} rel="noopener noreferrer">
+      <Button
+        as="a"
+        href={href}
+        variant={variant}
+        size="lg"
+        rel="noopener noreferrer"
+      >
         {children}
-      </a>
+      </Button>
     );
   }
   return (
-    <Link href={href} className={className}>
+    <Button as={Link} href={href} variant={variant} size="lg">
       {children}
-    </Link>
+    </Button>
   );
 }
 
@@ -39,31 +47,20 @@ export function SeoCta({
   secondaryLabel?: string;
 }) {
   return (
-    <section className="border-t border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-10 md:px-8 md:py-12">
-        <h2 className="type-page max-w-3xl text-[clamp(1.65rem,3vw,2.35rem)] text-[var(--canvas)]">
-          {title}
-        </h2>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/60">
-          {description}
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <CtaLink
-            href={primaryHref}
-            className="rounded-lg bg-[var(--canvas)] px-5 py-3 text-sm font-medium text-[var(--ink)] transition hover:bg-white"
-          >
+    <Section tone="ink" spacing="cta">
+      <Section.Header title={title} description={description} />
+      <Section.Body>
+        <div className="flex flex-wrap gap-3">
+          <CtaButton href={primaryHref} variant="inverse">
             {primaryLabel}
-          </CtaLink>
+          </CtaButton>
           {secondaryHref && secondaryLabel ? (
-            <CtaLink
-              href={secondaryHref}
-              className="rounded-lg border border-white/30 px-5 py-3 text-sm font-medium text-[var(--canvas)] transition hover:border-white/60"
-            >
+            <CtaButton href={secondaryHref} variant="inverseSecondary">
               {secondaryLabel}
-            </CtaLink>
+            </CtaButton>
           ) : null}
         </div>
-      </div>
-    </section>
+      </Section.Body>
+    </Section>
   );
 }

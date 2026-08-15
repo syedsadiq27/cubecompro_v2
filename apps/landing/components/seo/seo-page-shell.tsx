@@ -1,51 +1,54 @@
+import { Button, Eyebrow, Heading, Lede, PageHero, Typography } from '@repo/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+
 import type { SeoPageDef } from '@/lib/seo-pages';
 
 export function SeoPageShell({
   page,
   children,
+  visual,
 }: {
   page: SeoPageDef;
   children: ReactNode;
+  visual?: ReactNode;
 }) {
   return (
     <>
-      <section className="border-b border-[var(--line)] bg-[var(--canvas)]">
-        <div className="mx-auto max-w-[90rem] px-5 py-16 md:px-8 md:py-24 lg:py-28">
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-[var(--text-muted)]">{page.eyebrow}</p>
-            {page.badge ? (
-              <span className="rounded-full bg-[var(--brand-soft)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--brand)]">
-                {page.badge}
-              </span>
-            ) : null}
-          </div>
-          <h1 className="type-page mt-4 max-w-4xl text-[clamp(2rem,4.5vw,3.25rem)]">
+      <PageHero layout={visual ? 'split' : 'solo'} density="roomy">
+        <PageHero.Copy>
+          <Eyebrow>{page.eyebrow}</Eyebrow>
+          <Heading as="h1" variant="pageSeo" spacing="eyebrow">
             {page.h1}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">
-            {page.lead}
-          </p>
-          <p className="mt-6 max-w-2xl border-l-2 border-[var(--stage-violet)]/50 pl-4 text-base leading-relaxed text-[var(--ink)]">
+          </Heading>
+          <Lede variant="hero">{page.lead}</Lede>
+          <Typography
+            variant="bodyStrong"
+            className="mt-4 max-w-lg italic md:text-base"
+          >
             {page.reframe}
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link
+          </Typography>
+          <PageHero.Actions>
+            <Button
+              as={Link}
               href={page.primaryCta.href}
-              className="rounded-lg bg-[var(--ink)] px-5 py-3 text-sm font-medium text-white transition hover:bg-[var(--ink)]/90"
+              variant="primary"
+              size="lg"
             >
               {page.primaryCta.label}
-            </Link>
-            <Link
+            </Button>
+            <Button
+              as={Link}
               href={page.secondaryCta.href}
-              className="rounded-lg border border-[var(--border-strong)] px-5 py-3 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--ink)]"
+              variant="secondary"
+              size="lg"
             >
               {page.secondaryCta.label}
-            </Link>
-          </div>
-        </div>
-      </section>
+            </Button>
+          </PageHero.Actions>
+        </PageHero.Copy>
+        {visual ? <PageHero.Visual>{visual}</PageHero.Visual> : null}
+      </PageHero>
       {children}
     </>
   );

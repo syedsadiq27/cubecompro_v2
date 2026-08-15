@@ -11,12 +11,17 @@ export const bookSessionCta: NavLink = {
   label: 'Book a solution session',
 };
 
-export const productNav: NavLink = {
-  href: '/product-configurator',
-  label: 'Product',
+export const solutionsOverview: NavLink = {
+  href: '/solutions',
+  label: 'Overview',
 };
 
 export const solutionsNav: NavLink[] = [
+  solutionsOverview,
+  {
+    href: '/product-configurator',
+    label: 'Product Configurator',
+  },
   {
     href: '/3d-product-configurator',
     label: '3D Product Configurator',
@@ -34,6 +39,11 @@ export const solutionsNav: NavLink[] = [
 export const industriesNav: NavLink[] = [
   { href: '/industries/furniture', label: 'Furniture' },
   { href: '/industries/apparel', label: 'Apparel' },
+];
+
+export const integrationsNav: NavLink[] = [
+  { href: '/integrations/shopify', label: 'Shopify' },
+  { href: '/integrations/commercetools', label: 'commercetools' },
 ];
 
 export const developersNav: NavLink[] = [
@@ -55,30 +65,26 @@ export const docsNav: NavLink = {
   label: 'Docs',
 };
 
-export const homeSubnav: NavLink[] = [
-  { href: '/#why', label: 'Why CubeCom' },
-  { href: '/#stage', label: 'How it works' },
-  { href: '/demo', label: 'Sofa demo' },
-  { href: '/demo/tshirt', label: 'Tee demo' },
-];
-
 export const footerProduct: NavLink[] = [
+  { href: '/solutions', label: 'Solutions' },
   { href: '/product-configurator', label: 'Product Configurator' },
   {
     href: '/3d-product-configurator',
-    label: '3D Configurator',
+    label: '3D Product Configurator',
   },
   {
     href: '/headless-product-configurator',
-    label: 'Headless',
+    label: 'Headless Product Configurator',
   },
   {
     href: '/product-configuration-api',
-    label: 'Configuration API',
+    label: 'Product Configuration API',
   },
   { href: '/industries/furniture', label: 'Furniture' },
   { href: '/industries/apparel', label: 'Apparel' },
 ];
+
+export const footerIntegrations: NavLink[] = [...integrationsNav];
 
 export const footerDevelopers: NavLink[] = [
   { href: '/docs', label: 'Documentation' },
