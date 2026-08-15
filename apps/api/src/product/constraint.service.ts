@@ -33,6 +33,8 @@ export class ConstraintService {
   async createConstraint(input: {
     productRevisionId: string;
     choiceValueIds: string[];
+    /** Legacy ConfigurationRule migration may target published revisions. */
+    allowNonDraft?: boolean;
   }) {
     const revision = await this.prisma.productRevision.findUnique({
       where: { id: input.productRevisionId },
@@ -40,7 +42,7 @@ export class ConstraintService {
     if (!revision) {
       throw new NotFoundException('Product revision not found');
     }
-    if (revision.status !== 'DRAFT') {
+    if (!input.allowNonDraft && revision.status !== 'DRAFT') {
       throw new BadRequestException(
         'Constraints can only be authored on DRAFT revisions'
       );

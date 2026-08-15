@@ -65,6 +65,7 @@ export class LegacyRuleMigrationService {
           await this.constraints.createConstraint({
             productRevisionId: mapped.constraint.productRevisionId,
             choiceValueIds: mapped.constraint.choiceValueIds,
+            allowNonDraft: true,
           });
         } catch (error) {
           const message =

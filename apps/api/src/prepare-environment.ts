@@ -117,9 +117,9 @@ async function migrateLegacyRules() {
       })
     );
 
-    if (!gate.passes) {
+    if (report.failed > 0 || !gate.passes) {
       throw new Error(
-        `Kernel cutover gate failed (failed=${gate.report.failed}, total=${gate.report.total})`
+        `Kernel cutover gate failed (failed=${report.failed}, total=${report.total}, gatePasses=${gate.passes})`
       );
     }
   } finally {
