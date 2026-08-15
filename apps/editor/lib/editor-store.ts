@@ -387,26 +387,28 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       detail,
       productModelId
     );
-    const baseline = captureVisualBaseline(runtime.productRoot, document);
-    const selection = {};
     const materialCache = new Map<string, Material>();
     set({
       graphDetail: detail,
       visualDocument: document,
-      visualBaseline: baseline,
-      visualSelection: selection,
+      visualBaseline: null,
+      visualSelection: {},
       visualMaterialCache: materialCache,
       activeWorkspace: 'preview',
     });
+
+    const baseline = captureVisualBaseline(runtime.productRoot, document);
+    set({ visualBaseline: baseline });
     await replayVisualDocument({
       root: runtime.productRoot,
       document,
       baseline,
-      selection,
+      selection: {},
       auth: get().graphAuth,
       materialCache,
       productRevisionId: detail.id,
     });
+    set({ loadError: null });
     runtime.render();
   },
   setVisualSelection: (choiceKey, valueKey) => {

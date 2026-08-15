@@ -8,10 +8,26 @@ export class VisualTargetResolveError extends Error {
   }
 }
 
+function matchPathFrom(
+  start: THREE.Object3D,
+  parts: string[]
+): THREE.Object3D | null {
+  if (start.name !== parts[0]) return null;
+  let current = start;
+  for (let i = 1; i < parts.length; i++) {
+    const expected = parts[i]!;
+    const next = current.children.filter((child) => child.name === expected);
+    if (next.length === 0) return null;
+    if (next.length > 1) return null;
+    current = next[0]!;
+  }
+  return current;
+}
+
 /**
- * Resolve nodePath to exactly one Object3D.
+ * Resolve nodePath to exactly one Object3D under the ObjectAsset tree.
  * 0 matches → error; >1 matches → error.
- * Never uses children[index] order.
+ * Path may start below wrapper groups (productRoot / glTF scene).
  */
 export function resolveTargetObject(
   root: THREE.Object3D,
@@ -25,42 +41,26 @@ export function resolveTargetObject(
   }
 
   const matches: THREE.Object3D[] = [];
+  const direct = matchPathFrom(root, parts);
+  if (direct) matches.push(direct);
 
-  const walk = (
-    node: THREE.Object3D,
-    index: number,
-    pathFromRoot: string[]
-  ) => {
-    if (index >= parts.length) return;
-    const expected = parts[index]!;
-    for (const child of node.children) {
-      if (child.name !== expected) continue;
-      const nextPath = [...pathFromRoot, child.name];
-      if (index === parts.length - 1) {
-        matches.push(child);
-      } else {
-        walk(child, index + 1, nextPath);
-      }
-    }
-  };
+  root.traverse((node) => {
+    if (node === root) return;
+    const match = matchPathFrom(node, parts);
+    if (match) matches.push(match);
+  });
 
-  if (root.name === parts[0] && parts.length === 1) {
-    matches.push(root);
-  } else if (root.name === parts[0]) {
-    walk(root, 1, [root.name]);
-  } else {
-    walk(root, 0, []);
-  }
+  const unique = [...new Set(matches)];
 
-  if (matches.length === 0) {
+  if (unique.length === 0) {
     throw new VisualTargetResolveError(
       `targetKey "${target.key}" nodePath "${target.nodePath}" matched 0 objects`
     );
   }
-  if (matches.length > 1) {
+  if (unique.length > 1) {
     throw new VisualTargetResolveError(
-      `targetKey "${target.key}" nodePath "${target.nodePath}" matched ${matches.length} objects`
+      `targetKey "${target.key}" nodePath "${target.nodePath}" matched ${unique.length} objects`
     );
   }
-  return matches[0]!;
+  return unique[0]!;
 }

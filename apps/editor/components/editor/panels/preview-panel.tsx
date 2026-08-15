@@ -7,16 +7,22 @@ export function PreviewPanel() {
   const graphDetail = useEditorStore((state) => state.graphDetail);
   const visualDocument = useEditorStore((state) => state.visualDocument);
   const visualSelection = useEditorStore((state) => state.visualSelection);
+  const loadError = useEditorStore((state) => state.loadError);
   const setVisualSelection = useEditorStore((state) => state.setVisualSelection);
   const clearVisualSelection = useEditorStore(
     (state) => state.clearVisualSelection
   );
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
-  if (!graphDetail || !visualDocument) {
+  if (!graphDetail) {
     return (
-      <div className="flex h-full items-center justify-center p-4 text-[12px] text-[var(--text-muted)]">
-        Load a product to configure choices.
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-[12px] text-[var(--text-muted)]">
+        <p>Load a product to configure choices.</p>
+        {loadError ? (
+          <p className="text-center text-red-600 font-mono text-[10px]">
+            {loadError}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -25,7 +31,7 @@ export function PreviewPanel() {
     (a, b) => a.sortOrder - b.sortOrder
   );
   const boundChoiceKeys = new Set(
-    visualDocument.bindings.map((binding) => binding.choiceKey)
+    (visualDocument?.bindings ?? []).map((binding) => binding.choiceKey)
   );
 
   return (
@@ -37,6 +43,12 @@ export function PreviewPanel() {
           </p>
           <StatusBadge role="published" label="LIVE" />
         </div>
+
+        {loadError ? (
+          <div className="rounded-lg border border-red-500/40 bg-red-50/40 p-2 text-[10px] font-mono text-red-700">
+            {loadError}
+          </div>
+        ) : null}
 
         {choices.map((choice) => {
           const selected = visualSelection[choice.key];

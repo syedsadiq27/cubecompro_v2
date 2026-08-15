@@ -182,8 +182,14 @@ describe('visual determinism', () => {
 
   it('ambiguous target fails', () => {
     const root = new THREE.Group();
-    root.name = 'Chair';
-    root.add(mesh('Frame', '#111'), mesh('Frame', '#222'));
+    root.name = 'Wrapper';
+    const a = new THREE.Group();
+    a.name = 'BranchA';
+    a.add(mesh('Frame', '#111'));
+    const b = new THREE.Group();
+    b.name = 'BranchB';
+    b.add(mesh('Frame', '#222'));
+    root.add(a, b);
 
     expect(() =>
       resolveTargetObject(root, {
@@ -191,6 +197,23 @@ describe('visual determinism', () => {
         nodePath: 'Frame',
       })
     ).toThrow(/matched 2 objects/);
+  });
+
+  it('resolves path under a loaded-model wrapper', () => {
+    const productRoot = new THREE.Group();
+    const loaded = new THREE.Group();
+    loaded.name = 'loaded-model';
+    const chair = new THREE.Group();
+    chair.name = 'Chair';
+    chair.add(mesh('Frame', '#5C3A21'));
+    loaded.add(chair);
+    productRoot.add(loaded);
+
+    const object = resolveTargetObject(productRoot, {
+      key: 'frame',
+      nodePath: 'Chair/Frame',
+    });
+    expect(object.name).toBe('Frame');
   });
 
   it('revision mismatch fails explicitly', () => {

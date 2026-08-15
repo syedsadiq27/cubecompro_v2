@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { bootstrapProductEditor } from '@repo/product-graph';
 import { useEditorStore } from '@/lib/editor-store';
+import { normalizeVisualDocumentFromGraphDetail } from '@/lib/visual';
 
 export function useEditorProductLoad() {
   const runtime = useEditorStore((state) => state.runtime);
@@ -16,6 +17,7 @@ export function useEditorProductLoad() {
   const setDocument = useEditorStore((state) => state.setDocument);
   const setConfiguration = useEditorStore((state) => state.setConfiguration);
   const setGraphDetail = useEditorStore((state) => state.setGraphDetail);
+  const setVisualDocument = useEditorStore((state) => state.setVisualDocument);
   const hydrateVisualReplay = useEditorStore(
     (state) => state.hydrateVisualReplay
   );
@@ -57,10 +59,36 @@ export function useEditorProductLoad() {
         });
         if (cancelled) return;
 
-        await hydrateVisualReplay({
-          detail: bundle.detail,
-          productModelId: bundle.productModelId,
-        });
+        try {
+          await hydrateVisualReplay({
+            detail: bundle.detail,
+            productModelId: bundle.productModelId,
+          });
+        } catch (visualError) {
+          if (cancelled) return;
+          const store = useEditorStore.getState();
+          if (!store.graphDetail) {
+            setGraphDetail(bundle.detail);
+          }
+          if (!store.visualDocument) {
+            try {
+              setVisualDocument(
+                normalizeVisualDocumentFromGraphDetail(
+                  bundle.detail,
+                  bundle.productModelId
+                )
+              );
+            } catch {
+              /* Preview can still show choices from graphDetail */
+            }
+          }
+          useEditorStore.setState({ activeWorkspace: 'preview' });
+          setLoadError(
+            visualError instanceof Error
+              ? visualError.message
+              : 'Visual hydrate failed'
+          );
+        }
         if (cancelled) return;
 
         setDocument({
@@ -103,6 +131,7 @@ export function useEditorProductLoad() {
     setDocument,
     setConfiguration,
     setGraphDetail,
+    setVisualDocument,
     hydrateVisualReplay,
   ]);
 }
