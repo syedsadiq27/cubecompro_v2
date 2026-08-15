@@ -48,8 +48,8 @@ yarn workspace api dev
 The API **prestart** (`prepare-environment`) runs before listen:
 
 1. `prisma migrate deploy` (fail hard)
-2. optional `SEED` (`true` / `force` / off)
-3. kernel `ConfigurationRule` → `Constraint` migration (`KERNEL_MIGRATE_RULES=on` by default; set `off` to skip)
+2. demo seed (always attempted; skips safely if already seeded)
+3. kernel `ConfigurationRule` → `Constraint` migration (always on; `KERNEL_MIGRATE_RULES=off` to skip)
 
 Docker entrypoint: `docker-entrypoint.sh` → prepare → `main` with `PREPARE_DONE=1`.
 

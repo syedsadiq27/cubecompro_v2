@@ -57,34 +57,42 @@ function runSeed(root: string) {
 }
 
 async function maybeSeed(root: string) {
-  const seed = flag(process.env.SEED);
-  if (seed === 'off') {
-    console.log('[prestart] SEED=off — skipping seed');
-    return;
+  const prisma = new PrismaClient();
+  try {
+    const existing = await prisma.user.findUnique({
+      where: { email: 'owner@demo.cubecom.dev' },
+    });
+    if (existing) {
+      console.log('[prestart] seed skipped — demo data already present');
+      return;
+    }
+  } catch (error) {
+    console.error('[prestart] seed precheck failed', error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
   }
 
-  if (seed === 'on') {
+  console.log('[prestart] seeding database…');
+  try {
+    runSeed(root);
+  } catch (error) {
     const prisma = new PrismaClient();
     try {
       const existing = await prisma.user.findUnique({
         where: { email: 'owner@demo.cubecom.dev' },
       });
       if (existing) {
-        console.log(
-          '[prestart] SEED skipped — demo user already exists (SEED=force to rerun)'
+        console.warn(
+          '[prestart] seed raced or partially applied — continuing with existing demo data'
         );
         return;
       }
-    } catch (error) {
-      console.error('[prestart] SEED precheck failed', error);
-      throw error;
     } finally {
       await prisma.$disconnect();
     }
+    throw error;
   }
-
-  console.log('[prestart] seeding database…');
-  runSeed(root);
 }
 
 async function migrateLegacyRules() {
@@ -128,8 +136,9 @@ async function migrateLegacyRules() {
 }
 
 /**
- * Pre-start: schema migrate → optional seed → kernel ConfigurationRule→Constraint.
- * Fail hard on migrate / gate failure so the API never boots on a broken DB.
+ * Pre-start: schema migrate → demo seed (skip if already seeded) →
+ * kernel ConfigurationRule→Constraint. Fail hard on migrate / gate failure
+ * so the API never boots on a broken DB.
  */
 export async function prepareEnvironment(): Promise<void> {
   if (process.env.PREPARE_DONE === '1') {
