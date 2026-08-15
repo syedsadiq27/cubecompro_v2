@@ -27,7 +27,13 @@ const graphDetailInclude = {
   rules: true,
   constraints: {
     include: {
-      terms: true,
+      terms: {
+        include: {
+          choiceValue: {
+            include: { attribute: true },
+          },
+        },
+      },
     },
   },
   models: { include: { targets: true } },

@@ -33,6 +33,9 @@ export class ResolveResolver {
       valid: resolved.valid,
       violations: resolved.violations,
       selectionsJson: JSON.stringify(resolved.selections),
+      availabilityJson: resolved.availability
+        ? JSON.stringify(resolved.availability)
+        : null,
       threeD: {
         modelId: resolved.threeD.modelId,
         effects: resolved.threeD.effects.map((effect) => ({

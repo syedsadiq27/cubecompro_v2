@@ -563,6 +563,9 @@ export class ResolvedConfigurationModel {
   @Field()
   selectionsJson: string;
 
+  @Field(() => String, { nullable: true })
+  availabilityJson?: string | null;
+
   @Field(() => Resolved3DStateModel)
   threeD: Resolved3DStateModel;
 

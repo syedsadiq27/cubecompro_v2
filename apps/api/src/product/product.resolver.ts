@@ -144,10 +144,10 @@ export class ProductResolver {
   }
 
   @Mutation(() => ConfigurationRuleModel)
-  async createConfigurationRule(
+  createConfigurationRule(
     @Args('input') input: CreateConfigurationRuleInput
-  ): Promise<ConfigurationRuleModel> {
-    await this.products.createRule(input);
+  ): Promise<never> {
+    return this.products.createRule(input);
   }
 
   @Mutation(() => ProductModelAssetModel)
@@ -238,6 +238,8 @@ function mapVersionDetail(
       terms: constraint.terms.map((term) => ({
         constraintId: term.constraintId,
         choiceValueId: term.choiceValueId,
+        choiceKey: term.choiceValue?.attribute?.key ?? null,
+        choiceValueKey: term.choiceValue?.key ?? null,
       })),
     })),
     models: detail.models.map((model) => ({

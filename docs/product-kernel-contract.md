@@ -116,3 +116,10 @@ yarn workspace api kernel:migrate-rules
 ```
 
 Cutover gate passes when `failed === 0` and every rule is `migrated` or `unsupported`.
+
+## Runtime cutover (Commit 3)
+
+`resolveConfiguration` validates with Constraints only (no ConfigurationRule execution).
+
+- `validateSelection` — distinct codes: unknown_choice, unknown_value, value_wrong_choice, missing_required, violated_constraint
+- `deriveAvailability` — replacement semantics; returned as `availabilityJson`

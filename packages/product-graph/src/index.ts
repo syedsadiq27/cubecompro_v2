@@ -61,3 +61,17 @@ export type {
   LegacyChoiceType,
   Selection,
 } from './kernel.js';
+export {
+  deriveAvailability,
+  formatValidationIssues,
+  validateSelection,
+} from './kernel-validate.js';
+export type {
+  KernelChoice,
+  KernelChoiceValue,
+  KernelConstraint,
+  KernelConstraintTerm,
+  KernelValidationResult,
+  ValidationIssue,
+  ValidationIssueCode,
+} from './kernel-validate.js';

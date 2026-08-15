@@ -448,6 +448,7 @@ type ResolvedCommerceStateModel {
 }
 
 type ResolvedConfigurationModel {
+  availabilityJson: String
   commerce: ResolvedCommerceStateModel!
   graphVersion: Float!
   graphVersionId: String!
