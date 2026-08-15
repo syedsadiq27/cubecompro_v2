@@ -1,3 +1,5 @@
+> **Product-first map:** see [`README.md`](./README.md) (1 → 4C). This file is an implementation handoff, not the product narrative.
+
 Phase 3A and 3B are complete.
 
 Do not revisit or redesign:

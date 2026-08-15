@@ -1,0 +1,21 @@
+---
+title: Terminology
+description: Common terminology across Backoffice, 3D Editor, storefront integrations, and API.
+---
+
+Glossary of core terms used across CubeCom Pro. For formal invariants and technical contracts, see [Concepts](/concepts).
+
+| Term | Surface | Definition |
+| --- | --- | --- |
+| **Product** | Backoffice, API | The top-level catalog entity with a unique key and name. Products contain versioned revisions. |
+| **ProductRevision** | Backoffice, API | An immutable or draft graph snapshot of choices, rules, 3D models, and commerce mappings. |
+| **Choice** | Backoffice, Storefront | A configurable dimension (e.g. *Frame Type*, *Upholstery*). |
+| **ChoiceValue** | Backoffice, Storefront | A specific option within a Choice (e.g. *Walnut*, *Oak*, *Velvet*). |
+| **Constraint** | Backoffice, API | A rule declaring that a specific set of ChoiceValues cannot be selected together. |
+| **Selection** | Storefront, API | The shopper's current dictionary of chosen options (`{ choiceKey: valueKey }`). |
+| **ObjectAsset** | 3D Editor, Library | A 3D model entity in the asset library. Contains immutable versions (`ObjectAssetRevision`). |
+| **ProductModel** | 3D Editor, API | The 3D binding attached to a ProductRevision. References a root asset and swappable sub-assets. |
+| **ModelTarget** | 3D Editor | A named node path or material slot inside the 3D model hierarchy. |
+| **VisualEffect** | 3D Editor, Storefront | An operation (`SET_MATERIAL`, `SET_VISIBILITY`, `REPLACE_COMPONENT`, `SET_MODEL`) triggered by a choice value. Editor UI support varies by operation. |
+| **CommerceMappingSet** | Backoffice, API | The table mapping valid combinations of ChoiceValues to external commerce variants and SKUs. |
+| **Resolution** | Storefront, API | The real-time evaluation of a Selection that outputs validation, 3D render state, availability, and commerce state. |

@@ -1,0 +1,43 @@
+---
+title: Product model
+description: 3D model binding, root asset pinning, and linked asset registry.
+---
+
+A **ProductModel** (`ProductModelAssetModel`) connects a ProductRevision to 3D geometry and sub-assemblies.
+
+## Schema contract
+
+```graphql
+type ProductModelAssetModel {
+  id: ID!
+  productRevisionId: String!
+  key: String!
+  name: String!
+  assetId: String!
+  objectAssetRevisionId: String!
+  linkedAssets: [ProductModelLinkedAssetModel!]
+  targets: [ModelTargetModel!]
+}
+
+type ProductModelLinkedAssetModel {
+  id: ID!
+  productModelId: String!
+  key: String!
+  role: ProductModelAssetRole!
+  assetRevisionId: String!
+}
+
+enum ProductModelAssetRole {
+  OBJECT
+  MATERIAL
+  TEXTURE
+  ANIMATION
+  ENVIRONMENT
+  SHADER
+}
+```
+
+## Invariants
+
+- `objectAssetRevisionId` is the single authoritative root model pin.
+- `linkedAssets` defines the universe of assets that can be swapped into the scene via `REPLACE_COMPONENT`.

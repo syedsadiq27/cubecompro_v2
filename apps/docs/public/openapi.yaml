@@ -1,0 +1,216 @@
+openapi: 3.2.0
+info:
+  title: CubeCom Pro REST API
+  summary: Document delivery and health endpoints for CubeCom Pro.
+  description: |
+    Product authoring and configuration resolve are GraphQL-first.
+    This OpenAPI document covers the small REST surface used by viewers
+    and operators: health checks and immutable document bytes.
+
+    Spec: https://spec.openapis.org/oas/v3.2.0.html
+  version: 1.0.0
+  contact:
+    name: CubeCom Pro
+    url: https://cubecompro.com
+servers:
+  - url: http://localhost:3005
+    description: Local API
+  - url: https://api.cubecompro.com
+    description: Production
+tags:
+  - name: Health
+    description: Liveness probes (no auth).
+  - name: Documents
+    description: Authenticated binary/JSON documents for pinned assets.
+paths:
+  /healthz:
+    get:
+      tags: [Health]
+      operationId: getHealthz
+      summary: Liveness probe
+      description: Returns `{ ok: true }` when the API process is up.
+      security: []
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthOk'
+              example:
+                ok: true
+  /documents/objects/{id}:
+    get:
+      tags: [Documents]
+      operationId: getObjectAssetDocument
+      summary: Download object asset tip bytes
+      description: |
+        Returns the current tip revision bytes for a library ObjectAsset.
+        Prefer `/documents/object-revisions/{id}` when resolving a published
+        ProductModel pin (exact immutable revision).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: GLB or octet stream.
+          content:
+            model/gltf-binary:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /documents/objects/{id}/metadata:
+    get:
+      tags: [Documents]
+      operationId: getObjectAssetMetadata
+      summary: Object asset parsed metadata JSON
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: Parsed node/material metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /documents/object-revisions/{id}:
+    get:
+      tags: [Documents]
+      operationId: getObjectAssetRevisionDocument
+      summary: Download exact ObjectAssetRevision bytes
+      description: |
+        Immutable pin target for ProductModel.objectAssetRevisionId and
+        REPLACE_COMPONENT linked OBJECT assets.
+
+        Response includes `X-Content-Hash` matching the revision contentHash.
+        Hash mismatch returns 400 (corrupt or substituted artifact).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ObjectAssetRevision id.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exact revision artifact.
+          headers:
+            X-Content-Hash:
+              description: SHA-256 hex of artifact bytes.
+              schema:
+                type: string
+          content:
+            model/gltf-binary:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Content hash mismatch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /documents/materials/{id}:
+    get:
+      tags: [Documents]
+      operationId: getMaterialAssetDocument
+      summary: Material document JSON
+      description: |
+        MaterialAsset document used by SET_MATERIAL bindings.
+        Exact MaterialAssetRevision pinning lands in a later slice (4D).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200':
+          description: Material document.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Project or user access token from login / session.
+  parameters:
+    AssetId:
+      name: id
+      in: path
+      required: true
+      description: Library asset id.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+          example:
+            statusCode: 401
+            message: Missing bearer token
+    NotFound:
+      description: Asset or file not found in the caller organization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+  schemas:
+    HealthOk:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+          const: true
+    ErrorBody:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        error:
+          type: string
+security:
+  - bearerAuth: []

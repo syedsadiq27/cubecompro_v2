@@ -1,0 +1,42 @@
+---
+title: Resolution lifecycle
+description: Step-by-step execution trace of resolveConfiguration and resolveCommerce.
+---
+
+Understanding the lifecycle of a `resolveConfiguration` query is essential for integrating custom storefronts.
+
+## The Resolution Execution Pipeline
+
+```text
+ 1. Parse Input ──► 2. Load Revision ──► 3. Validate Rules ──► 4. Compute Availability
+                                                                       │
+ 7. Return Result ◄── 6. Commerce Map ◄── 5. Visual Pipeline ◄─────────┘
+```
+
+### 1. Input parsing
+Client passes `ConfigurationStateInput`:
+- `productId`: ID of target product.
+- `productRevisionId` *(optional)*: Explicit revision ID for draft preview. If omitted, uses `Product.activeRevisionId`.
+- `selectionsJson`: JSON string containing `{ choiceKey: valueKey }`.
+
+### 2. Revision loading
+Retrieves the frozen ProductRevision graph (choices, constraints, ProductModel, VisualEffects, CommerceMappingSet).
+
+### 3. Constraint validation
+Evaluates all active `ConstraintModel` rules.
+- If any combination in the Selection is constrained, sets `valid: false` and collects violation descriptions into `violations`.
+
+### 4. Availability computation
+Evaluates all remaining non-selected choices against the current partial selection and outputs the `availabilityJson` mask.
+
+### 5. Visual pipeline execution
+- Determines `rootObjectAssetRevisionId`.
+- Evaluates `VisualEffect` rules matching the Selection.
+- For `REPLACE_COMPONENT`: adds linked asset revisions to `activeObjectAssetRevisionIds`.
+- For `SET_MATERIAL`, `SET_VISIBILITY`, `SET_MODEL`: populates the `effects` array.
+
+### 6. Commerce mapping projection
+Matches the Selection dictionary against `CommerceMappingSet` identity choice combinations. Populates `sku`, `variantReference`, and `cartPayloadJson`.
+
+### 7. Serialization
+Returns the complete `ResolvedConfigurationModel` to the client in a single fast roundtrip.

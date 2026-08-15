@@ -1,3 +1,5 @@
+> **Product-first map:** see [`README.md`](./README.md) (1 → 4C). This file is an implementation handoff, not the product narrative.
+
 We have now frozen the CubeComPro domain architecture. Do not redesign it unless implementation exposes a concrete contradiction.
 
 The core principle is:

@@ -1,0 +1,19 @@
+---
+title: Integrations overview
+description: Connecting external commerce engines, PIMs, and ERP backends.
+---
+
+CubeCom Pro connects to external commerce platforms to import product definitions and resolve configured selections into sellable variants and cart lines.
+
+## Supported platforms
+
+| Platform | Status | Integration mechanism |
+| --- | --- | --- |
+| **[Shopify](/integrations/shopify)** | Supported | Direct OAuth, catalog browsing, automatic option import, and variant GID mapping |
+| **[commercetools](/integrations/commercetools)** | Intended pattern | Generic `CommerceMappingSet` with `provider: "commercetools"` |
+| **[Custom commerce / ERP](/integrations/custom)** | Supported | Flexible `CommerceMappingSet` with custom provider keys and external SKU mappings |
+
+## Ownership boundaries
+
+- **CubeCom Pro owns**: Choices, choice values, 3D models, incompatibility constraints, visual bindings, and real-time configuration resolution.
+- **External Commerce Platform owns**: Master product pricing, inventory tracking, discounts, tax calculation, checkout, payment processing, and fulfillment.

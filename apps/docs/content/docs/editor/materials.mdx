@@ -1,0 +1,28 @@
+---
+title: Materials
+description: Use project material assets in supported bindings without mistaking scaffold controls for persistence.
+---
+
+`SET_MATERIAL` binds a choice value and model target to a project `MaterialAsset`. The current Editor mappings panel loads available project materials and can change the material asset on a hydrated material binding.
+
+## Current UI boundary
+
+The standalone **Materials** panel currently displays a fixed palette scaffold. It is not a verified project-material authoring or persistence workflow, and its displayed PBR properties do not establish the supported public material schema.
+
+Use the **Option → Scene Bindings** panel for the implemented Editor workflow:
+
+1. Load a draft that already has a `SET_MATERIAL` binding.
+2. Locate the binding by choice value and target.
+3. Select a project material asset.
+4. Preview the choice value.
+5. Select **Save visual bindings**, then reload to confirm persistence.
+
+New targets and new bindings are currently created in Backoffice 3D Studio or through the API, not in the Editor mappings panel.
+
+## Verify
+
+1. Confirm the material appears in the project library returned to the mappings panel.
+2. Preview the bound value and inspect the intended mesh under multiple lighting angles.
+3. Switch away and confirm the mesh returns to its baseline material or the next active binding.
+4. Save, reload, and confirm the same material asset remains selected.
+5. Resolve the draft through the API and confirm the effect returns the expected `materialAssetId`.

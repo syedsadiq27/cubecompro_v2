@@ -1,0 +1,45 @@
+---
+title: 3D troubleshooting
+description: Diagnosing missing node paths, unresponsive visual changes, and mesh misalignment.
+---
+
+Troubleshooting guide for 3D technical artists and studio authors.
+
+## 1. "Selecting a choice value does nothing in the 3D viewport."
+
+**Causes:**
+- **No VisualEffect created**: Open the **Mappings panel** and verify that an active binding exists for that specific ChoiceValue.
+- **Unregistered linked asset**: If using `REPLACE_COMPONENT`, confirm the asset is registered in the ProductModel linked assets table with `role: OBJECT`.
+- **Target node not found**: If the GLB model was updated, node names in the hierarchy might have changed. Re-verify the `ModelTarget` node path.
+
+---
+
+## 2. "Swapped component appears floating or misaligned."
+
+**Cause:** The swappable component's transform origin / pivot point in the DCC tool does not match the parent model's coordinate socket.
+
+**Fix:**
+1. Open the component GLB in Blender / Maya.
+2. Align its origin `(0, 0, 0)` precisely with the mounting point of the root model.
+3. Re-export the GLB and upload a new revision in the Asset Library.
+4. Update the linked asset in the 3D Studio.
+
+---
+
+## 3. "Material colors appear washed out or too dark."
+
+**Cause:** glTF texture color spaces or PBR metallic/roughness values need adjustment.
+
+**Fix:**
+1. In the **Materials panel**, verify that base color textures are using sRGB color space, while normal, roughness, and metalness maps use Linear space.
+2. In the Environment panel, adjust the HDRI environment exposure and lighting presets.
+
+---
+
+## 4. "Both old and new component meshes are visible at the same time."
+
+**Cause:** The initial default mesh was part of the static root GLB rather than a modular component.
+
+**Fix:**
+- Ensure the swappable area in the root GLB is empty or defined as a replaceable socket node.
+- Use `REPLACE_COMPONENT` for all option states, or attach a `SET_VISIBILITY` effect to hide the base geometry when a custom component is mounted.

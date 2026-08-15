@@ -1,3 +1,5 @@
+> **Product-first map:** see [`README.md`](./README.md) (1 → 4C). This file is an implementation handoff, not the product narrative.
+
 Below is the implementation markdown I’d use as the handoff to Cursor. It reflects the current CubeCom state, the frozen kernel, the existing Prisma/API ownership, and the decision to migrate conservatively rather than rewrite the schema. The API remains the persistence source of truth; `@repo/product-graph` remains the suite client contract; runtime stays outside the suite UI layer. 
 
 ````md

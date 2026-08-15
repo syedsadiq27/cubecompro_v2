@@ -1,0 +1,26 @@
+---
+title: Product revision
+description: A versioned product definition that becomes immutable when published.
+---
+
+A **product revision** versions everything that must change together: choices, constraints, 3D model pins, visual actions, variants, and commerce mappings.
+
+## Lifecycle
+
+| State | Editable | Runtime use |
+| --- | --- | --- |
+| Draft | Yes | Only when a preview requests its revision ID explicitly |
+| Published | No | Can be selected as the product's active revision |
+| Archived | No | Historical reference |
+
+Publishing creates an immutable snapshot. To change a published product, create or replace a draft, update all affected surfaces, then publish the new revision.
+
+## Why revision pinning matters
+
+Visual assets are pinned to exact asset revisions. Uploading a newer GLB or material does not alter an already published product. Saved selections and order records should retain the product revision ID so their keys and commerce result remain explainable later.
+
+## API names
+
+The summary type is `ProductRevisionModel`; `ProductRevisionDetailModel` contains the full authored graph. The GraphQL lifecycle enum is `GraphVersionStatus`. These names belong in API code; product guides use **revision**, **published**, and **active revision**.
+
+Next: [Assets and revisions](/concepts/assets) · [Publishing](/backoffice/publishing)

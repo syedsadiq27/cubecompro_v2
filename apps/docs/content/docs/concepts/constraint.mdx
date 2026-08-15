@@ -1,0 +1,35 @@
+---
+title: Constraint
+description: A product rule that makes one combination of choice values invalid.
+---
+
+A **constraint** declares that a specific set of [choice values](/concepts/choice-value) cannot be selected together. If every term in the constraint is present, resolution returns `valid: false` with violations.
+
+Example: Green Fabric + Brass Legs is not allowed.
+
+```text
+fabric = green
+AND legs = brass
+→ invalid
+```
+
+Constraints define product validity. They do not define SKU identity, and a commerce mapping cannot make a constrained combination sellable.
+
+## Runtime behavior
+
+Resolution uses constraints in two ways:
+
+- validates the current selection;
+- derives an availability matrix showing which values can be selected in the current context.
+
+The matrix does not repair the selection. If an earlier change makes a selected value unavailable, the storefront preserves, clears, or intentionally replaces it according to its own policy.
+
+## Version behavior
+
+Draft constraint changes do not affect shoppers using the active published revision. Removing a constraint in a later revision does not change historical results from an earlier revision.
+
+## API name
+
+The GraphQL types are `ConstraintModel` and `ConstraintTermModel`. A separate `ConfigurationRuleModel` also exists; do not assume its JSON condition/effect contract is interchangeable with constraints.
+
+Next: [Constraints and rules](/backoffice/constraints-and-rules) · [Availability](/customizer/availability)

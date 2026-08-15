@@ -1,0 +1,62 @@
+---
+title: GraphQL Enums
+description: Field reference for selected enumeration types in the CubeCom Pro schema.
+---
+
+This page is partial. See [schema coverage](/api/schema-coverage) for enum declarations that do not yet have dedicated sections.
+
+## `VisualOperation`
+Operations executed on 3D scenes during resolution.
+
+| Value | Meaning |
+| --- | --- |
+| `SET_MATERIAL` | Assigns a material override to a ModelTarget slot. |
+| `SET_VISIBILITY` | Toggles node visibility (`true` / `false`). |
+| `REPLACE_COMPONENT` | Swaps a linked component asset into an attachment socket. |
+| `SET_MODEL` | Swaps the entire root 3D model asset. |
+
+---
+
+## `ProductModelAssetRole`
+Role types for assets linked to a ProductModel.
+
+| Value | Role Description |
+| --- | --- |
+| `OBJECT` | 3D geometry file (`.glb`) for component replacement. |
+| `MATERIAL` | PBR material definition document. |
+| `TEXTURE` | Texture image file (PNG/JPG/KTX2). |
+| `ANIMATION` | Skeletal or transform animation clip. |
+| `ENVIRONMENT` | HDRI lighting environment map. |
+| `SHADER` | Custom WebGL shader document. |
+
+---
+
+## `GraphVersionStatus`
+Lifecycle states for a ProductRevision.
+
+| Value | State |
+| --- | --- |
+| `DRAFT` | Editable authoring sandbox. |
+| `PUBLISHED` | Immutable frozen snapshot. |
+| `ARCHIVED` | Retired historical record. |
+
+---
+
+## `ProductStatus`
+Lifecycle states for a Product.
+
+| Value | State |
+| --- | --- |
+| `DRAFT` | Initial authoring phase. |
+| `ACTIVE` | Live catalog product. |
+| `ARCHIVED` | Retired catalog item. |
+
+---
+
+## `ObjectAssetPurpose`
+Purpose of a 3D asset in the library.
+
+| Value | Meaning |
+| --- | --- |
+| `MODEL` | Complete primary 3D product model. |
+| `COMPONENT` | Modular sub-assembly or part for replacement. |

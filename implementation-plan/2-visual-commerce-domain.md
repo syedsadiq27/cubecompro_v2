@@ -1,5 +1,7 @@
 # CubeCom Visual Domain — Frozen V1 Implementation Handoff
 
+> **Product-first map:** see [`README.md`](./README.md) (1 → 4C). This file is an implementation handoff, not the product narrative.
+
 Status: **Design frozen**
 Next source of truth: **implementation**
 Do not continue brainstorming unless 2A/2B exposes a concrete contradiction.

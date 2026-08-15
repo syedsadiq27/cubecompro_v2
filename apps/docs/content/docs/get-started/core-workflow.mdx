@@ -1,0 +1,82 @@
+---
+title: Cross-surface workflows
+description: How product, 3D, publishing, runtime resolution, and commerce work together.
+---
+
+Every shopper-facing result starts in an authored product revision. The same revision owns the choices, constraints, visual actions, and commerce mappings used at runtime.
+
+## Step-by-step workflow
+
+```text
+  1. Add assets  ──►  2. Author product  ──►  3. Connect 3D
+  (Asset Library)       (Backoffice)             (3D Editor)
+                                                      │
+  6. Cart handoff ◄── 5. Resolve selections ◄── 4. Publish revision
+  (Storefront)          (Storefront + API)        (Backoffice)
+```
+
+### 1. Add assets to the library
+
+Technical artists upload the model, materials, textures, and interchangeable parts. Each saved asset revision gives the product a stable visual dependency.
+
+### 2. Author the product in Backoffice
+
+Create a product and work in its draft revision. Add choices such as Fabric and Base, add their values, define unavailable combinations, and map sellable combinations to commerce variants. See [Backoffice](/backoffice).
+
+### 3. Connect choices to 3D
+
+Use Backoffice to attach the root model and create semantic targets. In the current 3D Editor, inspect the model and edit supported material and visibility bindings. Component replacement and other operations may be authored through Backoffice/API workflows where available; they are not editable in the current Editor mappings panel. See [Visual bindings](/editor/visual-bindings).
+
+### 4. Preview and publish
+
+Preview representative and boundary combinations before publishing. In the current implementation, publishing freezes the draft, archives the previously published revision, and makes the new revision active in one operation. See [Publishing](/backoffice/publishing).
+
+### 5. Resolve shopper selections
+
+The storefront owns the current selection and calls `resolveConfiguration` after initialization and after each selection change. Resolution returns validity, availability, visual instructions, and commerce identity. It does not silently choose defaults or replace an invalid selection. See [Storefront runtime](/customizer).
+
+### 6. Hand off to cart
+
+Add to cart only when the selection is valid and a commerce variant is present. The storefront translates the returned commerce identity into its provider's cart request. See [Cart handoff](/customizer/cart-handoff).
+
+## Common workflows
+
+### Build a configurable product from scratch
+
+1. Create a product and draft revision in [Backoffice](/backoffice/products).
+2. Add choices, values, constraints, and commerce mappings.
+3. Add a model and author visual actions in the [3D Editor](/editor).
+4. Preview both valid and unavailable combinations.
+5. Publish the revision; publication also activates it.
+6. Resolve it from the [storefront integration](/customizer/configuration-state).
+
+### Import from Shopify and add 3D
+
+1. Preview and import the Shopify product in [Backoffice](/backoffice/shopify-import).
+2. Review the imported option keys and variant mappings.
+3. Attach the model and author visual actions in the 3D Editor.
+4. Preview, publish, then verify that each sellable selection resolves to the expected Shopify variant.
+
+### Add an option to a live product
+
+1. Create or open a new draft revision; do not edit the published snapshot.
+2. Add the choice and values.
+3. Update constraints, 3D actions, and every affected commerce mapping.
+4. Preview existing combinations as regression checks.
+5. Publish only after the new option resolves end to end; publication also activates it.
+
+### Update a published product safely
+
+1. Keep the current active revision available while editing a draft.
+2. Make the product, 3D, and commerce changes against the same draft revision.
+3. Preview the draft by passing its revision ID explicitly.
+4. Publish and run the checks below; publication also activates the revision.
+
+## Verify the live revision
+
+1. Confirm the revision is published and active.
+2. Load the storefront without an explicit revision ID.
+3. Confirm the response reports the new revision ID and version.
+4. Change every choice at least once and confirm availability and 3D update.
+5. Test one unavailable combination and confirm it cannot reach cart.
+6. Test representative sellable combinations and confirm their variant references.

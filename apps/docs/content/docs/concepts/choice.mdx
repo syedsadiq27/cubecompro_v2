@@ -1,0 +1,29 @@
+---
+title: Choice
+description: One configurable decision a shopper can make.
+---
+
+A **choice** is one product decision, such as Fabric, Frame Finish, or Base. Each choice has a stable key, shopper-facing name, ordering, requirement state, and a list of allowed [values](/concepts/choice-value).
+
+```text
+Choice: Fabric (key: fabric)
+├── Beige (key: beige)
+├── Green (key: green)
+└── Charcoal (key: charcoal)
+```
+
+## Keys and names
+
+The **name** is presentation and may change. The **key** is a contract used in selection JSON, visual actions, constraints, commerce mappings, saved configurations, and storefront analytics. Do not repurpose an existing key to mean something new.
+
+## Required and default
+
+A required choice must be present for resolution to be valid. A default is an authored recommendation identified by `defaultValueId`; the current resolver does not insert it automatically. Storefront initialization chooses whether to apply authored defaults.
+
+## Choice types
+
+The schema includes `SELECT`, `MULTI_SELECT`, `NUMBER`, `TEXT`, and `BOOLEAN`. The current configuration kernel resolves selectable choice/value keys. Confirm runtime support before exposing another type.
+
+## API name
+
+The GraphQL type is `ChoiceModel`. See [GraphQL objects](/api/objects) and [Choices and values](/backoffice/choices-and-values).

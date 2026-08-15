@@ -1,0 +1,54 @@
+---
+title: Shopify import
+description: Connecting Shopify, importing catalog products, and verifying option mappings.
+---
+
+Backoffice includes a native Shopify connector to import existing Shopify products and automatically generate Choices, ChoiceValues, and CommerceMappingSets.
+
+## Connecting Shopify via OAuth
+
+1. In the Backoffice sidebar, navigate to **Integrations** → **Shopify**.
+2. Click **Connect store**.
+3. Enter your Shopify store domain (e.g. `your-brand.myshopify.com`).
+4. Click **Authorize**. You will be redirected to Shopify to approve permissions.
+5. Once approved, the connection status shows **Connected**.
+
+---
+
+## Importing a Shopify product
+
+1. In the Backoffice sidebar, go to **Products** and click **Import from Shopify**.
+2. **Browse catalog**: Search or select a product from your live Shopify catalog.
+3. **Preview import (`previewShopifyProductImport`)**:
+   - Backoffice analyzes Shopify options (e.g. *Size*, *Color*, *Material*).
+   - Generates proposed Choices and ChoiceValues.
+   - Shows the count of mapped variants and unmapped combinations.
+4. Click **Confirm Import**.
+
+---
+
+## What the import creates automatically
+
+When the import completes:
+- A new **Product** is created with the Shopify title and description.
+- A **Draft ProductRevision** is created.
+- **Choices and ChoiceValues** are populated matching the Shopify options.
+- A **CommerceMappingSet** is created with `provider: "shopify"` where each combination of options maps directly to the corresponding Shopify `variantId` (GID) and `sku`.
+
+---
+
+## Next steps after import
+
+1. Open the imported product in Backoffice.
+2. Go to the **3D** tab to attach a 3D model and configure visual bindings in the 3D Studio.
+3. Add any manufacturing incompatibility rules in the **Rules** tab.
+4. Publish the revision to make it live.
+
+## Verify
+
+1. Open the import proof and record the created product and revision IDs.
+2. Compare every imported choice key and value key with the Shopify option names and values.
+3. Compare the imported mapping row count with the expected Shopify variants; do not infer product compatibility from a missing Shopify variant.
+4. Resolve representative imported combinations and confirm the returned variant GID and SKU match Shopify.
+5. Add CubeCom constraints only for combinations that are genuinely forbidden, not merely unmapped.
+6. Attach and preview 3D behavior before publishing; Shopify import does not create visual mappings.

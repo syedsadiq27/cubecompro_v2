@@ -1,0 +1,25 @@
+---
+title: Visual action
+description: A product option value connected to a change in the 3D scene.
+---
+
+A **visual action** says what changes in 3D when a shopper selects one product value. It connects a triggering [choice value](/concepts/choice-value) to a named scene target and an operation-specific value.
+
+| Product action | API operation | Example |
+| --- | --- | --- |
+| Change material | `SET_MATERIAL` | Apply Green Velvet to the seat slot |
+| Show or hide | `SET_VISIBILITY` | Hide the arm assembly |
+| Replace a part | `REPLACE_COMPONENT` | Mount the four-leg base asset |
+| Switch root model | `SET_MODEL` | Operation exists; current Editor authoring is not implemented |
+
+Registering an asset only makes it available to the product's 3D model. A replacement action is still required to activate it for a selection.
+
+For a valid selection, resolution returns the active actions in `threeD.effects`. The renderer must reconcile the complete response, including removing actions or components that are no longer present.
+
+## Current Editor boundary
+
+The Editor currently edits hydrated material and visibility actions. It reports replacement and root-model actions as unsupported instead of editing them. See [Connect options to 3D](/editor/visual-bindings).
+
+## API name
+
+The GraphQL schema calls this a `VisualEffectModel` and the operation enum `VisualOperation`. Product docs use **visual action**; API code retains the schema names.

@@ -1,0 +1,14 @@
+{
+  "title": "Backoffice",
+  "pages": [
+    "index",
+    "products",
+    "choices-and-values",
+    "constraints-and-rules",
+    "commerce-mappings",
+    "revisions",
+    "publishing",
+    "shopify-import",
+    "troubleshooting"
+  ]
+}

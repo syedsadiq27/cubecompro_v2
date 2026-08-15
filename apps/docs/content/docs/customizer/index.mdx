@@ -1,0 +1,68 @@
+---
+title: Storefront runtime
+description: The API-first contract between CubeCom Pro resolution and a storefront-owned product experience.
+---
+
+CubeCom Pro does not currently expose a formal public embeddable Customizer product. Your storefront owns the shopper experience and selection state; CubeCom Pro resolves that state against one product revision.
+
+```text
+CubeCom Pro runtime contract
+→ accepts product/revision + selection
+→ returns validity + availability + visual state + commerce state
+
+Storefront
+→ owns shopper UI and selection state
+→ renders the product experience
+→ handles invalid or incomplete selections
+→ performs cart integration
+```
+
+## Runtime mental model
+
+```text
+Load active product revision
+            ↓
+Choose the storefront's initial values
+            ↓
+Resolve the current selection
+            ↓
+┌────────────┬──────────────┬──────────────┐
+│ validity   │ availability │ visual state │ commerce identity │
+└────────────┴──────────────┴──────────────┘
+            ↓
+Update controls, 3D, price, and cart readiness
+            ↓
+Shopper changes a value ──────────┘
+```
+
+Resolution is a projection, not a state manager. It returns normalized selection JSON, but the current implementation does not insert configured defaults, select the first available value, or repair an invalid combination. Make those storefront decisions explicitly.
+
+## Four states to keep separate
+
+| State | Question | Storefront behavior |
+| --- | --- | --- |
+| Complete | Are all required choices selected? | Prompt for missing required choices |
+| Valid | Does the selection satisfy the product constraints? | Show violations and block cart when false |
+| Available | Could a value be selected with the current context? | Disable values whose availability is `false` |
+| Commerce-mapped | Did the valid selection resolve to a sellable item? | Enable cart only when a provider identity is present |
+
+A selection can be valid but incomplete, and it can be valid without a commerce mapping. Do not treat `valid: true` as cart readiness by itself.
+
+## When resolution runs
+
+Call `resolveConfiguration` after choosing initial state and after every shopper selection change. Discard or cancel stale responses when a newer request is in flight. Use the returned `productRevisionId` and `graphVersion` to confirm that the response belongs to the revision your UI loaded.
+
+## Runtime guides
+
+| Guide | Description |
+| --- | --- |
+| **[Configuration state](/customizer/configuration-state)** | Selection ownership, initialization, revision pinning, and persistence |
+| **[Rendering choices](/customizer/rendering-choices)** | Displaying option swatches, cards, dropdowns, and metadata |
+| **[Availability](/customizer/availability)** | Parsing the availability matrix and handling unavailable values |
+| **[Invalid selections](/customizer/invalid-selections)** | Distinguishing incomplete, invalid, and unmapped states |
+| **[Resolved visual state](/customizer/resolved-visual-state)** | Loading active assets and applying visual actions to scene targets |
+| **[Resolved commerce state](/customizer/resolved-commerce-state)** | Distinguishing valid configurations from sellable configurations |
+| **[Cart handoff](/customizer/cart-handoff)** | Translating resolved commerce identity into a provider cart request |
+| **[Storefront integration](/customizer/embedding)** | Supported API-first integration and current SDK status |
+| **[Application events](/customizer/events-and-callbacks)** | Defining events without relying on an undocumented SDK |
+| **[Troubleshooting](/customizer/troubleshooting)** | Diagnosing revision, availability, visual, and cart mismatches |

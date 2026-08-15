@@ -1,0 +1,61 @@
+---
+title: Publishing
+description: Current dependency checks, immutable snapshots, activation, and recovery from a bad release.
+---
+
+Publishing is one atomic product operation in the current implementation: it freezes a draft revision, archives the previously published revision, marks the draft `PUBLISHED`, and sets it as the product's active revision.
+
+```text
+Draft → dependency check → advance model pins to library tips → freeze snapshot
+      → archive previous published revision → publish and activate new revision
+```
+
+There is no separate **Set as active revision** operator action.
+
+## Before you publish
+
+Save pending draft changes, then select **Publish**. The dependency resolver blocks publication for the conditions it currently verifies:
+
+| Check | Current behavior |
+| --- | --- |
+| Options | Blocks when the draft has no options. |
+| Root model | Blocks when no 3D model is attached. |
+| Library object | Blocks when an attached object is missing, failed, processing, or has no tip revision. |
+| Material references | Blocks when a visual mapping references a material that is not in the available project library. |
+
+Rules, variants, commerce mappings, and visual mappings are included in the dependency graph, but their counts are not completeness validation. In particular, the current modal does not prove that every valid combination has a commerce mapping or that every value has a visual action. Run the operator checks below.
+
+## Model pin behavior
+
+Publishing advances each draft product model from its current object revision pin to the latest library revision, then freezes that tip in the snapshot. The modal reports each pending tip advance. If a library asset changed after the draft was tested, preview the latest tip before confirming publication.
+
+## What changes on confirmation
+
+After **Publish Draft vN** succeeds:
+
+- the graph snapshot is stored with its URI and SHA-256 hash;
+- the draft becomes `PUBLISHED` and receives `publishedAt`;
+- any other `PUBLISHED` revision for the product becomes `ARCHIVED`;
+- `Product.activeRevisionId` points to the new revision;
+- the product becomes `ACTIVE`;
+- storefront resolution without an explicit revision ID uses the new revision.
+
+## Recover from a bad publication
+
+Recovery is a new publication, not direct reactivation of an old immutable revision:
+
+1. Locate the previous stable revision in version history.
+2. Replace the current draft from that historical revision, or create a draft using it as the source.
+3. Verify the recovered draft, including any model-tip advance shown by the publish modal.
+4. Publish the recovered draft. It becomes the new active revision and the bad publication is archived.
+
+This creates a new revision ID and version. Storefronts pinned explicitly to the bad revision will continue to request it until their pin is changed.
+
+## Verify
+
+1. Confirm the publish modal has no blockers and review every model-tip advance.
+2. Resolve representative valid, constrained, incomplete, and unmapped selections against the draft ID.
+3. Confirm visual actions reference loadable immutable assets.
+4. Confirm representative sellable combinations return the expected provider, SKU, and variant reference.
+5. Publish and resolve without `productRevisionId`; confirm the response reports the new revision ID and version.
+6. Confirm the former published revision is archived and the product points to the new active revision.

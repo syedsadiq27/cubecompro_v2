@@ -1,0 +1,60 @@
+---
+title: Resolved visual state
+description: Load active assets and apply resolved visual actions to a 3D scene.
+---
+
+The `threeD` result tells a renderer which immutable assets are active and which authored visual actions apply to the current valid selection. It is an instruction set, not a Three.js scene or a renderer SDK.
+
+## Response shape
+
+```json
+{
+  "modelId": "model_chair",
+  "rootObjectAssetRevisionId": "assetrev_chair_root_01",
+  "activeObjectAssetRevisionIds": [
+    "assetrev_chair_root_01",
+    "assetrev_legs_brass_02"
+  ],
+  "effects": [
+    {
+      "operation": "SET_MATERIAL",
+      "targetKey": "seat-cushion-material",
+      "targetType": "MATERIAL_SLOT",
+      "nodePath": "Chair/Seat/Cushion",
+      "materialAssetId": "mat_velvet_emerald",
+      "documentUrl": "/documents/materials/mat_velvet_emerald",
+      "valueJson": "{\"materialAssetId\":\"mat_velvet_emerald\"}"
+    }
+  ]
+}
+```
+
+All fields and nullability are listed under [`Resolved3DStateModel`](/api/objects#resolved3dstatemodel) and [`ResolvedVisualEffectModel`](/api/objects#resolvedvisualeffectmodel).
+
+## Apply a response
+
+1. Compare the response request ID with the latest request.
+2. Load the root asset when its revision ID changes.
+3. Preload any other IDs in `activeObjectAssetRevisionIds`.
+4. Resolve each `targetKey`, `targetType`, and optional `nodePath` against the loaded scene.
+5. Apply each effect by operation.
+6. Remove effects and replaceable parts that were active in the previous response but are absent now.
+7. Mark the visual response applied only after required assets finish loading.
+
+The renderer must reconcile complete resolved state. Applying only additions causes stale materials, visible nodes, or components to remain after a shopper changes their mind.
+
+## Operation behavior
+
+- `SET_MATERIAL` points to the material asset to apply to a material-slot target.
+- `REPLACE_COMPONENT` identifies a linked object asset revision for a replaceable scene target.
+- `SET_VISIBILITY` and `SET_MODEL` carry operation-specific data in `valueJson`; document and validate the expected shape in your renderer before enabling those authoring actions.
+
+Choice-triggered effects are currently emitted only when the selection is valid. Invalid responses can still identify the root model, but they are not a complete preview of the invalid combination.
+
+## Verify
+
+1. Preview every value with a visual action.
+2. Switch back and forth and confirm the old action is fully removed.
+3. Reload after publishing and confirm immutable asset revision IDs changed only when intended.
+4. Simulate a missing target and surface a diagnosable error instead of silently ignoring it.
+5. Change options quickly and confirm a stale asset load never replaces the newest scene.

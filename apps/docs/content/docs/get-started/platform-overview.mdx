@@ -1,0 +1,80 @@
+---
+title: Platform overview
+description: Architectural boundaries between product authoring, resolution, and storefront-owned experience code.
+---
+
+CubeCom Pro operates as a unified platform where authoring, 3D behavior, and commerce resolution evaluate the same underlying product graph.
+
+## System architecture
+
+```text
+               ┌──────────────────────────────┐
+               │    Backoffice Operations     │
+               │ (Products, Choices, Rules)   │
+               └──────────────┬───────────────┘
+                              │
+               ┌──────────────▼───────────────┐
+               │       3D Studio Editor       │
+               │ (Models, Targets, Bindings)  │
+               └──────────────┬───────────────┘
+                              │ Publish Revision
+               ┌──────────────▼───────────────┐
+               │   Immutable ProductRevision  │
+               │        (Active Graph)        │
+               └──────────────┬───────────────┘
+                              │
+             ┌────────────────┴────────────────┐
+             │                                 │
+   ┌─────────▼─────────┐             ┌─────────▼─────────┐
+   │ Storefront Client │             │ Headless Backend  │
+   │ (merchant-owned)  │             │ (merchant-owned)  │
+   └─────────┬─────────┘             └─────────┬─────────┘
+             │                                 │
+             └────────────────┬────────────────┘
+                              │ resolveConfiguration
+               ┌──────────────▼───────────────┐
+               │      Resolution Engine       │
+               │ ├── Rule Validation          │
+               │ ├── 3D Visual Dispatch       │
+               │ └── Commerce SKU Mapping     │
+               └──────────────┬───────────────┘
+                              │
+               ┌──────────────▼───────────────┐
+               │   External Commerce Engine   │
+               │ (Shopify, commercetools,...) │
+               └──────────────────────────────┘
+```
+
+## Core system responsibilities
+
+### 1. Backoffice
+Backoffice is the merchant control center. It manages the product catalog, defines configurable dimensions (Choices and ChoiceValues), authors logical compatibility constraints, and defines mappings to external commerce identities (such as Shopify variant GIDs).
+
+### 2. 3D Editor
+The current 3D Editor is a WebGL workspace for inspecting an attached glTF model and editing hydrated `SET_MATERIAL` and `SET_VISIBILITY` bindings. Asset upload, target creation, component registration, and other visual-operation contracts exist in Backoffice or the API; they are not all Editor controls. See the [Editor capability matrix](/editor).
+
+### 3. Resolution Engine & API
+The Resolution Engine is the deterministic runtime kernel. When given a shopper's Selection against an active ProductRevision, it evaluates:
+- **Validity**: Whether the combination satisfies all Constraints.
+- **Availability**: Which remaining choices are valid to pick next.
+- **3D State**: Which root model, swappable component revisions, and material/visibility effects to render.
+- **Commerce State**: Which external variant reference or SKU corresponds to the valid configuration.
+
+### 4. Storefront runtime contract
+
+CubeCom Pro currently provides an API-first runtime contract, not a public embeddable shopper UI:
+
+```text
+CubeCom Pro runtime contract
+→ accepts product/revision + selection
+→ returns validity + availability + visual state + commerce state
+
+Storefront
+→ owns shopper UI
+→ owns selection state
+→ renders the product experience
+→ decides how to handle invalid or incomplete selections
+→ performs cart integration
+```
+
+The storefront calls the Resolution Engine and applies the result. It must not assume that CubeCom Pro owns controls, repairs selections, renders the scene, or submits the cart.

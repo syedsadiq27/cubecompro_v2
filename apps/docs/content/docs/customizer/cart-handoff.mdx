@@ -1,0 +1,53 @@
+---
+title: Cart handoff
+description: Translate the newest resolved commerce identity into a provider-owned cart request.
+---
+
+CubeCom Pro resolves product configuration; your storefront owns checkout. Add to cart only from the newest successful resolution and only when the selection is valid and mapped.
+
+## Handoff sequence
+
+```text
+shopper selection
+      ↓
+resolveConfiguration
+      ↓
+valid + mapped commerce identity
+      ↓
+storefront cart adapter
+      ↓
+Shopify / commercetools / custom cart
+```
+
+1. Capture the selection snapshot when resolution starts.
+2. Apply the response only if it still matches the newest request.
+3. Require `valid === true`.
+4. Require the external identity needed by the provider adapter.
+5. Convert `variantReference`, quantity, and allowlisted configuration metadata into the provider's current cart input.
+6. Submit the cart request from the storefront or its server-side cart route.
+7. Show provider errors without losing the shopper's configuration.
+
+## Do not pass `cartPayloadJson` through blindly
+
+The current JSON contains `sku`, `provider`, `externalId`, and the normalized selections. It is not a Shopify Cart API input or a universal checkout payload. Parse and validate it, then construct the provider-specific request.
+
+For Shopify, the external mapping typically identifies merchandise to add. Your integration is responsible for choosing the correct Storefront API version, authentication, quantity, and any line attributes. For other providers, follow that provider's cart contract.
+
+## Preserve configuration identity
+
+If orders must reproduce the exact configured item, persist or attach enough information to identify:
+
+- the published product revision;
+- the normalized selection;
+- the external item reference;
+- an optional saved configuration ID when your application uses saved configurations.
+
+Avoid putting customer data or secrets in configuration JSON or visible line-item properties.
+
+## Verify
+
+1. Confirm Add to Cart is disabled while resolution is pending, invalid, or unmapped.
+2. Change a value immediately before cart and confirm the newest variant is submitted.
+3. Inspect the provider cart and compare variant, quantity, SKU, and configuration metadata.
+4. Restore the cart line and confirm the configured product can be explained from persisted revision and selection data.
+5. Force a provider rejection and confirm the selection remains intact for retry.

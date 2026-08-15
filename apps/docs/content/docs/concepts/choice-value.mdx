@@ -1,0 +1,32 @@
+---
+title: Choice value
+description: One allowed answer to a product choice.
+---
+
+A **choice value** is one answer within a [choice](/concepts/choice): Walnut within Frame Finish, or Four-leg within Base.
+
+Each value has a display name, stable key, ordering, and optional `metadataJson`. The key is what appears in selection JSON:
+
+```json
+{
+  "frame_finish": "walnut",
+  "base": "four_leg"
+}
+```
+
+## Downstream connections
+
+One value can participate in:
+
+- a constraint with values from other choices;
+- a visual action that changes a material, visibility, or component;
+- a commerce mapping that identifies an external variant;
+- a saved shopper selection.
+
+Deleting or changing the meaning of a value key can break all four. Make structural changes in a draft revision and verify downstream dependencies before publishing.
+
+`metadataJson` is application-owned presentation data. CubeCom Pro does not publish a standard nested shape such as `hex` or `image`; consumers must validate the schema they choose.
+
+## API name
+
+The GraphQL type is `ChoiceValueModel`. See [Choices and values](/backoffice/choices-and-values).

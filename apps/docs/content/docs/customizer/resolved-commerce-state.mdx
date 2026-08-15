@@ -1,0 +1,54 @@
+---
+title: Resolved commerce state
+description: Decide whether a valid selection is mapped to a sellable commerce item.
+---
+
+Commerce resolution runs for a valid selection. If an authored mapping matches, the response identifies the external item the storefront can add to cart. A valid configuration without a mapping remains valid, but it is not cart-ready.
+
+## Response shape
+
+```json
+{
+  "provider": "shopify",
+  "sku": "CHAIR-WAL-EMR-BRS",
+  "variantReference": "gid://shopify/ProductVariant/44912019",
+  "productReference": "gid://shopify/ProductVariant/44912019",
+  "cartPayloadJson": "{\"sku\":\"CHAIR-WAL-EMR-BRS\",\"provider\":\"shopify\",\"externalId\":\"gid://shopify/ProductVariant/44912019\",\"selections\":{\"frame\":\"walnut\",\"fabric\":\"emerald\",\"legs\":\"brass\"}}"
+}
+```
+
+In the current resolver, both `productReference` and `variantReference` are populated from the matched mapping's external ID. Do not assume `productReference` is a Shopify parent product ID.
+
+## Field meaning
+
+| Field | Cart-ready when | Meaning |
+| --- | --- | --- |
+| `provider` | Non-null | Provider recorded on the matched mapping |
+| `sku` | Non-null | Mapping SKU, or the external ID when no SKU was stored |
+| `variantReference` | Non-null | External item ID from the matched mapping |
+| `productReference` | Non-null | Currently the same external item ID |
+| `cartPayloadJson` | Non-null | JSON string containing `sku`, `provider`, `externalId`, and normalized `selections` |
+
+The parsed `cartPayloadJson` shape is:
+
+```ts
+type CartPayload = {
+  sku: string;
+  provider: string;
+  externalId: string;
+  selections: Record<string, unknown>;
+};
+```
+
+This payload is resolution data. It is not guaranteed to be accepted directly by Shopify, commercetools, or another provider's cart API.
+
+## Cart readiness
+
+Require both `valid === true` and the provider identity your cart adapter needs. For the current Shopify-style mapping, that normally means a non-null `variantReference`. Treat null commerce fields as an unmapped state, not a transport error.
+
+## Verify
+
+1. Resolve a representative selection for every mapped variant.
+2. Compare `variantReference` and `sku` with the provider catalog.
+3. Resolve a valid unmapped selection and confirm the UI blocks cart with a clear message.
+4. Confirm an invalid selection returns null commerce fields.

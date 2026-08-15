@@ -1,5 +1,7 @@
 Phase 4A — Immutable Product Asset Pinning
 
+> **Product-first map:** see [`README.md`](./README.md) (1 → 4C). This file is an implementation handoff, not the product narrative.
+
 STATUS: DONE / FROZEN
 Stop here. Do not disturb the single-root pin path in follow-on work.
 Next slice: 4B — Multi-Asset Model Graph (`4B-multi-asset-model-graph.md`).

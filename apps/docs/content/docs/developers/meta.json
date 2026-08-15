@@ -1,0 +1,12 @@
+{
+  "title": "Developers",
+  "pages": [
+    "index",
+    "architecture",
+    "authentication",
+    "resolution-lifecycle",
+    "integration-patterns",
+    "build-a-configurator",
+    "build-a-custom-storefront"
+  ]
+}

@@ -1,0 +1,19 @@
+---
+title: Selection
+description: The runtime dictionary of shopper choices.
+---
+
+A **Selection** is a dictionary mapping Choice keys to ChoiceValue keys:
+
+```json
+{
+  "frame": "walnut",
+  "fabric": "emerald-velvet",
+  "legs": "brass"
+}
+```
+
+## Invariants
+
+- A Selection is not a SKU. A SKU is a projection produced during [resolution](/concepts/resolution).
+- Keys and values in a Selection must exist in the target ProductRevision.

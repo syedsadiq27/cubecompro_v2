@@ -614,6 +614,35 @@ backoffice.cubecompro.com  (apps/backoffice)  -> Merchant Catalog & Product Auth
 
 ---
 
+## 27. Documentation Content Architecture
+
+Content under `apps/docs/content/docs/` is governed by product truth and documentation architecture, not by the product UI design system.
+
+Use this precedence:
+
+```text
+Product/domain truth (`CUBECOMPRO_CONTEXT.md`)
+  ↓
+Implemented product behavior (schema, services, exports, runtime, UI)
+  ↓
+Documentation information architecture (`meta.json` + current routes)
+  ↓
+Documentation content/style rules (`.cursor/rules/docs-content.mdc`)
+```
+
+For documentation content work:
+
+- Ignore Stage, app chrome, violet, typography, and other product UI styling guidance.
+- Preserve the surface-based architecture: Get started, Backoffice, 3D Editor, Customizer, Developers, Concepts, API, Integrations, Resources.
+- Use public product terminology in operator content; reserve exact schema names for API reference and precise developer examples.
+- Verify every capability against current repository implementation. Label unimplemented direction as **Planned** and unresolved behavior as **Open question**.
+- Prioritize product depth, operator decisions, downstream effects, troubleshooting, and observable verification over page count or marketing narrative.
+- Make public API fields, nullability, JSON payload shapes, examples, constraints, and related concepts visible from the docs themselves.
+- Remove or consolidate stale, duplicate, contradictory, and unlisted content rather than preserving parallel generations.
+- Do not prescribe or modify the Docs application's visual system while editing MDX content unless the task explicitly includes Docs UI work.
+
+---
+
 ## Golden rule
 
 **Reuse shared packages by default.**
@@ -625,4 +654,3 @@ If the current shared API is almost sufficient, extend it carefully rather than 
 Apps should compose the platform.
 
 They should not recreate it.
-

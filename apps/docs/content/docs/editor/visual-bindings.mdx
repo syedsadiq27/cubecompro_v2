@@ -1,0 +1,60 @@
+---
+title: Connect options to 3D
+description: Understand what changes in the scene, what triggers it, and what the current Editor can modify.
+---
+
+A visual binding connects one product option value to one change in the 3D scene. For example, choosing Forest Green can apply a material to the seat, while choosing No Arms can hide the arm assembly.
+
+## Authoring model
+
+For every visual behavior, identify:
+
+1. **Trigger:** the product choice and value selected by the shopper.
+2. **Target:** the named scene object or material slot that changes.
+3. **Action:** what happens to that target.
+4. **Value:** the material, visibility state, linked component, or root model used by the action.
+
+At runtime, CubeCom Pro evaluates the complete selection and returns the actions that apply. The same final selection should produce the same visual state regardless of click order.
+
+## Current Editor support
+
+The Editor's **Option → Scene Bindings** panel currently hydrates existing bindings from the product revision and supports editing:
+
+| Product action | API operation | Current control |
+| --- | --- | --- |
+| Change a surface material | `SET_MATERIAL` | Choose a material asset |
+| Show or hide a scene object | `SET_VISIBILITY` | Toggle **Visible** |
+
+The panel does not currently create new bindings. It also reports replacement and root-model operations as unsupported instead of editing them. Those operation names remain part of the GraphQL schema and resolver, but do not imply a control exists in the current Editor.
+
+## Edit a material or visibility binding
+
+1. Open the product revision in the 3D Editor.
+2. Open **Option → Scene Bindings**.
+3. Find the row whose choice key, value key, and target match the intended behavior.
+4. Choose a material or change **Visible**.
+5. Use the preview selection to activate that option value.
+6. Confirm the intended scene object changes and unrelated objects do not.
+7. Select **Save visual bindings**.
+
+An **UNSAVED** badge indicates local edits. **HYDRATED** means the panel reflects the loaded revision and has no local edits.
+
+## What reaches runtime
+
+After the revision is published, `resolveConfiguration` returns active actions in `threeD.effects` for valid selections. Each action identifies its target and provides operation-specific data. See [Resolved visual state](/customizer/resolved-visual-state).
+
+## Common mistakes
+
+- Editing a binding against a draft but testing the active published revision.
+- Reusing a target key for two different scene objects.
+- Renaming a choice/value key without updating its binding.
+- Testing only the newly selected state and missing stale visuals when switching back.
+- Assuming a linked component appears merely because it is registered; it still needs an authored replacement action.
+
+## Verify
+
+1. Preview every value with a visual binding.
+2. Switch between values repeatedly and confirm the scene returns to the correct full state.
+3. Save, reload the Editor, and confirm the binding persists.
+4. Publish the revision and confirm the Customizer response contains the expected target and action.
+5. Test one invalid selection and confirm the storefront does not claim its visual preview is complete.

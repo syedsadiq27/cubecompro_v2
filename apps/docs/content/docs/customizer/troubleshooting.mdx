@@ -1,0 +1,54 @@
+---
+title: Storefront runtime troubleshooting
+description: Diagnose revision, availability, visual, and commerce mismatches.
+---
+
+Start by recording the request's product ID, optional revision ID, `selectionsJson`, and the response's `productRevisionId` and `graphVersion`. Most runtime problems are a mismatch between one of those inputs and the authored revision.
+
+## A required option starts empty
+
+**Why:** Resolution does not insert authored defaults.
+
+**Check:** Load the revision detail and inspect `defaultValueId`. If the storefront uses defaults, translate the default value ID to its value key before the first resolve.
+
+## An unavailable value remains selected
+
+**Why:** The availability matrix does not mutate selection state.
+
+**Check:** Confirm the UI handles an explicitly `false` entry. Then apply your product's conflict policy: preserve and explain, clear, or intentionally replace. Resolve again after any change.
+
+## The selection is valid but Add to Cart is disabled
+
+**Why:** Validity and commerce mapping are separate. No mapping matched, so the commerce identity is null.
+
+**Check:** In Backoffice, review commerce mappings for the exact revision and selection. Compare choice and value keys, provider, external ID, and integration connection.
+
+## The wrong 3D state appears after rapid changes
+
+**Why:** An older request or asset load replaced newer state.
+
+**Check:** Assign request IDs, ignore stale responses, and reconcile the full visual state. Remove actions that disappeared from the new response.
+
+## A visual choice produces no effect
+
+**Check:**
+
+1. Is the whole selection valid? Choice-triggered effects are emitted only for valid selections.
+2. Does the response include the expected target key and operation?
+3. Can the renderer find the target path in the pinned root asset revision?
+4. Can it load the returned material or object document URL?
+5. Was the draft revision published and activated?
+
+## `availabilityJson` is null
+
+**Why:** Resolution could not produce a normal active result, commonly because the active revision is not published.
+
+**Check:** Inspect `valid`, `violations`, revision ID, and graph version. Do not interpret null as all values available.
+
+## JSON parsing fails
+
+Fields ending in `Json` are JSON-encoded GraphQL strings. Parse exactly once and validate the result. `selectionsJson` must encode an object; `availabilityJson` is nullable; `cartPayloadJson` is nullable.
+
+## Escalation evidence
+
+Include product and revision IDs, graph version, selection JSON, response status and violations, browser/runtime version, and a correlation or request ID. Remove tokens and customer data.

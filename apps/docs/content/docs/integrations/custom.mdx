@@ -1,0 +1,52 @@
+---
+title: Custom commerce
+description: Map Selections to any external commerce identity through CommerceMappingSet with a custom provider string.
+---
+
+Any commerce system can be integrated using the generic [commerce mapping](/concepts/commerce-mapping) mechanism with a custom `provider` string.
+
+## Steps
+
+1. Create a commerce mapping on the [product revision](/concepts/product-revision) with your provider name (e.g. `"erp"`, `"custom-cart"`).
+2. Define identity choices — which [choices](/concepts/choice) participate in the mapping.
+3. Create mappings — each mapping associates a ChoiceValue combination with your external product/variant/SKU identifiers.
+
+```graphql
+mutation {
+  replaceCommerceMappingSet(input: {
+    productRevisionId: "REVISION_ID"
+    provider: "erp"
+    identityChoiceIds: ["FRAME_CHOICE_ID", "FABRIC_CHOICE_ID", "LEGS_CHOICE_ID"]
+    mappings: [
+      {
+        choiceValueIds: ["WALNUT_ID", "BEIGE_ID", "BRASS_ID"]
+        externalId: "ERP-SKU-001"
+        sku: "CHAIR-WAL-BEI-BRA"
+      }
+    ]
+  }) { id provider mappings { externalId sku } }
+}
+```
+
+## Resolution
+
+`resolveConfiguration` returns the mapped identity in `commerce`:
+
+```json
+{
+  "commerce": {
+    "provider": "erp",
+    "sku": "CHAIR-WAL-BEI-BRA",
+    "variantReference": null,
+    "productReference": null,
+    "cartPayloadJson": null
+  }
+}
+```
+
+The `provider` field and external IDs allow you to wire any commerce backend without changing [Selection](/concepts/selection) vocabulary.
+
+## Next
+
+- [Commerce mapping](/concepts/commerce-mapping)
+- [Resolved commerce state](/customizer/resolved-commerce-state)

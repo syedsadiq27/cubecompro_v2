@@ -1,0 +1,16 @@
+{
+  "title": "Storefront runtime",
+  "pages": [
+    "index",
+    "configuration-state",
+    "rendering-choices",
+    "availability",
+    "invalid-selections",
+    "resolved-visual-state",
+    "resolved-commerce-state",
+    "cart-handoff",
+    "embedding",
+    "events-and-callbacks",
+    "troubleshooting"
+  ]
+}

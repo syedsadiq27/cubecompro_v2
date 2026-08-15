@@ -1,0 +1,37 @@
+---
+title: System architecture
+description: Technical architecture of the Kernel, Asset, Visual, Commerce, and API layers.
+---
+
+CubeCom Pro is architected into 5 discrete, decoupled layers:
+
+## The 5 Architectural Layers
+
+```text
+┌────────────────────────────────────────────────────────┐
+│ 5. API & Transport Layer (GraphQL / REST / Webhooks)   │
+├────────────────────────────────────────────────────────┤
+│ 4. Commerce Layer (CommerceMappingSet / SKU Resolution)│
+├────────────────────────────────────────────────────────┤
+│ 3. Visual Layer (ModelTarget / VisualEffect Pipeline)  │
+├────────────────────────────────────────────────────────┤
+│ 2. Asset Layer (ObjectAssetRevision / GLB Storage)     │
+├────────────────────────────────────────────────────────┤
+│ 1. Kernel Layer (Choice / ChoiceValue / Constraints)   │
+└────────────────────────────────────────────────────────┘
+```
+
+### 1. Kernel Layer
+The formal logical domain. Represents the discrete choices, values, constraints, and selection state. Computes mathematical validity and the `availabilityJson` mask. Completely independent of 3D graphics or commerce.
+
+### 2. Asset Layer
+Content-addressed immutable asset store. Manages `ObjectAsset`, `ObjectAssetRevision`, material documents, and texture files with cryptographic SHA-256 validation.
+
+### 3. Visual Layer
+Translates logical choices into 3D rendering instructions. Maps `ChoiceValue` IDs to `ModelTarget` nodes via `VisualEffect` operations (`SET_MATERIAL`, `SET_VISIBILITY`, `REPLACE_COMPONENT`, `SET_MODEL`).
+
+### 4. Commerce Layer
+Projects valid configurations onto external commerce identifiers (e.g. Shopify variant GIDs, ERP SKU codes) via `CommerceMappingSet`.
+
+### 5. API & Transport Layer
+Exposes the GraphQL schema (`schema.gql`) for authoring and runtime operations, along with REST endpoints for raw asset uploads and document payloads.

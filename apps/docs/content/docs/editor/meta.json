@@ -1,0 +1,17 @@
+{
+  "title": "3D Editor",
+  "pages": [
+    "index",
+    "models",
+    "scene-objects",
+    "materials",
+    "components",
+    "visibility",
+    "visual-bindings",
+    "replace-component",
+    "set-material",
+    "set-model",
+    "preview",
+    "troubleshooting"
+  ]
+}

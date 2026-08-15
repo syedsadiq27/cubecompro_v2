@@ -1,12 +1,14 @@
 ---
-description: CubeCom Digital Product Stage brand — docs and backoffice
-globs: apps/{docs,backoffice}/**/*.{tsx,ts,css}
+description: CubeCom Digital Product Stage brand — Backoffice product presentation, excluding documentation content
+globs: apps/backoffice/**/*.{tsx,ts,css}
 alwaysApply: false
 ---
 
 # CubeCom = The Digital Product Stage
 
-Full constitution: `docs/design-system.md` · living: `apps/docs/design-principles`
+> Scope: product UI presentation only. This rule does not govern `apps/docs/content/docs/`, documentation information architecture, or documentation prose. Docs content follows `.cursor/rules/docs-content.mdc`.
+
+Full brand direction: `docs/design-system.md`
 
 ## Signature (four things only)
 
@@ -35,5 +37,5 @@ Hero, sidebar active state, and content surfaces must speak the same spatial lan
 
 ## Ecosystem
 
-Backoffice thumbs / 3D / Customizer / Logo editor / docs covers / marketing = Stage.  
+Backoffice thumbs / 3D / Customizer / Logo editor / marketing = Stage.
 Tables, forms, filters = neutral working UI.

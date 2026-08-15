@@ -1,0 +1,31 @@
+---
+title: Scene objects and targets
+description: Understand scene inspection in Editor and create semantic targets in Backoffice or through the API.
+---
+
+A `ModelTarget` gives a visual action a stable authored address, including an optional node path or material slot. The current Editor can consume targets already present on bindings, but it does not create targets.
+
+## Current UI boundary
+
+The Editor's Scene/Objects panel is not yet a verified data-driven glTF hierarchy authoring tool. Its root label comes from the loaded product/model, while the displayed chair subtree and local visibility toggles are presentation scaffolding. The **Import model** and **Browse library** controls also do not complete an upload or selection workflow.
+
+Do not use that panel as proof that a node path or target has been persisted.
+
+## Create a target today
+
+Use Backoffice **3D Studio** on a draft:
+
+1. Select a mesh path in the model viewer.
+2. Enter a stable semantic target key.
+3. Choose `VISIBILITY` or `MATERIAL`.
+4. Create or queue the target, then save queued changes.
+
+The API exposes `createModelTarget` for the same persisted operation. The current Backoffice UI sends `productModelId`, `key`, `targetType`, `nodePath`, and an optional `materialSlot`.
+
+## Verify
+
+1. Save the target in Backoffice and reload the draft.
+2. Confirm the target appears with the expected key, type, and node path.
+3. Create or inspect a visual binding that references the target.
+4. Open Editor and confirm the hydrated binding reports the intended target key.
+5. Preview the bound value and confirm the real scene object changes.

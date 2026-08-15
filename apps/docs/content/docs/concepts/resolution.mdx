@@ -1,0 +1,36 @@
+---
+title: Resolution
+description: The deterministic evaluation contract for validity, 3D state, availability, and commerce.
+---
+
+**Resolution** (`resolveConfiguration`) evaluates a [Selection](/concepts/selection) against a [ProductRevision](/concepts/product-revision).
+
+## Schema contract
+
+```graphql
+type ResolvedConfigurationModel {
+  valid: Boolean!
+  violations: [String!]!
+  availabilityJson: String
+  threeD: Resolved3DStateModel!
+  commerce: ResolvedCommerceStateModel!
+  graphVersion: Float!
+  productRevisionId: String!
+  selectionsJson: String!
+}
+
+type Resolved3DStateModel {
+  rootObjectAssetRevisionId: String
+  activeObjectAssetRevisionIds: [String!]!
+  effects: [ResolvedVisualEffectModel!]!
+  modelId: String
+}
+
+type ResolvedCommerceStateModel {
+  provider: String
+  sku: String
+  variantReference: String
+  productReference: String
+  cartPayloadJson: String
+}
+```

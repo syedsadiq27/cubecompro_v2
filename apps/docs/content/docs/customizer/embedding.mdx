@@ -1,0 +1,43 @@
+---
+title: Storefront integration
+description: Integrate CubeCom Pro through the verified GraphQL runtime contract.
+---
+
+The supported integration boundary in this repository is the GraphQL API. Build the shopper experience in your storefront, load product revision data, and call `resolveConfiguration` as the shopper changes values.
+
+## Current capability status
+
+CubeCom Pro does not currently export a public `CustomizerApp` component, browser constructor, web component, hosted iframe URL, or `postMessage` protocol. The `@repo/customizer-ui` package contains internal suite UI primitives; it is not a turnkey external storefront SDK.
+
+Do not build an integration around examples such as `new CubeComCustomizer()`, `<CustomizerApp />`, or `CUBECOM_ADD_TO_CART` unless your deployment defines and owns that contract.
+
+## API-first integration
+
+```text
+Your product page
+      │
+      ├── load productRevisionDetail ──► choices and display metadata
+      ├── resolveConfiguration ────► validity, availability, 3D, commerce
+      └── provider cart API ───────► checkout
+```
+
+Your application owns:
+
+- selection state, defaults, loading, and error presentation;
+- choice controls and accessibility;
+- 3D renderer lifecycle and application of resolved visual actions;
+- stale-request handling and analytics;
+- translation from resolved commerce identity to the provider cart API.
+
+CubeCom Pro owns the revisioned product definition and deterministic resolution response.
+
+## If you need an iframe
+
+Host your own storefront route and define a versioned message contract between that route and its parent. Validate `event.origin`, document every message and payload, and avoid wildcard target origins in production. This is an application architecture pattern, not a CubeCom Pro public API.
+
+## Verify
+
+1. Confirm every imported package symbol exists in its package's public entry point.
+2. Confirm live traffic resolves the active published revision and preview traffic pins a draft revision.
+3. Confirm network failures leave the last confirmed state visible but keep cart blocked.
+4. Confirm cart requests use the newest resolved commerce identity.

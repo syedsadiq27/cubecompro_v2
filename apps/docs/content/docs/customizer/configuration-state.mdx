@@ -1,0 +1,64 @@
+---
+title: Configuration state
+description: Own shopper selections, choose initial values, pin revisions, and persist configurations.
+---
+
+The storefront owns the shopper's current selection as a dictionary from choice key to value key. Use stable keys from the authored revision, not display labels or database IDs.
+
+```json
+{
+  "frame": "walnut",
+  "fabric": "beige",
+  "legs": "brass"
+}
+```
+
+## Initialization sequence
+
+1. Load `productRevisionDetail` to render choices and values. Use the active revision for live traffic or an explicit draft revision for preview.
+2. Build initial state in the storefront. You may use authored default values, a saved configuration, URL state, or an empty selection.
+3. Call `resolveConfiguration` with that selection.
+4. Store the returned `selectionsJson`, validity, availability, visual state, commerce state, revision ID, and graph version as one response snapshot.
+
+`resolveConfiguration` does not currently populate `defaultValueId` for you. If you want defaults preselected, read them from the revision and add them before the first resolve.
+
+## Incomplete selections
+
+Required choices may be absent while a shopper is still configuring. The resolver reports a violation and `valid: false`; commerce fields remain null. Keep the current selection visible, prompt for the missing choice, and disable cart. Do not invent a value unless your storefront has an explicit auto-selection policy.
+
+## Update sequence
+
+When the shopper chooses a value:
+
+1. Create the next selection dictionary.
+2. Render an intentional pending state.
+3. Resolve the entire dictionary, not only the changed value.
+4. Apply the newest response atomically.
+5. Ignore an older response if the shopper changed another value while it was in flight.
+
+## Save and restore
+
+To persist a configuration, call `saveConfiguration` with the product, revision, and JSON-encoded selection:
+
+```graphql
+mutation SaveConfiguration($input: SaveConfigurationInput!) {
+  saveConfiguration(input: $input) {
+    id
+    productRevisionId
+    stateUri
+    expiresAt
+  }
+}
+```
+
+The returned ID identifies persisted state. `savedConfiguration(id)` returns storage metadata, including `stateUri`; it does not expose a documented `selectionsJson` field. Treat a `?config=` URL convention and state retrieval from `stateUri` as application design choices, not built-in Customizer behavior.
+
+When restoring state, keep the saved revision ID with the selection. Replaying old keys against a newer revision can produce unknown values or different commerce results.
+
+## Verify
+
+1. Open with no selection and confirm required choices are visibly incomplete.
+2. Open with storefront defaults and confirm the first response contains those exact keys.
+3. Refresh and restore a saved selection against its original revision.
+4. Change values quickly and confirm an older response never overwrites the newest selection.
+5. Confirm the response revision ID matches the revision displayed by the storefront.

@@ -1,0 +1,47 @@
+---
+title: Managing products
+description: Creating products, understanding current metadata controls, and changing catalog status.
+---
+
+A **Product** is the top-level catalog record that owns revision history and the pointer to the currently active revision.
+
+## Create a product
+
+1. Open **Products**.
+2. Select **Create product**.
+3. Enter the required **Name** and stable **Key**.
+4. Create the product.
+
+The current Backoffice create action sends `organizationId`, `projectId`, `name`, and `key`. It does not send a description. The API contract supports an optional description, but do not rely on the current create form to persist it.
+
+The service creates the product record. Begin configuration by creating or opening its draft revision.
+
+## Product key
+
+Treat the key as a public integration contract even though the update API currently accepts key changes. A storefront, saved configuration, analytics event, or external integration may retain it. If you must rename a key, coordinate every consumer and verify product lookup before publishing related changes.
+
+## Product status
+
+| Status | Current meaning |
+| --- | --- |
+| `DRAFT` | Product setup is not yet active. |
+| `ACTIVE` | Product has been activated; publishing also sets this status. |
+| `ARCHIVED` | Product is intentionally retired from normal active use. |
+
+Product status and revision status are different. `ACTIVE` describes the product; `PUBLISHED` describes the one current live revision.
+
+## Edit details
+
+Only treat a field as saved after reloading the product and observing the persisted value. Some current presentation controls show editable product metadata without wiring every displayed field to the server action. The verified metadata action currently persists name and key.
+
+## Archive a product
+
+The current status action can set a product to `ARCHIVED`. It does not document or implement a cascade that archives library assets. Asset lifecycle remains separate; verify references before changing assets.
+
+## Verify
+
+1. Create a product, reload the catalog, and confirm its name and key persist.
+2. Open the product and confirm a draft revision exists or create one explicitly.
+3. If metadata is edited, reload before treating the change as saved.
+4. Publish a configured draft and confirm the product becomes `ACTIVE` with the new `activeRevisionId`.
+5. Before archiving, record the active revision and test the storefront lookup behavior expected by your integration.

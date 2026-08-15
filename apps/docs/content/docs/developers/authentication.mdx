@@ -1,0 +1,28 @@
+---
+title: Authentication
+description: Project-scoped Bearer tokens, token management, and secure proxy patterns.
+---
+
+All requests to the CubeCom Pro GraphQL API require an HTTP Authorization header:
+
+```http
+Authorization: Bearer <YOUR_PROJECT_API_TOKEN>
+```
+
+## Token scoping & security
+
+1. **Admin / Authoring Tokens**: Possess mutation privileges (`createProduct`, `publishProductRevision`, `importShopifyProduct`). **Must never be exposed in client-side JavaScript.**
+2. **Storefront / Runtime Resolution**: When resolving configurations from public web applications, route queries through a backend API route (e.g. Next.js API route or Express proxy) that securely attaches the Bearer token.
+
+---
+
+## Testing credentials with curl
+
+```bash
+curl -X POST https://api.cubecompro.com/graphql \
+  -H "Authorization: Bearer $CUBECOM_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"query { health }"}'
+```
+
+Expected response: `{"data":{"health":"ok"}}`.

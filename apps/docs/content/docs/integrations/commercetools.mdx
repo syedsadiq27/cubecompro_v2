@@ -1,0 +1,25 @@
+---
+title: commercetools
+description: Intended pattern for commercetools as an external commerce identity provider.
+---
+
+commercetools integration is an intended pattern. No platform-specific connection, import, or synchronization exists in CubeCom Pro.
+
+## Current status
+
+The CubeCom Pro schema does not contain commercetools-specific types, OAuth flows, or import mutations. The integration uses the generic [commerce mapping](/concepts/commerce-mapping) mechanism.
+
+## How to use
+
+Use `CommerceMappingSet` with `provider: "commercetools"` and manually manage external identity references:
+
+1. Create a [commerce mapping](/concepts/commerce-mapping) on the product revision with `provider: "commercetools"`.
+2. Map ChoiceValue combinations to commercetools product/variant identifiers using `replaceCommerceMappingSet`.
+3. `resolveConfiguration` returns the mapped commercetools identity in the `commerce` response.
+
+The same ownership split applies: CubeCom Pro owns configuration validity; commercetools owns catalog, cart, and fulfillment.
+
+## Next
+
+- [Commerce mapping](/concepts/commerce-mapping)
+- [Custom commerce](/integrations/custom)

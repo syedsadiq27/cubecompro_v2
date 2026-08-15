@@ -1,0 +1,62 @@
+---
+title: Choices and values
+description: Design shopper decisions, stable keys, requirements, defaults, and downstream behavior.
+---
+
+A **choice** is one decision a shopper makes, such as Fabric or Base. A **value** is one allowed answer, such as Beige or Four-leg. Author them in a draft revision from the product workspace's **Options** tab.
+
+## Choice or value?
+
+Create another choice when shoppers make an independent decision and the answer may have its own availability, 3D action, or commerce identity. Add another value when it is simply another answer to an existing decision.
+
+For example, “Velvet” and “Leather” are values of Upholstery Material. “Green” belongs in a separate Upholstery Color choice only if shoppers choose material and color independently.
+
+## Create a choice
+
+1. Select **Add option**.
+2. Enter a shopper-facing name.
+3. Enter a stable key used by resolution and integrations.
+4. Choose whether the option is required.
+5. Choose the presentation/category used by Backoffice.
+6. Create the option, then add at least one value.
+
+Use keys that are short, stable, and unambiguous, such as `upholstery_material`. Display names may change; keys are contracts with storefront, visual actions, rules, and commerce mappings.
+
+## Add values
+
+Give every value a readable label and stable key. Optional color or swatch information can help an application render the value, but `metadataJson` has no platform-wide public nested schema. Coordinate its shape with the storefront that consumes it.
+
+## Required and optional choices
+
+A required choice must be present for the selection to be valid. Make a choice optional only when omission has a clear product meaning. Storefronts represent omission by leaving the key out of selection JSON.
+
+## Defaults
+
+A default is an authored recommendation, not an automatic resolver behavior. Storefronts that want preselection must read `defaultValueId`, find that value's key, add it to initial state, and resolve. The resolver does not automatically fall back when a default becomes unavailable.
+
+Before setting a default, confirm it is broadly available, visually authored, and commerce-mapped where the product must be purchasable.
+
+## Edit or delete safely
+
+Make structural changes in a draft revision. Before renaming a key, changing required state, or deleting a choice/value, inspect all downstream dependencies:
+
+- constraints that reference the value;
+- 3D visual actions triggered by the value;
+- commerce mappings containing the choice/value;
+- saved or shared configurations that contain the old key;
+- storefront code or analytics that expects the key.
+
+Deleting or repurposing keys can make old configurations invalid. Prefer a new key when the meaning changes. Published revisions remain the historical definition for existing orders and saved state.
+
+## Ordering
+
+Ordering controls the intended sequence for storefronts that sort by `sortOrder`. Put foundational decisions before dependent decisions—for example, Product Size before compatible Base—so availability changes feel predictable.
+
+## Verify
+
+1. Preview the draft and confirm every choice and value appears in the intended order.
+2. Confirm required choices block completion when omitted.
+3. Confirm defaults are applied only by storefront initialization and are valid.
+4. Exercise every constraint affected by the new or edited value.
+5. Confirm every visual value changes the expected scene target.
+6. Confirm every sellable combination resolves the intended external variant and SKU.
