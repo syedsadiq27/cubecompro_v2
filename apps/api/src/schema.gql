@@ -40,6 +40,19 @@ type ConfigurationRuleModel {
   id: ID!
 }
 
+type ConstraintTermModel {
+  choiceKey: String
+  choiceValueId: String!
+  choiceValueKey: String
+  constraintId: String!
+}
+
+type ConstraintModel {
+  id: ID!
+  productRevisionId: String!
+  terms: [ConstraintTermModel!]!
+}
+
 input ConfigurationStateInput {
   graphVersionId: String
   productId: String!
@@ -58,6 +71,11 @@ input CreateConfigurationRuleInput {
   conditionJson: String!
   effectJson: String!
   graphVersionId: String!
+}
+
+input CreateConstraintInput {
+  choiceValueIds: [String!]!
+  productRevisionId: String!
 }
 
 input CreateLibraryFolderInput {
@@ -107,7 +125,13 @@ input CreateProductAttributeInput {
   name: String!
   required: Boolean
   sortOrder: Float
-  type: AttributeType!
+  """Kernel authoring accepts SELECT only; defaults to SELECT."""
+  type: AttributeType
+}
+
+input SetProductAttributeDefaultInput {
+  attributeId: String!
+  defaultValueId: ID
 }
 
 input CreateProductInput {
@@ -209,6 +233,7 @@ type ModelTargetModel {
 type Mutation {
   createAttributeValue(input: CreateAttributeValueInput!): AttributeValueModel!
   createConfigurationRule(input: CreateConfigurationRuleInput!): ConfigurationRuleModel!
+  createConstraint(input: CreateConstraintInput!): ConstraintModel!
   createDraftGraphVersion(productId: String!, sourceGraphVersionId: String): ProductGraphVersionModel!
   createLibraryFolder(input: CreateLibraryFolderInput!): LibraryFolderModel!
   createMaterialAsset(input: CreateMaterialAssetInput!): MaterialAssetModel!
@@ -223,6 +248,8 @@ type Mutation {
   createTextureAsset(input: CreateTextureAssetInput!): TextureAssetModel!
   createVariantSelection(input: CreateVariantSelectionInput!): VariantSelectionModel!
   createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!
+  deleteAttributeValue(id: String!): Boolean!
+  deleteConstraint(id: String!): Boolean!
   deleteObjectAsset(id: String!): Boolean!
   deleteProduct(id: String!): Boolean!
   deleteTextureAsset(id: String!): Boolean!
@@ -230,6 +257,7 @@ type Mutation {
   login(input: LoginInput!): AuthPayloadModel!
   publishGraphVersion(id: String!): ProductGraphVersionModel!
   saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!
+  setProductAttributeDefault(input: SetProductAttributeDefaultInput!): ProductAttributeModel!
   updateMaterialAsset(input: UpdateMaterialAssetInput!): MaterialAssetModel!
   updateProduct(input: UpdateProductInput!): ProductModel!
   updateProfile(input: UpdateProfileInput!): AuthUserModel!
@@ -313,6 +341,7 @@ type ProductAttributeModel {
 
 type ProductGraphVersionDetailModel {
   attributes: [ProductAttributeModel!]!
+  constraints: [ConstraintModel!]!
   graphSha256: String
   graphUri: String
   id: ID!
@@ -397,6 +426,7 @@ type Query {
   productGraphVersionDetail(id: String!): ProductGraphVersionDetailModel!
   productGraphVersions(productId: String!): [ProductGraphVersionModel!]!
   productsByProject(projectId: String!): [ProductModel!]!
+  constraintsByRevision(productRevisionId: String!): [ConstraintModel!]!
   project(id: String!): ProjectModel!
   projectsByOrganization(organizationId: String!): [ProjectModel!]!
   resolveConfiguration(input: ConfigurationStateInput!): ResolvedConfigurationModel!

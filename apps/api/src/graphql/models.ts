@@ -184,6 +184,33 @@ export class ConfigurationRuleModel {
 }
 
 @ObjectType()
+export class ConstraintTermModel {
+  @Field()
+  constraintId: string;
+
+  @Field()
+  choiceValueId: string;
+
+  @Field(() => String, { nullable: true })
+  choiceKey?: string | null;
+
+  @Field(() => String, { nullable: true })
+  choiceValueKey?: string | null;
+}
+
+@ObjectType()
+export class ConstraintModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  productRevisionId: string;
+
+  @Field(() => [ConstraintTermModel])
+  terms: ConstraintTermModel[];
+}
+
+@ObjectType()
 export class ModelTargetModel {
   @Field(() => ID)
   id: string;
@@ -286,6 +313,9 @@ export class ProductGraphVersionDetailModel extends ProductGraphVersionModel {
 
   @Field(() => [ConfigurationRuleModel])
   rules: ConfigurationRuleModel[];
+
+  @Field(() => [ConstraintModel])
+  constraints: ConstraintModel[];
 
   @Field(() => [ProductModelAssetModel])
   models: ProductModelAssetModel[];
@@ -650,14 +680,35 @@ export class CreateProductAttributeInput {
   @Field()
   name: string;
 
-  @Field(() => AttributeType)
-  type: AttributeType;
+  @Field(() => AttributeType, {
+    nullable: true,
+    description: 'Kernel authoring accepts SELECT only; defaults to SELECT.',
+  })
+  type?: AttributeType;
 
   @Field(() => Boolean, { nullable: true })
   required?: boolean;
 
   @Field(() => Number, { nullable: true })
   sortOrder?: number;
+}
+
+@InputType()
+export class SetProductAttributeDefaultInput {
+  @Field()
+  attributeId: string;
+
+  @Field(() => ID, { nullable: true })
+  defaultValueId?: string | null;
+}
+
+@InputType()
+export class CreateConstraintInput {
+  @Field()
+  productRevisionId: string;
+
+  @Field(() => [String])
+  choiceValueIds: string[];
 }
 
 @InputType()

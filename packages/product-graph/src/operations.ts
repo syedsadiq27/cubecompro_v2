@@ -362,6 +362,16 @@ export const PRODUCT_GRAPH_VERSION_DETAIL_QUERY = `
         conditionJson
         effectJson
       }
+      constraints {
+        id
+        productRevisionId
+        terms {
+          constraintId
+          choiceValueId
+          choiceKey
+          choiceValueKey
+        }
+      }
       models {
         id
         key
@@ -405,6 +415,57 @@ export const CREATE_PRODUCT_ATTRIBUTE_MUTATION = `
       name
       type
     }
+  }
+`;
+
+export const SET_PRODUCT_ATTRIBUTE_DEFAULT_MUTATION = `
+  mutation SetProductAttributeDefault($input: SetProductAttributeDefaultInput!) {
+    setProductAttributeDefault(input: $input) {
+      id
+      defaultValueId
+    }
+  }
+`;
+
+export const CREATE_CONSTRAINT_MUTATION = `
+  mutation CreateConstraint($input: CreateConstraintInput!) {
+    createConstraint(input: $input) {
+      id
+      productRevisionId
+      terms {
+        constraintId
+        choiceValueId
+        choiceKey
+        choiceValueKey
+      }
+    }
+  }
+`;
+
+export const DELETE_CONSTRAINT_MUTATION = `
+  mutation DeleteConstraint($id: String!) {
+    deleteConstraint(id: $id)
+  }
+`;
+
+export const CONSTRAINTS_BY_REVISION_QUERY = `
+  query ConstraintsByRevision($productRevisionId: String!) {
+    constraintsByRevision(productRevisionId: $productRevisionId) {
+      id
+      productRevisionId
+      terms {
+        constraintId
+        choiceValueId
+        choiceKey
+        choiceValueKey
+      }
+    }
+  }
+`;
+
+export const DELETE_ATTRIBUTE_VALUE_MUTATION = `
+  mutation DeleteAttributeValue($id: String!) {
+    deleteAttributeValue(id: $id)
   }
 `;
 

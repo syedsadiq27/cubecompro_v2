@@ -26,6 +26,8 @@ export type { MaterialDocument, SetMaterialValue } from './materials.js';
 export type {
   GraphAttribute,
   GraphAttributeValue,
+  GraphConstraint,
+  GraphConstraintTerm,
   GraphDetail,
   GraphModel,
   GraphObjectAsset,
@@ -39,3 +41,23 @@ export type {
   ParsedObjectMetadata,
   ParsedObjectNode,
 } from './types.js';
+export {
+  FORBIDDEN_CHOICE_VALUE_METADATA_KEYS,
+  KERNEL_AUTHORING_CHOICE_TYPE,
+  LEGACY_CHOICE_TYPES,
+  assertDescriptiveChoiceValueMetadata,
+  assertKernelAuthoringChoiceType,
+  findForbiddenChoiceValueMetadataKeys,
+  initializeSelection,
+  isKernelAuthoringChoiceType,
+  isSelectionComplete,
+} from './kernel.js';
+export type {
+  ChoiceDefaultSpec,
+  ChoiceKey,
+  ChoiceRequiredSpec,
+  ChoiceValueKey,
+  KernelAuthoringChoiceType,
+  LegacyChoiceType,
+  Selection,
+} from './kernel.js';

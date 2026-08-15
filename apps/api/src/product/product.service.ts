@@ -12,6 +12,12 @@ import {
 } from '@prisma/client';
 import { DocumentStoreService } from '../documents/document-store.service';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  assertDefaultValueBelongsToAttribute,
+  assertDescriptiveAttributeValueMetadata,
+  assertKernelAuthoringAttributeType,
+} from './kernel-authoring';
+import { ConstraintService } from './constraint.service';
 
 const graphDetailInclude = {
   attributes: {
@@ -19,6 +25,11 @@ const graphDetailInclude = {
     orderBy: { sortOrder: 'asc' as const },
   },
   rules: true,
+  constraints: {
+    include: {
+      terms: true,
+    },
+  },
   models: { include: { targets: true } },
   variants: { include: { selections: true } },
 } satisfies Prisma.ProductGraphVersionInclude;
@@ -27,7 +38,8 @@ const graphDetailInclude = {
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly documents: DocumentStoreService
+    private readonly documents: DocumentStoreService,
+    private readonly constraints: ConstraintService
   ) {}
 
   async create(input: {
@@ -277,6 +289,23 @@ export class ProductService {
         });
       }
 
+      for (const constraint of source.constraints) {
+        const termValueIds = constraint.terms
+          .map((term) => valueIdMap.get(term.choiceValueId))
+          .filter((id): id is string => Boolean(id));
+        if (termValueIds.length < 2) continue;
+        await tx.constraint.create({
+          data: {
+            productRevisionId: draft.id,
+            terms: {
+              create: termValueIds.map((choiceValueId) => ({
+                choiceValueId,
+              })),
+            },
+          },
+        });
+      }
+
       for (const model of source.models) {
         const createdModel = await tx.productModel.create({
           data: {
@@ -404,17 +433,19 @@ export class ProductService {
     graphVersionId: string;
     key: string;
     name: string;
-    type: AttributeType;
+    type?: AttributeType;
     required?: boolean;
     sortOrder?: number;
   }) {
     await this.assertDraft(input.graphVersionId);
+    const type = input.type ?? AttributeType.SELECT;
+    assertKernelAuthoringAttributeType(type);
     return this.prisma.productAttribute.create({
       data: {
         graphVersionId: input.graphVersionId,
         key: input.key,
         name: input.name,
-        type: input.type,
+        type,
         required: input.required ?? true,
         sortOrder: input.sortOrder ?? 0,
       },
@@ -443,6 +474,7 @@ export class ProductService {
       } catch {
         throw new BadRequestException('metadataJson must be valid JSON');
       }
+      assertDescriptiveAttributeValueMetadata(metadata);
     }
 
     return this.prisma.attributeValue.create({
@@ -453,6 +485,57 @@ export class ProductService {
         sortOrder: input.sortOrder ?? 0,
         metadata,
       },
+    });
+  }
+
+  async deleteAttributeValue(id: string) {
+    const value = await this.prisma.attributeValue.findUnique({
+      where: { id },
+      include: { attribute: true },
+    });
+    if (!value) {
+      throw new NotFoundException('Attribute value not found');
+    }
+    await this.assertDraft(value.attribute.graphVersionId);
+    await this.constraints.assertChoiceValueNotReferenced(id);
+    await this.prisma.attributeValue.delete({ where: { id } });
+    return true;
+  }
+
+  async setAttributeDefaultValue(input: {
+    attributeId: string;
+    defaultValueId: string | null;
+  }) {
+    const attribute = await this.prisma.productAttribute.findUnique({
+      where: { id: input.attributeId },
+    });
+    if (!attribute) {
+      throw new NotFoundException('Attribute not found');
+    }
+    await this.assertDraft(attribute.graphVersionId);
+
+    if (input.defaultValueId == null) {
+      return this.prisma.productAttribute.update({
+        where: { id: input.attributeId },
+        data: { defaultValueId: null },
+      });
+    }
+
+    const value = await this.prisma.attributeValue.findUnique({
+      where: { id: input.defaultValueId },
+    });
+    if (!value) {
+      throw new NotFoundException('Attribute value not found');
+    }
+    assertDefaultValueBelongsToAttribute({
+      attributeId: attribute.id,
+      valueAttributeId: value.attributeId,
+      valueId: value.id,
+    });
+
+    return this.prisma.productAttribute.update({
+      where: { id: input.attributeId },
+      data: { defaultValueId: value.id },
     });
   }
 
@@ -680,6 +763,13 @@ export class ProductService {
         id: rule.id,
         condition: rule.condition,
         effect: rule.effect,
+      })),
+      constraints: detail.constraints.map((constraint) => ({
+        id: constraint.id,
+        productRevisionId: constraint.productRevisionId,
+        terms: constraint.terms.map((term) => ({
+          choiceValueId: term.choiceValueId,
+        })),
       })),
       models: detail.models.map((model) => ({
         id: model.id,

@@ -291,6 +291,7 @@ model ProductGraphVersion {
   activeFor           Product?             @relation("ActiveGraphVersion")
   attributes          ProductAttribute[]
   rules               ConfigurationRule[]
+  constraints         Constraint[]
   models              ProductModel[]
   variants            ProductVariant[]
   savedConfigurations SavedConfiguration[]
@@ -331,6 +332,7 @@ model AttributeValue {
   defaultFor        ProductAttribute?  @relation("AttributeDefault")
   visualEffects     VisualEffect[]
   variantSelections VariantSelection[]
+  constraintTerms   ConstraintTerm[]
 
   @@unique([attributeId, key])
   @@index([attributeId])
@@ -345,6 +347,27 @@ model ConfigurationRule {
   graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
 
   @@index([graphVersionId])
+}
+
+model Constraint {
+  id                 String @id @default(cuid())
+  productRevisionId  String
+
+  productRevision ProductGraphVersion @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  terms           ConstraintTerm[]
+
+  @@index([productRevisionId])
+}
+
+model ConstraintTerm {
+  constraintId  String
+  choiceValueId String
+
+  constraint  Constraint     @relation(fields: [constraintId], references: [id], onDelete: Cascade)
+  choiceValue AttributeValue @relation(fields: [choiceValueId], references: [id], onDelete: Restrict)
+
+  @@id([constraintId, choiceValueId])
+  @@index([choiceValueId])
 }
 
 model ProductModel {

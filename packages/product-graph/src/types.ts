@@ -21,6 +21,19 @@ export type GraphRule = {
   effectJson: string;
 };
 
+export type GraphConstraintTerm = {
+  constraintId: string;
+  choiceValueId: string;
+  choiceKey?: string | null;
+  choiceValueKey?: string | null;
+};
+
+export type GraphConstraint = {
+  id: string;
+  productRevisionId: string;
+  terms: GraphConstraintTerm[];
+};
+
 export type GraphTarget = {
   id: string;
   key: string;
@@ -67,6 +80,7 @@ export type GraphDetail = {
   graphUri?: string | null;
   attributes: GraphAttribute[];
   rules: GraphRule[];
+  constraints: GraphConstraint[];
   models: GraphModel[];
   visualEffects: GraphVisualEffect[];
   variants: GraphVariant[];

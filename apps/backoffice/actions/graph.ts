@@ -141,7 +141,7 @@ export async function createAttributeAction(
           graphVersionId: String(formData.get('graphVersionId') ?? ''),
           key: String(formData.get('key') ?? '').trim(),
           name: String(formData.get('name') ?? '').trim(),
-          type: String(formData.get('type') ?? 'SELECT'),
+          type: 'SELECT',
           required: formData.get('required') === 'on',
           sortOrder: Number(formData.get('sortOrder') ?? 0),
         },
