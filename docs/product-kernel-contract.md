@@ -90,3 +90,29 @@ deleteConstraint(id)
 
 Invariants: ≥2 terms, same revision, one value per Choice, no semantic duplicate.
 Deleting a ChoiceValue referenced by a Constraint is rejected.
+
+## Legacy ConfigurationRule migration (Commit 2b)
+
+Recognized shape only:
+
+```text
+condition: { all: [{ attr, eq }, ...] } | { attr, eq }
+effect:    { forbid: { attr, eq } }
+```
+
+→ Constraint terms = condition values + forbidden value.
+
+Unsupported (left in place, reported): `require`, `any`, other effect shapes.
+
+Failed: keys that do not resolve to ChoiceValues on the revision.
+
+New `createConfigurationRule` writes are blocked; use `createConstraint`.
+
+CLI:
+
+```bash
+yarn workspace api kernel:migrate-rules:dry
+yarn workspace api kernel:migrate-rules
+```
+
+Cutover gate passes when `failed === 0` and every rule is `migrated` or `unsupported`.

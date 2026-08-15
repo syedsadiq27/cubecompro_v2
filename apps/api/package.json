@@ -30,7 +30,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "kernel:migrate-rules": "ts-node -r tsconfig-paths/register src/product/run-legacy-rule-migration.ts",
+    "kernel:migrate-rules:dry": "ts-node -r tsconfig-paths/register src/product/run-legacy-rule-migration.ts --dry-run"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",

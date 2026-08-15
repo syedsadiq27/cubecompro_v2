@@ -146,14 +146,8 @@ export class ProductResolver {
   @Mutation(() => ConfigurationRuleModel)
   async createConfigurationRule(
     @Args('input') input: CreateConfigurationRuleInput
-  ) {
-    const rule = await this.products.createRule(input);
-    return {
-      id: rule.id,
-      graphVersionId: rule.graphVersionId,
-      conditionJson: JSON.stringify(rule.condition),
-      effectJson: JSON.stringify(rule.effect),
-    };
+  ): Promise<ConfigurationRuleModel> {
+    await this.products.createRule(input);
   }
 
   @Mutation(() => ProductModelAssetModel)

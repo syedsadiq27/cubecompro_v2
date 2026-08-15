@@ -539,29 +539,14 @@ export class ProductService {
     });
   }
 
-  async createRule(input: {
+  async createRule(_input: {
     graphVersionId: string;
     conditionJson: string;
     effectJson: string;
-  }) {
-    await this.assertDraft(input.graphVersionId);
-    let condition: Prisma.InputJsonValue;
-    let effect: Prisma.InputJsonValue;
-    try {
-      condition = JSON.parse(input.conditionJson) as Prisma.InputJsonValue;
-      effect = JSON.parse(input.effectJson) as Prisma.InputJsonValue;
-    } catch {
-      throw new BadRequestException(
-        'conditionJson and effectJson must be valid JSON'
-      );
-    }
-    return this.prisma.configurationRule.create({
-      data: {
-        graphVersionId: input.graphVersionId,
-        condition,
-        effect,
-      },
-    });
+  }): Promise<never> {
+    throw new BadRequestException(
+      'ConfigurationRule writes are blocked. Use createConstraint with ChoiceValue ids.'
+    );
   }
 
   async createProductModel(input: {
