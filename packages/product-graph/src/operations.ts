@@ -614,6 +614,22 @@ export const DELETE_COMMERCE_MAPPING_SET_MUTATION = `
   }
 `;
 
+export const RESOLVE_COMMERCE_QUERY = `
+  query ResolveCommerce($input: ResolveCommerceInput!) {
+    resolveCommerce(input: $input) {
+      status
+      provider
+      externalReference {
+        type
+        id
+        sku
+      }
+      identitySignature
+      identityJson
+    }
+  }
+`;
+
 export const CREATE_PRODUCT_VARIANT_MUTATION = `
   mutation CreateProductVariant($input: CreateProductVariantInput!) {
     createProductVariant(input: $input) {

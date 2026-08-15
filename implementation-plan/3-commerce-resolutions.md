@@ -479,7 +479,7 @@ then
 projectCommerceIdentity()
 + canonical identity signature
 + exact pure resolution
-+ tests
++ tests — implemented
 
 then
 

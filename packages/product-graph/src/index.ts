@@ -82,12 +82,15 @@ export {
   CommerceNormalizeError,
   canonicalizeCommerceIdentity,
   normalizeCommerceMappingSet,
+  projectCommerceIdentity,
+  resolveCommerce,
 } from './commerce.js';
 export type {
   CommerceExternalReference,
   CommerceIdentity,
   CommerceMapping,
   CommerceMappingSet,
+  CommerceResolution,
   CommerceRevisionChoice,
   NormalizeCommerceMappingInput,
   NormalizeCommerceMappingSetInput,

@@ -1,8 +1,10 @@
+import { BadRequestException } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   ChoiceModel,
   ChoiceValueModel,
   CommerceMappingSetModel,
+  CommerceResolutionModel,
   ConfigurationRuleModel,
   ConstraintModel,
   CreateChoiceInput,
@@ -23,6 +25,7 @@ import {
   ProductRevisionModel,
   ProductVariantModel,
   ReplaceCommerceMappingSetInput,
+  ResolveCommerceInput,
   SetChoiceDefaultInput,
   UpdateProductInput,
   VariantSelectionModel,
@@ -190,6 +193,58 @@ export class ProductResolver {
   @Mutation(() => Boolean)
   deleteCommerceMappingSet(@Args('id') id: string) {
     return this.commerceMappings.deleteMappingSet(id);
+  }
+
+  @Query(() => CommerceResolutionModel)
+  async resolveCommerce(@Args('input') input: ResolveCommerceInput) {
+    let selection: Record<string, string>;
+    try {
+      const parsed = JSON.parse(input.selectionJson) as unknown;
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error('selectionJson must be an object');
+      }
+      selection = {};
+      for (const [key, value] of Object.entries(parsed)) {
+        if (typeof value !== 'string' || value.length === 0) {
+          throw new Error(
+            `selection value for ${key} must be a non-empty string`
+          );
+        }
+        selection[key] = value;
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Invalid selectionJson'
+      );
+    }
+
+    const result = await this.commerceMappings.resolveSelection({
+      productRevisionId: input.productRevisionId,
+      provider: input.provider,
+      selection,
+    });
+
+    if (result.resolution.status === 'RESOLVED') {
+      return {
+        status: result.resolution.status,
+        provider: result.resolution.provider,
+        externalReference: result.resolution.externalReference,
+        identitySignature: result.identitySignature,
+        identityJson: JSON.stringify(result.identity),
+      };
+    }
+
+    return {
+      status: result.resolution.status,
+      provider: null,
+      externalReference: null,
+      identitySignature: result.identitySignature,
+      identityJson: JSON.stringify(result.identity),
+    };
   }
 
   @Mutation(() => ConfigurationRuleModel)

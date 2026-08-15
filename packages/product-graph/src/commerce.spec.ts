@@ -2,6 +2,8 @@ import {
   CommerceNormalizeError,
   canonicalizeCommerceIdentity,
   normalizeCommerceMappingSet,
+  projectCommerceIdentity,
+  resolveCommerce,
 } from './commerce';
 
 const revisionChoices = [
@@ -167,5 +169,115 @@ describe('normalizeCommerceMappingSet', () => {
         { frame: 'walnut', warranty: null }
       )
     ).toBe('[["frame","walnut"],["warranty",null]]');
+  });
+});
+
+describe('projectCommerceIdentity / resolveCommerce', () => {
+  const mappingSet = normalizeCommerceMappingSet({
+    productRevisionId: 'rev-1',
+    provider: 'shopify',
+    identityChoiceKeys: ['frame', 'warranty'],
+    revisionChoices,
+    mappings: [
+      {
+        externalId: 'var-wal',
+        sku: 'SKU-WAL',
+        terms: [{ choiceKey: 'frame', valueKey: 'walnut' }],
+      },
+      {
+        externalId: 'var-wal-ext',
+        terms: [
+          { choiceKey: 'frame', valueKey: 'walnut' },
+          { choiceKey: 'warranty', valueKey: 'extended' },
+        ],
+      },
+      {
+        externalId: 'var-oak',
+        terms: [{ choiceKey: 'frame', valueKey: 'oak' }],
+      },
+    ],
+  });
+
+  it('projects only identity keys; absent optional → null', () => {
+    expect(
+      projectCommerceIdentity(
+        { frame: 'walnut', stitching: 'red' },
+        ['frame', 'warranty']
+      )
+    ).toEqual({ frame: 'walnut', warranty: null });
+  });
+
+  it('resolves exact identity including optional null', () => {
+    expect(
+      resolveCommerce({
+        selection: { frame: 'walnut', stitching: 'red' },
+        mappingSet,
+      })
+    ).toEqual({
+      status: 'RESOLVED',
+      provider: 'shopify',
+      externalReference: {
+        type: 'VARIANT',
+        id: 'var-wal',
+        sku: 'SKU-WAL',
+      },
+    });
+  });
+
+  it('resolves when optional identity Choice is selected', () => {
+    expect(
+      resolveCommerce({
+        selection: {
+          frame: 'walnut',
+          warranty: 'extended',
+          stitching: 'blue',
+        },
+        mappingSet,
+      })
+    ).toEqual({
+      status: 'RESOLVED',
+      provider: 'shopify',
+      externalReference: { type: 'VARIANT', id: 'var-wal-ext' },
+    });
+  });
+
+  it('returns UNMAPPED when no exact mapping exists', () => {
+    expect(
+      resolveCommerce({
+        selection: { frame: 'oak', warranty: 'extended' },
+        mappingSet,
+      })
+    ).toEqual({ status: 'UNMAPPED' });
+  });
+
+  it('empty identityChoiceKeys projects {} and resolves the single mapping', () => {
+    const single = normalizeCommerceMappingSet({
+      productRevisionId: 'rev-1',
+      provider: 'shopify',
+      identityChoiceKeys: [],
+      revisionChoices,
+      mappings: [{ externalId: 'only', terms: [] }],
+    });
+    expect(projectCommerceIdentity({ frame: 'walnut' }, [])).toEqual({});
+    expect(
+      resolveCommerce({
+        selection: { frame: 'walnut', stitching: 'red' },
+        mappingSet: single,
+      })
+    ).toEqual({
+      status: 'RESOLVED',
+      provider: 'shopify',
+      externalReference: { type: 'VARIANT', id: 'only' },
+    });
+  });
+
+  it('does not validate kernel completeness (missing required still projects)', () => {
+    expect(projectCommerceIdentity({}, ['frame', 'warranty'])).toEqual({
+      frame: null,
+      warranty: null,
+    });
+    expect(resolveCommerce({ selection: {}, mappingSet })).toEqual({
+      status: 'UNMAPPED',
+    });
   });
 });

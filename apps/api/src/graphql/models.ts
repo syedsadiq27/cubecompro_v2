@@ -937,6 +937,48 @@ export class ReplaceCommerceMappingSetInput {
 }
 
 @InputType()
+export class ResolveCommerceInput {
+  @Field()
+  productRevisionId: string;
+
+  @Field()
+  provider: string;
+
+  @Field()
+  selectionJson: string;
+}
+
+@ObjectType()
+export class CommerceExternalReferenceModel {
+  @Field()
+  type: string;
+
+  @Field()
+  id: string;
+
+  @Field(() => String, { nullable: true })
+  sku?: string | null;
+}
+
+@ObjectType()
+export class CommerceResolutionModel {
+  @Field()
+  status: string;
+
+  @Field(() => String, { nullable: true })
+  provider?: string | null;
+
+  @Field(() => CommerceExternalReferenceModel, { nullable: true })
+  externalReference?: CommerceExternalReferenceModel | null;
+
+  @Field()
+  identitySignature: string;
+
+  @Field()
+  identityJson: string;
+}
+
+@InputType()
 export class CreateLibraryFolderInput {
   @Field()
   organizationId: string;

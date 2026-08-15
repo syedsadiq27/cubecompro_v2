@@ -203,6 +203,26 @@ input ReplaceCommerceMappingSetInput {
   provider: String!
 }
 
+input ResolveCommerceInput {
+  productRevisionId: String!
+  provider: String!
+  selectionJson: String!
+}
+
+type CommerceExternalReferenceModel {
+  id: String!
+  sku: String
+  type: String!
+}
+
+type CommerceResolutionModel {
+  externalReference: CommerceExternalReferenceModel
+  identityJson: String!
+  identitySignature: String!
+  provider: String
+  status: String!
+}
+
 type CommerceIdentityChoiceModel {
   choiceId: String!
   choiceKey: String!
@@ -486,6 +506,7 @@ type Query {
   commerceMappingSet(productRevisionId: String!, provider: String!): CommerceMappingSetModel!
   commerceMappingSetsByRevision(productRevisionId: String!): [CommerceMappingSetModel!]!
   constraintsByRevision(productRevisionId: String!): [ConstraintModel!]!
+  resolveCommerce(input: ResolveCommerceInput!): CommerceResolutionModel!
   project(id: String!): ProjectModel!
   projectsByOrganization(organizationId: String!): [ProjectModel!]!
   resolveConfiguration(input: ConfigurationStateInput!): ResolvedConfigurationModel!

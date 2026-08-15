@@ -1,12 +1,12 @@
 /**
- * Commerce mapping set domain contract (Phase 3A).
+ * Commerce mapping set domain contract (Phase 3A) and exact resolution (Phase 3B).
  *
  * Persistence is relational (set + identity choices + mappings + terms).
- * This module only normalizes persisted/authored facts into the frozen
- * CommerceMappingSet shape. Resolution (3B) is out of scope.
+ * normalizeCommerceMappingSet reads authored facts into the frozen domain shape.
+ * resolveCommerce projects Selection → identity → exact lookup (no provider I/O).
  */
 
-import type { ChoiceKey, ChoiceValueKey } from './kernel.js';
+import type { ChoiceKey, ChoiceValueKey, Selection } from './kernel.js';
 
 export type CommerceIdentity = Record<ChoiceKey, ChoiceValueKey | null>;
 
@@ -27,6 +27,16 @@ export type CommerceMappingSet = {
   identityChoiceKeys: ChoiceKey[];
   mappings: CommerceMapping[];
 };
+
+export type CommerceResolution =
+  | {
+      status: 'RESOLVED';
+      provider: string;
+      externalReference: CommerceExternalReference;
+    }
+  | {
+      status: 'UNMAPPED';
+    };
 
 export type CommerceRevisionChoice = {
   key: ChoiceKey;
@@ -75,6 +85,65 @@ export function canonicalizeCommerceIdentity(
     return [key, value] as [ChoiceKey, ChoiceValueKey | null];
   });
   return JSON.stringify(pairs);
+}
+
+/**
+ * Project a kernel Selection onto commerce identity dimensions.
+ * Keys outside identityChoiceKeys are ignored.
+ * Absent identity keys become null (optional / not selected).
+ * Does not validate completeness or constraints — caller owns that.
+ */
+export function projectCommerceIdentity(
+  selection: Selection,
+  identityChoiceKeys: readonly ChoiceKey[]
+): CommerceIdentity {
+  const identity: CommerceIdentity = {};
+  for (const key of identityChoiceKeys) {
+    if (Object.prototype.hasOwnProperty.call(selection, key)) {
+      identity[key] = selection[key]!;
+    } else {
+      identity[key] = null;
+    }
+  }
+  return identity;
+}
+
+/**
+ * Exact commerce resolution against a normalized CommerceMappingSet.
+ * Does not validate Selection, query providers, or apply fallback/partial match.
+ */
+export function resolveCommerce(input: {
+  selection: Selection;
+  mappingSet: CommerceMappingSet;
+}): CommerceResolution {
+  const identity = projectCommerceIdentity(
+    input.selection,
+    input.mappingSet.identityChoiceKeys
+  );
+  const signature = canonicalizeCommerceIdentity(
+    input.mappingSet.identityChoiceKeys,
+    identity
+  );
+
+  const bySignature = new Map<string, CommerceMapping>();
+  for (const mapping of input.mappingSet.mappings) {
+    const key = canonicalizeCommerceIdentity(
+      input.mappingSet.identityChoiceKeys,
+      mapping.identity
+    );
+    bySignature.set(key, mapping);
+  }
+
+  const match = bySignature.get(signature);
+  if (!match) {
+    return { status: 'UNMAPPED' };
+  }
+
+  return {
+    status: 'RESOLVED',
+    provider: input.mappingSet.provider,
+    externalReference: match.externalReference,
+  };
 }
 
 export function normalizeCommerceMappingSet(

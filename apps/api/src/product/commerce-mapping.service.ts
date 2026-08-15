@@ -7,8 +7,12 @@ import {
   CommerceNormalizeError,
   canonicalizeCommerceIdentity,
   normalizeCommerceMappingSet,
+  projectCommerceIdentity,
+  resolveCommerce,
   type CommerceMappingSet as DomainCommerceMappingSet,
+  type CommerceResolution,
   type CommerceRevisionChoice,
+  type Selection,
 } from '@repo/product-graph';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -293,5 +297,42 @@ export class CommerceMappingService {
     throw new BadRequestException(
       `ChoiceValue is referenced by CommerceMapping(s): ${ids.join(', ')}. Resolve commerce mappings before deleting.`
     );
+  }
+
+  /**
+   * Exact mapping lookup only. Does not run kernel validate/completeness.
+   */
+  async resolveSelection(input: {
+    productRevisionId: string;
+    provider: string;
+    selection: Selection;
+  }): Promise<{
+    domain: DomainCommerceMappingSet;
+    resolution: CommerceResolution;
+    identity: ReturnType<typeof projectCommerceIdentity>;
+    identitySignature: string;
+  }> {
+    const set = await this.getByRevisionProvider(
+      input.productRevisionId,
+      input.provider
+    );
+    const domain = await this.normalizePersisted(set);
+    const identity = projectCommerceIdentity(
+      input.selection,
+      domain.identityChoiceKeys
+    );
+    const resolution = resolveCommerce({
+      selection: input.selection,
+      mappingSet: domain,
+    });
+    return {
+      domain,
+      resolution,
+      identity,
+      identitySignature: canonicalizeCommerceIdentity(
+        domain.identityChoiceKeys,
+        identity
+      ),
+    };
   }
 }
