@@ -45,16 +45,24 @@ yarn db:setup
 yarn workspace api dev
 ```
 
-The API runs `prisma migrate deploy` on boot. Set `SEED=true` to also seed the demo user/product when that user is missing (`SEED=force` to always rerun).
+The API **prestart** (`prepare-environment`) runs before listen:
+
+1. `prisma migrate deploy` (fail hard)
+2. optional `SEED` (`true` / `force` / off)
+3. kernel `ConfigurationRule` → `Constraint` migration (`KERNEL_MIGRATE_RULES=on` by default; set `off` to skip)
+
+Docker entrypoint: `docker-entrypoint.sh` → prepare → `main` with `PREPARE_DONE=1`.
 
 ```bash
 yarn db:up && yarn db:setup && yarn workspace api dev
 ```
 
+- `yarn workspace api prepare:env` — run prestart alone
 - `yarn db:migrate` — `prisma migrate deploy` (create tables)
 - `yarn db:migrate:dev` — `prisma migrate dev` (author a new migration)
 - `yarn db:seed` — demo org / showroom / CHAIR-01 graph (published v1)
 - `yarn db:setup` — migrate deploy + seed
+- `yarn workspace api kernel:migrate-rules:dry` — coverage report only
 
 GraphQL: [http://localhost:3005/graphql](http://localhost:3005/graphql)
 
