@@ -122,3 +122,21 @@ export type GraphVersionSummary = {
   version?: number;
   status: string;
 };
+
+/**
+ * Canonical Storefront Runtime Published Revision Artifact Contract.
+ * Invariant: productId, graphVersionId, sceneVersionId, and publishedRevisionId MUST remain distinct concepts.
+ */
+export type PublishedRevision = {
+  productId: string;
+  graphVersionId: string;
+  sceneVersionId: string;
+  publishedRevisionId: string;
+  publishedAt: string;
+  graph: GraphDetail;
+  rules: GraphRule[];
+  variants: GraphVariant[];
+  visualEffects: GraphVisualEffect[];
+  environmentPreset?: string;
+};
+

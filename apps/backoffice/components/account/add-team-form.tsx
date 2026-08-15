@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Button, Field, Input, Typography } from '@repo/ui';
 
 export function AddTeamForm({
   organizationId,
@@ -26,21 +27,19 @@ export function AddTeamForm({
         });
       }}
     >
-      <input
-        name="name"
-        required
-        placeholder="Team name"
-        className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
-      />
-      <button
-        type="submit"
-        disabled={pending}
-        className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
-      >
+      <Field label="Team name" htmlFor="team-name">
+        <Input
+          id="team-name"
+          name="name"
+          required
+          placeholder="Team name"
+        />
+      </Field>
+      <Button type="submit" disabled={pending} size="md">
         {pending ? 'Creating…' : 'Create team'}
-      </button>
+      </Button>
       {message ? (
-        <p className="text-sm text-[var(--bo-muted)]">{message}</p>
+        <Typography variant="support">{message}</Typography>
       ) : null}
     </form>
   );

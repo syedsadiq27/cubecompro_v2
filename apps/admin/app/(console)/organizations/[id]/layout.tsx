@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { StatusBadge } from '@/components/suite-ui';
 import { OrgSubnav } from '@/components/org-subnav';
-import { StatusBadge } from '@/components/status-badge';
 import { loadResolved } from '@/lib/api';
+import { tenantStatusRole, trialLabel } from '@/lib/format';
 
 export default async function OrganizationLayout({
   children,
@@ -36,8 +37,8 @@ export default async function OrganizationLayout({
             <span>{resolved.planName ?? 'No plan'}</span>
             <span className="text-[var(--line)]">·</span>
             <StatusBadge
-              status={resolved.status}
-              trialEndsAt={resolved.trialEndsAt}
+              role={tenantStatusRole(resolved.status)}
+              label={trialLabel(resolved.status, resolved.trialEndsAt)}
             />
             <span className="type-meta font-mono">{resolved.slug}</span>
           </p>

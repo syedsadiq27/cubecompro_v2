@@ -1,5 +1,6 @@
 import type { SelectHTMLAttributes } from 'react';
 import { cn } from '../lib/cn';
+import { radiusClass } from '../lib/radius';
 
 export function Select({
   className,
@@ -10,7 +11,8 @@ export function Select({
   return (
     <select
       className={cn(
-        'ui:h-9 ui:w-full ui:appearance-none ui:rounded-[7px] ui:border ui:border-[var(--line)] ui:bg-[var(--surface-pure)] ui:bg-[length:12px] ui:bg-[position:right_12px_center] ui:bg-no-repeat ui:px-3 ui:pr-9 ui:text-[13px] ui:text-[var(--ink)] ui:outline-none ui:transition-colors ui:focus:border-[var(--ink)]/40 ui:disabled:cursor-not-allowed ui:disabled:opacity-50',
+        'ui:h-9 ui:w-full ui:appearance-none ui:border ui:border-[var(--line)] ui:bg-[var(--surface-pure)] ui:bg-[length:12px] ui:bg-[position:right_12px_center] ui:bg-no-repeat ui:px-3 ui:pr-9 ui:text-[13px] ui:text-[var(--ink)] ui:outline-none ui:transition-colors ui:focus:border-[var(--brand)] ui:disabled:cursor-not-allowed ui:disabled:opacity-50',
+        radiusClass('control'),
         className
       )}
       style={{

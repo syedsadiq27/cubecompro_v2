@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
+import { Button, Field, Input, Select } from '@repo/ui';
 import {
   deleteOverrideAction,
   upsertOverrideAction,
@@ -61,9 +62,11 @@ export function OverrideForm({
                     : row.value}
                 </span>
               </span>
-              <button
+              <Button
                 type="button"
-                className="type-meta hover:text-[var(--danger)]"
+                variant="ghost"
+                size="sm"
+                className="ui:text-[var(--text-muted)] ui:hover:text-[var(--danger)]"
                 onClick={() =>
                   start(async () => {
                     await deleteOverrideAction(organizationId, row.key);
@@ -72,7 +75,7 @@ export function OverrideForm({
                 }
               >
                 Remove
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -93,9 +96,9 @@ export function OverrideForm({
           });
         }}
       >
-        <label className="min-w-[220px] flex-1 space-y-1 text-[12px]">
-          <span className="type-meta block">Key</span>
-          <select
+        <Field label="Key" htmlFor="override-key" className="min-w-[220px] flex-1">
+          <Select
+            id="override-key"
             value={key}
             onChange={(event) => {
               const next = event.target.value;
@@ -103,41 +106,36 @@ export function OverrideForm({
               const item = options.find((row) => row.key === next);
               setValue(item?.kind === 'LIMIT' ? '0' : 'true');
             }}
-            className="w-full rounded-lg border border-[var(--line)] px-2 py-1.5 text-[13px]"
           >
             {options.map((row) => (
               <option key={row.key} value={row.key}>
                 {row.label}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-[12px]">
-          <span className="type-meta block">Value</span>
+          </Select>
+        </Field>
+        <Field label="Value" htmlFor="override-value">
           {selected?.kind === 'CAPABILITY' ? (
-            <select
+            <Select
+              id="override-value"
               value={value}
               onChange={(event) => setValue(event.target.value)}
-              className="rounded-lg border border-[var(--line)] px-2 py-1.5 text-[13px]"
             >
               <option value="true">enabled</option>
               <option value="false">disabled</option>
-            </select>
+            </Select>
           ) : (
-            <input
+            <Input
+              id="override-value"
               value={value}
               onChange={(event) => setValue(event.target.value)}
-              className="w-28 rounded-lg border border-[var(--line)] px-2 py-1.5 text-[13px]"
+              className="ui:w-28"
             />
           )}
-        </label>
-        <button
-          type="submit"
-          disabled={pending || !selected}
-          className="rounded-lg bg-[var(--ink)] px-3 py-1.5 text-[12px] text-white disabled:opacity-50"
-        >
+        </Field>
+        <Button type="submit" disabled={pending || !selected} size="sm">
           Add override
-        </button>
+        </Button>
       </form>
     </div>
   );

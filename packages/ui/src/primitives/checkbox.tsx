@@ -14,7 +14,7 @@ export function Checkbox({
       id={id}
       type="checkbox"
       className={cn(
-        'ui:h-4 ui:w-4 ui:shrink-0 ui:rounded-[4px] ui:border ui:border-[var(--line)] ui:accent-[var(--ink)] ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--ink)] ui:disabled:opacity-50',
+        'ui:h-4 ui:w-4 ui:shrink-0 ui:rounded-[4px] ui:border ui:border-[var(--line)] ui:accent-[var(--ink)] ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--brand)] ui:disabled:opacity-50',
         className
       )}
       {...props}

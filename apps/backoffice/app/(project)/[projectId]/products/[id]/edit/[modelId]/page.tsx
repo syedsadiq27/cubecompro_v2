@@ -7,7 +7,7 @@ import {
   graphRequest,
   pickGraphVersionId,
 } from '@repo/product-graph';
-import { getProjectSession } from '@/lib/session-server';
+import { getProjectSession, getSessionUser } from '@/lib/session-server';
 
 export default async function ProductModelEditorPage({
   params,
@@ -15,8 +15,15 @@ export default async function ProductModelEditorPage({
   params: Promise<{ projectId: string; id: string; modelId: string }>;
 }) {
   const { projectId, id, modelId } = await params;
-  const project = await getProjectSession();
+  const [project, user] = await Promise.all([
+    getProjectSession(),
+    getSessionUser(),
+  ]);
   if (!project) return null;
+
+  const userName = [user?.firstName, user?.lastName].filter(Boolean).join(' ')
+    || user?.email
+    || 'Studio User';
 
   try {
     const [productData, versionsData] = await Promise.all([
@@ -46,6 +53,7 @@ export default async function ProductModelEditorPage({
         accessToken={project.projectToken}
         apiUrl={getApiBaseUrl()}
         graphVersionId={graphVersionId}
+        userName={userName}
       />
     );
   } catch (error) {

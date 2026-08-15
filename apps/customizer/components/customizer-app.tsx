@@ -290,12 +290,18 @@ function CustomizerExperience() {
   );
 }
 
+import { RuntimeErrorBoundary } from './runtime-error-boundary';
+
 export function CustomizerApp() {
+  const correlationId = 'corr-' + Math.random().toString(36).substring(2, 9);
+
   return (
-    <ThemeProvider>
-      <ConfigurationProvider>
-        <CustomizerExperience />
-      </ConfigurationProvider>
-    </ThemeProvider>
+    <RuntimeErrorBoundary correlationId={correlationId}>
+      <ThemeProvider>
+        <ConfigurationProvider>
+          <CustomizerExperience />
+        </ConfigurationProvider>
+      </ThemeProvider>
+    </RuntimeErrorBoundary>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Button, Field, Input, Typography } from '@repo/ui';
 import type { MutationResult } from '@/actions/products';
 
 export function ProductMetadataForm({
@@ -40,32 +41,28 @@ export function ProductMetadataForm({
         });
       }}
     >
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">Name</span>
-        <input
+      <Field label="Name" htmlFor="product-meta-name">
+        <Input
+          id="product-meta-name"
           name="Name"
           defaultValue={defaults.Name}
-          className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
         />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">Key</span>
-        <input
+      </Field>
+      <Field label="Key" htmlFor="product-meta-key">
+        <Input
+          id="product-meta-key"
           name="key"
           defaultValue={defaults.key}
-          className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
         />
-      </label>
+      </Field>
       <div className="md:col-span-2">
-        <button
-          type="submit"
-          disabled={pending}
-          className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
-        >
+        <Button type="submit" size="md" disabled={pending}>
           {pending ? 'Saving…' : 'Save metadata'}
-        </button>
+        </Button>
         {message ? (
-          <p className="mt-3 text-sm text-[var(--bo-muted)]">{message}</p>
+          <Typography variant="support" className="mt-3">
+            {message}
+          </Typography>
         ) : null}
       </div>
     </form>

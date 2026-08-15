@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button, Panel } from '@repo/ui';
 import {
   createModelTargetAction,
   createProductModelAction,
@@ -12,7 +13,6 @@ import {
   ModelMappingViewer,
   ModelPartsTree,
 } from '@/components/products/workspace/model-mapping-viewer';
-import { Panel } from '@/components/ui';
 import { getEditorStudioPath } from '@/lib/editor-embed';
 import {
   humanizeEffectValue,
@@ -25,7 +25,7 @@ import {
 } from '@/lib/product-workspace';
 
 const inputClass =
-  'w-full rounded-lg border border-[var(--bo-line)] bg-white px-2.5 py-1.5 text-[13px]';
+  'w-full rounded-lg border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]';
 
 export function Product3DStudio({
   projectId,
@@ -122,19 +122,19 @@ export function Product3DStudio({
     : null;
 
   return (
-    <div className="flex h-dvh flex-col bg-[var(--bo-canvas,#f4f2ee)]">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--bo-line)] bg-white px-4 py-3">
+    <div className="flex h-dvh flex-col bg-[var(--canvas)]">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] bg-white px-4 py-3">
         <div className="min-w-0">
           <Link
             href={productHref}
-            className="text-[12px] font-medium text-[var(--bo-muted)] hover:text-[var(--bo-ink)]"
+            className="text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--ink)]"
           >
             ← {productName}
           </Link>
           <h1 className="mt-0.5 text-[16px] font-semibold tracking-tight">
             3D Studio
           </h1>
-          <p className="text-[12px] text-[var(--bo-muted)]">
+          <p className="text-[12px] text-[var(--text-secondary)]">
             Prepare the model and map how options change what shoppers see.
           </p>
         </div>
@@ -142,17 +142,14 @@ export function Product3DStudio({
           {stageHref ? (
             <Link
               href={stageHref}
-              className="rounded-xl border border-[var(--bo-line)] bg-white px-4 py-2 text-sm font-medium"
+              className="rounded-xl border border-[var(--line)] bg-white px-4 py-2 text-sm font-medium"
             >
               Open Stage editor
             </Link>
           ) : null}
-          <Link
-            href={productHref}
-            className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium"
-          >
+          <Button as={Link} href={productHref} size="md">
             Done
-          </Link>
+          </Button>
         </div>
       </header>
 
@@ -160,7 +157,7 @@ export function Product3DStudio({
         <div className="mx-auto max-w-6xl space-y-4">
           {!detail ? (
             <Panel>
-              <p className="text-sm text-[var(--bo-muted)]">
+              <p className="text-sm text-[var(--text-secondary)]">
                 Start a product configuration before opening 3D Studio.
               </p>
             </Panel>
@@ -169,20 +166,20 @@ export function Product3DStudio({
               <Panel className="space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-[11px] font-semibold tracking-[0.08em] text-[var(--bo-muted)] uppercase">
+                    <h2 className="text-[11px] font-semibold tracking-[0.08em] text-[var(--text-secondary)] uppercase">
                       Model
                     </h2>
                     <p className="mt-1 text-[15px] font-semibold">
                       {primaryModel ? assetName : 'No model attached'}
                     </p>
-                    <p className="mt-1 text-[12px] text-[var(--bo-muted)]">
+                    <p className="mt-1 text-[12px] text-[var(--text-secondary)]">
                       {primaryModel
                         ? `${targets.length} targets · ${detail.visualEffects.length} mappings · Stage prep for materials and defaults`
                         : 'Attach a library object to begin.'}
                     </p>
                   </div>
                   {primaryModel ? (
-                    <span className="rounded-full bg-[var(--bo-live-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--bo-live)]">
+                    <span className="rounded-full bg-[var(--success-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--success)]">
                       Ready
                     </span>
                   ) : null}
@@ -233,13 +230,13 @@ export function Product3DStudio({
                         </option>
                       ))}
                     </select>
-                    <button
+                    <Button
                       type="submit"
+                      size="sm"
                       disabled={pending || objectAssets.length === 0}
-                      className="bo-btn-primary rounded-lg px-3 py-1.5 text-[13px] font-medium disabled:opacity-60"
                     >
                       Attach model
-                    </button>
+                    </Button>
                   </form>
                 ) : null}
               </Panel>
@@ -251,7 +248,7 @@ export function Product3DStudio({
                       <h2 className="text-[15px] font-semibold tracking-tight">
                         Configuration
                       </h2>
-                      <p className="mt-1 text-[13px] text-[var(--bo-muted)]">
+                      <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
                         Product options stay on the product page. Here you map
                         how each choice affects the model.
                       </p>
@@ -268,7 +265,7 @@ export function Product3DStudio({
                         }}
                         onHierarchy={setHierarchy}
                       />
-                      <div className="space-y-3 rounded-[12px] border border-[var(--bo-line)] p-3">
+                      <div className="space-y-3 rounded-[12px] border border-[var(--line)] p-3">
                         <h3 className="text-[13px] font-semibold">
                           Model parts
                         </h3>
@@ -287,15 +284,15 @@ export function Product3DStudio({
                     </div>
 
                     {selectedPath ? (
-                      <p className="text-[13px] text-[var(--bo-muted)]">
+                      <p className="text-[13px] text-[var(--text-secondary)]">
                         Selected:{' '}
-                        <span className="font-medium text-[var(--bo-ink)]">
+                        <span className="font-medium text-[var(--ink)]">
                           {selectedLeafName}
                         </span>
                         <span>
                           {' '}
                           · create target{' '}
-                          <span className="font-medium text-[var(--bo-ink)]">
+                          <span className="font-medium text-[var(--ink)]">
                             {targetKey || '…'}
                           </span>
                         </span>
@@ -307,7 +304,7 @@ export function Product3DStudio({
                         Current mappings
                       </h3>
                       {mappings.length === 0 ? (
-                        <p className="text-sm text-[var(--bo-muted)]">
+                        <p className="text-sm text-[var(--text-secondary)]">
                           No visual mappings yet.
                         </p>
                       ) : (
@@ -316,13 +313,13 @@ export function Product3DStudio({
                             <p className="text-[13px] font-medium">
                               {group.name}
                             </p>
-                            <ul className="space-y-1.5 text-[13px] text-[var(--bo-muted)]">
+                            <ul className="space-y-1.5 text-[13px] text-[var(--text-secondary)]">
                               {group.rows.map((row) => (
                                 <li
                                   key={`${group.name}-${row.choice}-${row.target}-${row.result}`}
                                   className="flex flex-wrap gap-x-2"
                                 >
-                                  <span className="font-medium text-[var(--bo-ink)]">
+                                  <span className="font-medium text-[var(--ink)]">
                                     {row.choice}
                                   </span>
                                   <span>→</span>
@@ -344,7 +341,7 @@ export function Product3DStudio({
                         <h3 className="text-[13px] font-semibold">
                           Semantic targets
                         </h3>
-                        <p className="text-[12px] text-[var(--bo-muted)]">
+                        <p className="text-[12px] text-[var(--text-secondary)]">
                           Stable CubeCom identities. Mesh paths can change when
                           the GLB is replaced.
                         </p>
@@ -373,12 +370,12 @@ export function Product3DStudio({
                             value={selectedPath ?? ''}
                             readOnly
                             placeholder="Pick a mesh"
-                            className={`${inputClass} text-[var(--bo-muted)]`}
+                            className={`${inputClass} text-[var(--text-secondary)]`}
                           />
-                          <button
+                          <Button
                             type="button"
+                            size="sm"
                             disabled={pending || !targetKey || !selectedPath}
-                            className="bo-btn-primary rounded-lg px-3 py-1.5 text-[13px] font-medium disabled:opacity-60"
                             onClick={() => {
                               const formData = new FormData();
                               formData.set('productModelId', primaryModel.id);
@@ -407,13 +404,13 @@ export function Product3DStudio({
                             }}
                           >
                             Create target
-                          </button>
+                          </Button>
                         </div>
                         {targets.length > 0 ? (
-                          <ul className="space-y-1 text-[12px] text-[var(--bo-muted)]">
+                          <ul className="space-y-1 text-[12px] text-[var(--text-secondary)]">
                             {targets.map((target) => (
                               <li key={target.id}>
-                                <span className="font-medium text-[var(--bo-ink)]">
+                                <span className="font-medium text-[var(--ink)]">
                                   {target.key}
                                 </span>
                                 {' · '}
@@ -425,7 +422,7 @@ export function Product3DStudio({
                         ) : null}
                       </div>
 
-                      <div className="space-y-3 border-t border-[var(--bo-line)] pt-4">
+                      <div className="space-y-3 border-t border-[var(--line)] pt-4">
                         <h3 className="text-[13px] font-semibold">
                           Map option → behavior
                         </h3>
@@ -490,19 +487,19 @@ export function Product3DStudio({
                               ))}
                             </select>
                           ) : (
-                            <div className="flex items-center text-[12px] text-[var(--bo-muted)]">
+                            <div className="flex items-center text-[12px] text-[var(--text-secondary)]">
                               {mapAction === 'show' ? 'Visible' : 'Hidden'}
                             </div>
                           )}
-                          <button
+                          <Button
                             type="button"
+                            size="sm"
                             disabled={
                               pending ||
                               !mapValueId ||
                               !mapTargetId ||
                               (mapAction === 'material' && !materialAssetId)
                             }
-                            className="bo-btn-primary rounded-lg px-3 py-1.5 text-[13px] font-medium disabled:opacity-60"
                             onClick={() => {
                               const formData = new FormData();
                               formData.set('attributeValueId', mapValueId);
@@ -536,18 +533,18 @@ export function Product3DStudio({
                             }}
                           >
                             Add mapping
-                          </button>
+                          </Button>
                         </div>
                       </div>
                       {message ? (
-                        <p className="text-[12px] text-[var(--bo-muted)]">
+                        <p className="text-[12px] text-[var(--text-secondary)]">
                           {message}
                         </p>
                       ) : null}
                     </Panel>
                   ) : (
                     <Panel>
-                      <p className="text-sm text-[var(--bo-muted)]">
+                      <p className="text-sm text-[var(--text-secondary)]">
                         Published configurations are read-only. Edit
                         configuration on the product to change mappings.
                       </p>

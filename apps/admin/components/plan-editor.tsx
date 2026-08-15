@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
+import { Button, Checkbox, Field, Input, Select } from '@repo/ui';
 import { createPlanAction, updatePlanAction } from '@/actions/tenants';
 import { isOn, resolvePlanRows, slugify } from '@/lib/format';
 import type { Catalog, Plan, PlanEntitlement } from '@/lib/types';
@@ -120,31 +121,30 @@ export function PlanEditor({
       }}
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-[12px]">
-          <span className="type-meta block">Name</span>
-          <input
+        <Field label="Name" htmlFor="plan-name">
+          <Input
+            id="plan-name"
             value={name}
             required
             onChange={(event) => {
               setName(event.target.value);
               if (!plan) setKey(slugify(event.target.value));
             }}
-            className="w-full rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
           />
-        </label>
-        <label className="space-y-1 text-[12px]">
-          <span className="type-meta block">Key</span>
-          <input
+        </Field>
+        <Field label="Key" htmlFor="plan-key">
+          <Input
+            id="plan-key"
             value={key}
             required
             disabled={Boolean(plan)}
             onChange={(event) => setKey(slugify(event.target.value))}
-            className="w-full rounded-lg border border-[var(--line)] px-3 py-2 font-mono text-[13px] disabled:bg-[var(--surface)]"
+            className="ui:font-mono"
           />
-        </label>
-        <label className="space-y-1 text-[12px] sm:col-span-2">
-          <span className="type-meta block">Includes</span>
-          <select
+        </Field>
+        <Field label="Includes" htmlFor="plan-includes" className="sm:col-span-2">
+          <Select
+            id="plan-includes"
             value={parentPlanId}
             onChange={(event) => {
               const next = event.target.value;
@@ -155,7 +155,6 @@ export function PlanEditor({
               setCaps(capMap(catalog, rows));
               setLimits(limitMap(catalog, rows));
             }}
-            className="w-full rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
           >
             <option value="">None</option>
             {parents.map((item) => (
@@ -163,8 +162,8 @@ export function PlanEditor({
                 {item.name}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
       </div>
 
       <section>
@@ -181,8 +180,7 @@ export function PlanEditor({
                     key={item.key}
                     className="flex items-center gap-2 rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={caps[item.key] === true}
                       onChange={(event) =>
                         setCaps((prev) => ({
@@ -207,12 +205,13 @@ export function PlanEditor({
         <h2 className="type-nav-label mb-3">Limits</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {catalog.limits.map((item) => (
-            <label key={item.key} className="space-y-1 text-[12px]">
-              <span className="type-meta block">
-                {item.label}
-                <span className="ml-2 font-mono">{item.key}</span>
-              </span>
-              <input
+            <Field
+              key={item.key}
+              label={item.label}
+              htmlFor={`limit-${item.key}`}
+            >
+              <Input
+                id={`limit-${item.key}`}
                 value={limits[item.key] ?? '0'}
                 onChange={(event) =>
                   setLimits((prev) => ({
@@ -220,9 +219,8 @@ export function PlanEditor({
                     [item.key]: event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
               />
-            </label>
+            </Field>
           ))}
         </div>
       </section>
@@ -230,13 +228,9 @@ export function PlanEditor({
       {error ? (
         <p className="text-[12px] text-[var(--danger)]">{error}</p>
       ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--ink)] px-4 py-2 text-[13px] text-white disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending}>
         {plan ? 'Save plan' : 'Create plan'}
-      </button>
+      </Button>
     </form>
   );
 }

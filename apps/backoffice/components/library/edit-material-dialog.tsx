@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button, Field, Input, Typography } from '@repo/ui';
 import { updateMaterialAction } from '@/actions/assets';
 import type { MaterialDocument } from '@repo/product-graph';
 import { MaterialSwatch } from './material-swatch';
@@ -54,26 +55,26 @@ export function EditMaterialDialog({
         className="absolute inset-0 bg-black/35"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-[var(--bo-line)] bg-white p-5 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-[var(--line)] bg-white p-5 shadow-xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--bo-ink)]">
+            <h2 className="text-lg font-semibold text-[var(--ink)]">
               Edit material
             </h2>
-            <p className="mt-1 text-sm text-[var(--bo-muted)]">
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Update library PBR values. Apply in 3D Studio on product targets.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-sm text-[var(--bo-muted)] hover:bg-black/[0.04]"
+            className="rounded-lg px-2 py-1 text-sm text-[var(--text-secondary)] hover:bg-black/[0.04]"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-4 overflow-hidden rounded-xl border border-[var(--bo-line)]">
+        <div className="mb-4 overflow-hidden rounded-xl border border-[var(--line)]">
           <MaterialSwatch
             color={previewColor}
             roughness={previewRoughness}
@@ -102,38 +103,36 @@ export function EditMaterialDialog({
             });
           }}
         >
-          <label className="grid gap-1 text-sm">
-            <span className="text-[var(--bo-muted)]">Name</span>
-            <input
+          <Field label="Name" htmlFor="edit-material-name">
+            <Input
+              id="edit-material-name"
               name="name"
               required
               defaultValue={name}
-              className="rounded-lg border border-[var(--bo-line)] px-3 py-2"
             />
-          </label>
-          <label className="grid gap-1 text-sm">
-            <span className="text-[var(--bo-muted)]">Key</span>
-            <input
+          </Field>
+          <Field label="Key" htmlFor="edit-material-code">
+            <Input
+              id="edit-material-code"
               name="code"
               defaultValue={code || ''}
               placeholder="WOOD-WALNUT"
-              className="rounded-lg border border-[var(--bo-line)] px-3 py-2"
             />
-          </label>
-          <label className="grid gap-1 text-sm">
-            <span className="text-[var(--bo-muted)]">Base color</span>
-            <input
+          </Field>
+          <Field label="Base color" htmlFor="edit-material-color">
+            <Input
+              id="edit-material-color"
               name="baseColor"
               type="color"
               value={previewColor}
               onChange={(event) => setPreviewColor(event.target.value)}
-              className="h-10 w-full rounded-lg border border-[var(--bo-line)] bg-white"
+              className="h-10"
             />
-          </label>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
-            <label className="grid gap-1 text-sm">
-              <span className="text-[var(--bo-muted)]">Metalness</span>
-              <input
+            <Field label="Metalness" htmlFor="edit-material-metallic">
+              <Input
+                id="edit-material-metallic"
                 name="metallic"
                 type="number"
                 step="0.01"
@@ -143,12 +142,11 @@ export function EditMaterialDialog({
                 onChange={(event) =>
                   setPreviewMetallic(Number(event.target.value) || 0)
                 }
-                className="rounded-lg border border-[var(--bo-line)] px-3 py-2"
               />
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="text-[var(--bo-muted)]">Roughness</span>
-              <input
+            </Field>
+            <Field label="Roughness" htmlFor="edit-material-roughness">
+              <Input
+                id="edit-material-roughness"
                 name="roughness"
                 type="number"
                 step="0.01"
@@ -158,28 +156,21 @@ export function EditMaterialDialog({
                 onChange={(event) =>
                   setPreviewRoughness(Number(event.target.value) || 0)
                 }
-                className="rounded-lg border border-[var(--bo-line)] px-3 py-2"
               />
-            </label>
+            </Field>
           </div>
           {message ? (
-            <p className="text-sm text-[var(--bo-danger)]">{message}</p>
+            <Typography variant="support" className="text-[var(--danger)]">
+              {message}
+            </Typography>
           ) : null}
           <div className="mt-1 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-[var(--bo-line)] px-3 py-2 text-sm"
-            >
+            <Button type="button" size="sm" variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={pending}
-              className="bo-btn-primary rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-60"
-            >
+            </Button>
+            <Button type="submit" size="sm" disabled={pending}>
               {pending ? 'Saving…' : 'Save'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

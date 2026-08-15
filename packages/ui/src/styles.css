@@ -7,6 +7,20 @@
 @source "../../colorways/src";
 
 :root {
+  --suite-sidebar-width: 220px;
+  --suite-topbar-height: 48px;
+  --suite-page-px: 24px;
+  --suite-page-header-py: 16px;
+  --suite-inspector-width: 330px;
+  --suite-inspector-width-lg: 350px;
+  --suite-control-height: 36px;
+  --suite-control-height-sm: 32px;
+  --suite-radius-control: 7px;
+  --suite-radius-panel: 10px;
+  --suite-gap-control: 8px;
+  --suite-gap-section: 16px;
+  --suite-gap-page: 20px;
+
   --font-display:
     var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
     sans-serif;
@@ -259,5 +273,52 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-rise {
     animation: none;
+  }
+}
+
+[data-ui-page-workspace] {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  flex: 1 1 0%;
+  overflow: hidden;
+}
+
+[data-ui-page-workspace-main] {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+[data-ui-inspector-panel] {
+  position: relative;
+  z-index: 30;
+}
+
+[data-ui-inspector-scrim] {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  [data-ui-inspector-drawer='true'] {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 30;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.06);
+  }
+
+  [data-ui-inspector-scrim] {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
   }
 }

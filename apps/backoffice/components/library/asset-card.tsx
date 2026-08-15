@@ -42,8 +42,8 @@ export function AssetCard({
       onClick={onSelect}
       className={`group overflow-hidden rounded-xl border text-left transition ${
         selected
-          ? 'border-[var(--bo-ink)]/45 bg-[var(--bo-ink)]/[0.02] shadow-[0_0_0_1px_rgba(0,0,0,0.04)]'
-          : 'border-[var(--bo-line)] hover:border-[var(--bo-ink)]/30'
+          ? 'border-[var(--ink)]/45 bg-[var(--ink)]/[0.02] shadow-[0_0_0_1px_rgba(0,0,0,0.04)]'
+          : 'border-[var(--line)] hover:border-[var(--ink)]/30'
       }`}
     >
       <div className="relative aspect-square w-full overflow-hidden bg-[#ebe7e1]">
@@ -63,11 +63,11 @@ export function AssetCard({
           <TextureCardVisual name={asset.name} />
         )}
       </div>
-      <div className="border-t border-[var(--bo-line)] bg-white px-2 py-1.5">
-        <p className="truncate text-[12px] font-medium text-[var(--bo-ink)]">
+      <div className="border-t border-[var(--line)] bg-white px-2 py-1.5">
+        <p className="truncate text-[12px] font-medium text-[var(--ink)]">
           {asset.name}
         </p>
-        <p className="mt-0.5 truncate text-[10px] text-[var(--bo-muted)]">
+        <p className="mt-0.5 truncate text-[10px] text-[var(--text-secondary)]">
           {subtitle}
         </p>
       </div>

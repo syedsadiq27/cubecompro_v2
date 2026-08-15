@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from 'next';
-import { GeistMono } from 'geist/font/mono';
+import { Geist_Mono } from 'next/font/google';
 import { OrganizationJsonLd } from '@/components/seo/organization-json-ld';
 import { instrumentSans } from '@/lib/fonts';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import '@repo/ui/styles.css';
 import './globals.css';
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -74,7 +80,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrumentSans.variable} ${GeistMono.variable}`}
+      className={`${instrumentSans.variable} ${geistMono.variable}`}
     >
       <body className={`${instrumentSans.className} ui-type-body`}>
         <OrganizationJsonLd />

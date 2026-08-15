@@ -22,7 +22,7 @@ export function Switch({
       aria-label={ariaLabel}
       disabled={disabled}
       className={cn(
-        'ui:relative ui:inline-flex ui:h-5 ui:w-9 ui:shrink-0 ui:items-center ui:rounded-full ui:transition-colors ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--ink)] ui:disabled:opacity-40',
+        'ui:relative ui:inline-flex ui:h-5 ui:w-9 ui:shrink-0 ui:items-center ui:rounded-full ui:transition-colors ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--brand)] ui:disabled:opacity-40',
         checked ? 'ui:bg-[var(--ink)]' : 'ui:bg-[var(--border-strong)]',
         className
       )}

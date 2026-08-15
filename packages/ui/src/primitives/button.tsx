@@ -26,11 +26,11 @@ function resolveButtonClassName({
   className?: string;
 }): string {
   return cn(
-    'ui:inline-flex ui:items-center ui:justify-center ui:gap-2 ui:font-medium ui:transition ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--ink)] ui:disabled:pointer-events-none ui:disabled:opacity-40',
+    'ui:inline-flex ui:items-center ui:justify-center ui:gap-2 ui:font-medium ui:transition ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--brand)] ui:disabled:pointer-events-none ui:disabled:opacity-40',
     radiusClass('control'),
     size === 'sm' && 'ui:h-8 ui:px-3 ui:text-[12px]',
     size === 'md' && 'ui:h-9 ui:px-3.5 ui:text-[13px]',
-    size === 'lg' && 'ui:px-5 ui:py-3 ui:text-sm',
+    size === 'lg' && 'ui:h-11 ui:px-5 ui:text-sm',
     size === 'nav' &&
       'ui:px-3.5 ui:py-2 ui:text-xs ui:tracking-[0.04em]',
     variant === 'primary' &&

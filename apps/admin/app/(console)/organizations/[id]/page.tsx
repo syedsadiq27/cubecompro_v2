@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { Panel } from '@/components/panel';
-import { StateLabel } from '@/components/state-label';
+import { Panel, StatusBadge } from '@/components/suite-ui';
 import { UsageBar } from '@/components/usage-bar';
 import { loadResolved } from '@/lib/api';
 import { limitDisplay, sourceLabel } from '@/lib/format';
@@ -17,7 +16,7 @@ export default async function OrganizationOverviewPage({
     <div className="grid gap-4 lg:grid-cols-2">
       <Panel
         title="Plan"
-        action={
+        actions={
           <Link
             href={`/organizations/${id}/plan`}
             className="type-meta hover:text-[var(--ink)]"
@@ -40,7 +39,7 @@ export default async function OrganizationOverviewPage({
 
       <Panel
         title="Applications"
-        action={
+        actions={
           <Link
             href={`/organizations/${id}/entitlements`}
             className="type-meta hover:text-[var(--ink)]"
@@ -57,7 +56,10 @@ export default async function OrganizationOverviewPage({
             >
               <span>{app.label}</span>
               <span className="flex items-center gap-2">
-                <StateLabel enabled={app.enabled} />
+                <StatusBadge
+                  role={app.enabled ? 'active' : 'draft'}
+                  label={app.enabled ? 'Enabled' : 'Disabled'}
+                />
                 <span className="type-meta">
                   {sourceLabel(app.source, resolved.planName)}
                 </span>
@@ -69,7 +71,7 @@ export default async function OrganizationOverviewPage({
 
       <Panel
         title="Limits"
-        action={
+        actions={
           <Link
             href={`/organizations/${id}/usage`}
             className="type-meta hover:text-[var(--ink)]"
@@ -95,7 +97,7 @@ export default async function OrganizationOverviewPage({
 
       <Panel
         title="Overrides"
-        action={
+        actions={
           <Link
             href={`/organizations/${id}/overrides`}
             className="type-meta hover:text-[var(--ink)]"
@@ -126,7 +128,7 @@ export default async function OrganizationOverviewPage({
 
       <Panel
         title="Members"
-        action={
+        actions={
           <Link
             href={`/organizations/${id}/members`}
             className="type-meta hover:text-[var(--ink)]"

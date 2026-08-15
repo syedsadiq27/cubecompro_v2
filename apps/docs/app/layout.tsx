@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Inter_Tight } from 'next/font/google';
-import { GeistMono } from 'geist/font/mono';
+import { Inter, Inter_Tight, Geist_Mono } from 'next/font/google';
 import { DocsShell } from '@/components/docs-shell';
 import {
   DOCS_DESCRIPTION,
@@ -20,6 +19,12 @@ const inter = Inter({
 const interTight = Inter_Tight({
   subsets: ['latin'],
   variable: '--font-inter-tight',
+  display: 'swap',
+});
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
   display: 'swap',
 });
 
@@ -74,7 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${GeistMono.variable}`}
+      className={`${inter.variable} ${interTight.variable} ${geistMono.variable}`}
     >
       <body className={inter.className}>
         <DocsShell>{children}</DocsShell>

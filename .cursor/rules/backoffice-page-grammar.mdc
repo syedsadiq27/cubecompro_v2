@@ -1,0 +1,414 @@
+---
+description: Frozen CubeCom backoffice generic page layout grammar (anatomy + states)
+globs: apps/backoffice/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# CubeCom Backoffice — Generic Page Layout Standard
+
+**Frozen page anatomy + states.** Shared chrome implementation is Pass 2A in `backoffice-shared-chrome.mdc`.
+
+Next (explicit): Pass 2B page content — Products list reference → Product detail → Projects / Library → dashboard → workspace.
+
+## Goal
+
+Reusable page grammar for all backoffice screens before designing individual page content.
+
+Feel: operational, compact, precise, trustworthy, clearly CubeCom — **not** the marketing site, **not** a generic CRUD template.
+
+```text
+Shared design language → @repo/ui
+Backoffice composition + density → local
+```
+
+Pass 1 identity (tokens, fonts, controls) remains in `backoffice-ui.mdc`.
+
+---
+
+## Golden rule
+
+Every page must answer immediately:
+
+1. Where am I?
+2. What am I looking at?
+3. What state is it in?
+4. What needs my attention?
+5. What can I do next?
+
+If any of those requires hunting, the layout is wrong.
+
+Identity: Instrument Sans, shared tokens, shared Button/Input/Field/etc., violet = active/selected only. Behavior: compact, information-dense, operational, minimal decoration, strong hierarchy.
+
+---
+
+## 1. Global app shell
+
+```text
+[Sidebar] [Main workspace]
+```
+
+**Sidebar**
+
+- Fixed/stable desktop width
+- Workspace/project switcher at top
+- Grouped navigation
+- Current route clearly selected
+- Account/profile pinned at bottom
+
+**Main workspace**
+
+- Optional global top bar only if required
+- Page header
+- Page-specific content
+- No marketing-style centered max-width layout
+
+Operating surface, not a document page.
+
+---
+
+## 2. Page header
+
+Every primary page starts with a consistent header.
+
+```text
+Title
+Short metadata / context
+Optional secondary description
+
+Right: Primary action | Optional secondary | Overflow •••
+```
+
+Example (list):
+
+```text
+Products
+12 products · 418 SKUs
+
+[Import] [+ New product] [•••]
+```
+
+Example (detail):
+
+```text
+Products / Studio Chair     ← breadcrumb only when hierarchy helps
+Studio Chair
+CHAIR-001 · Active
+
+[Preview] [Publish] [•••]
+```
+
+Rules:
+
+- Title dominant but compact — no marketing H1 scale
+- Metadata close to the title
+- Primary action in a predictable place (header right)
+- Do not repeat route breadcrumbs unnecessarily
+
+Local chrome: `PageChrome` / `BrowseWorkspace` — keep local; densify, never flashify.
+
+---
+
+## 3. Page content
+
+Content begins immediately after the header.
+
+Use: compact vertical rhythm, clear grouping, full workspace width where useful, bounded readable widths **only** for forms / text-heavy settings.
+
+Avoid: giant empty margins, cards around every section, excessive centering, decorative whitespace.
+
+One primary work surface per page: list/table | form | inspector/detail | dashboard | editor/studio.
+
+---
+
+## 4. Standard page types
+
+### A. List page
+
+Find, filter, inspect, act on many records.
+
+```text
+PageHeader
+→ Toolbar (search, filters, status tabs, sort, density/columns, bulk when selected)
+→ Primary list/table
+→ Pagination / load-more when needed
+```
+
+- Toolbar and list belong visually together
+- Row actions predictable; primary identity click opens detail
+- Dense entity lists → tables, not cards (unless items are inherently visual)
+
+### B. Detail page
+
+Understand and operate on one entity.
+
+```text
+PageHeader (name, ID/status, primary actions)
+→ Optional local tabs (Overview | Configuration | Commerce | Activity)
+→ Main detail/workspace + optional right inspector
+```
+
+- Do not dump all metadata into the header
+- Entity state visible immediately
+- Destructive/rare → overflow
+- Sections operational, not decorative
+
+### C. Create / edit page
+
+Focused workflow.
+
+```text
+PageHeader (action title + entity context)
+→ Form / workflow body
+→ Sticky or predictable: Cancel | Save draft | Save / Create
+```
+
+- Clear grouping; labels always visible; errors inline; save state visible
+- No modal for large creation workflows
+
+### D. Dashboard page
+
+Operational state and next actions.
+
+```text
+PageHeader
+→ Critical status / attention items
+→ Operational summaries
+→ Recent activity / queues / shortcuts
+```
+
+- No vanity metrics; every metric implies action or understanding
+- Alerts outrank statistics
+- Answer: “what needs attention?”
+
+---
+
+## 5. Empty pages / empty states
+
+### First-use
+
+Concise title, one sentence of what belongs here, one primary action, optional secondary (import/docs). No oversized illustrations unless genuinely helpful.
+
+```text
+No products yet
+Products become the source for configuration, commerce mapping,
+and visual experiences.
+[Create product] [Import catalog]
+```
+
+### Filtered empty
+
+```text
+No products match these filters
+[Clear filters]
+```
+
+No onboarding copy, no large CTA.
+
+### Error empty
+
+Visually distinct from emptiness. What failed, whether retry is safe, retry action. Never say “No data” when load failed.
+
+---
+
+## 6. Lists and tables
+
+Structured operational data → tables.
+
+**Header:** compact; muted bg or divider; sticky on long scroll; label style consistent with design system.
+
+**Rows:** compact not cramped; full-row hover; clear clickable primary field; secondary ID/meta subordinate; actions aligned right.
+
+```text
+Product             Status     Commerce          Config   SKUs   Updated    Actions
+Studio Chair        Active     Mapping required  0/1      1      2h ago     •••
+CHAIR-001
+```
+
+Rules:
+
+- Never use plain text “More” for row actions — use `•••` or an explicit action menu
+- Sortable columns show affordance
+- Numeric columns align consistently
+- Status pills only when state matters — not decoration on every cell
+
+---
+
+## 7. Status language
+
+Meaning, not decoration. Color never the only signal. Same status → same language everywhere.
+
+| Kind | Examples | Appearance |
+| --- | --- | --- |
+| Neutral | Draft, Not configured, Not connected | Neutral surface/text |
+| Active / healthy | Active, Published, Connected, Ready | Subtle positive — do not flood green |
+| Warning / attention | Mapping required, Incomplete, Needs review | Amber/orange; icon/dot + text; implies recoverable attention |
+| Error / blocked | Sync failed, Invalid configuration | Red only for real failures/blockers |
+| Processing | Syncing, Publishing, Generating | Spinner/progress + text |
+| Archived / disabled | — | Muted, clearly inactive |
+
+Do not use Active / Live / Published / Ready interchangeably unless they are truly different states.
+
+Shared: `StatusPill` from `@repo/ui` where it fits.
+
+---
+
+## 8. Selection and active UI states
+
+Violet = CubeCom interaction state only:
+
+- Current nav item
+- Selected tab
+- Selected option
+- Active configuration node
+- Highlighted/selected row when appropriate
+
+Violet means: **selected / active / synchronized** — never arbitrary decoration.
+
+Nav selected: surface change + violet rail/indicator + strong text.
+
+Hover ≠ selected. Hover stays neutral.
+
+---
+
+## 9. Popups, menus, dialogs, drawers
+
+### Dropdown / action menu
+
+Secondary actions, row actions, sort/filter. Compact; predictable placement; destructive separated; no oversized surfaces.
+
+### Modal
+
+Only: confirmation, short forms, focused decisions.
+
+Good: Delete product? Rename project. Disconnect integration.  
+Bad: Full product creation, complex rules editor, large settings.
+
+```text
+Title → Short explanation → Body if needed → Cancel + primary/destructive
+```
+
+### Drawer
+
+Contextual inspection, edit-without-leaving-list, metadata, rule/config inspectors. Right side, dense, sticky header/actions when useful, width from content.
+
+### Confirmation
+
+Explicit — never bare “Are you sure?”
+
+```text
+Delete “Studio Chair”?
+This permanently removes the product and cannot be undone.
+[Cancel] [Delete product]
+```
+
+---
+
+## 10. Loading states
+
+Prefer local loading over app-wide blocking.
+
+- Skeleton rows for lists
+- Skeleton fields for detail
+- Spinner inside button for actions
+- Progress when duration is meaningful
+
+Avoid full-page spinners for routine navigation and layout shift after load.
+
+---
+
+## 11. Success / failure feedback
+
+- **Inline** for field/section-tied changes
+- **Toast** for saved, copied, background complete, non-blocking failure
+
+Not toast: validation errors, destructive confirmation, critical failures that need action.
+
+---
+
+## 12. Tabs and sub-navigation
+
+Tabs only for stable sibling views of the **same** entity (Overview | Configuration | Commerce | Activity). Not a substitute for page navigation.
+
+Selected tab: strong text + simple underline/rail. Avoid chunky pill tabs unless the control is a **filter** segment:
+
+```text
+All 12 · Live 8 · Draft 3 · Archived 1
+```
+
+---
+
+## 13. Forms
+
+Labels above fields. Optional helper below. Errors directly under the field.
+
+Use shared: Field, Input, Select, Textarea, Checkbox, Switch, Button.
+
+No placeholder-as-label, giant inputs, or unnecessary card wrappers.
+
+Long forms: named sections with dividers/headings. Settings may use a narrower content measure than list/workspace pages.
+
+---
+
+## 14. Bulk actions
+
+When rows are selected, replace/augment toolbar:
+
+```text
+3 selected  [Publish] [Archive] [Delete] [•••]
+```
+
+Selection must be obvious. Do not leave bulk actions permanently visible when nothing is selected.
+
+---
+
+## 15. Destructive actions
+
+Never primary by default. Usually overflow/settings. Confirm when irreversible. Danger styling only at the destructive decision point.
+
+---
+
+## 16. Permissions / unavailable actions
+
+Disabled critical actions explain why when non-obvious:
+
+```text
+Publish disabled — commerce mapping incomplete.
+```
+
+Do not gray out without explanation.
+
+---
+
+## 17. Unsaved state
+
+Detail/edit workflows communicate: Saved | Saving… | Unsaved changes | Save failed.
+
+Warn on navigate away from unsaved destructive edits when necessary.
+
+---
+
+## 18. Responsive backoffice
+
+Desktop primary; narrower widths remain usable.
+
+- Sidebar collapses appropriately
+- Tables: keep important columns; intentional horizontal scroll OK
+- Do **not** crush ops tables into unreadable card stacks by default
+- Inspectors/drawers → overlays on smaller widths
+
+---
+
+## Implementation boundaries
+
+| Layer | Owns |
+| --- | --- |
+| `@repo/ui` | Tokens, typography, Button, Field, Input, StatusPill, Panel, EmptyState, etc. |
+| Backoffice local | Shell, `PageChrome`, `BrowseWorkspace`, table recipes, drawers, page compositions |
+
+Do not import landing `Section` / `PageHero` / `Stage` into ops surfaces. Do not promote Dialog / Sidebar / DataTable to `@repo/ui` unless cross-app.
+
+## Out of scope here
+
+Shared chrome implementation: `backoffice-shared-chrome.mdc` (Pass 2A).
+
+Do not redesign Products / Projects / Library / workspace / studio **content** until an explicit Pass 2B+ request names the page.

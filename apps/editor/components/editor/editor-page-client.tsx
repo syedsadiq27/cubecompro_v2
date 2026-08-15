@@ -15,6 +15,7 @@ export function EditorPageClient({ ids }: EditorPageClientProps) {
   const setIds = useEditorStore((state) => state.setIds);
   const setEmbed = useEditorStore((state) => state.setEmbed);
   const setGraphAuth = useEditorStore((state) => state.setGraphAuth);
+  const setUserName = useEditorStore((state) => state.setUserName);
   const embedded = searchParams.get('embed') === '1';
 
   useEffect(() => {
@@ -32,7 +33,10 @@ export function EditorPageClient({ ids }: EditorPageClientProps) {
   }, [ids, searchParams, setIds, setEmbed, embedded]);
 
   useEffect(() => {
-    if (!embedded) return;
+    if (!embedded) {
+      setUserName('Demo Owner');
+      return;
+    }
 
     const onMessage = (event: MessageEvent) => {
       const data = event.data;
@@ -42,18 +46,20 @@ export function EditorPageClient({ ids }: EditorPageClientProps) {
       const apiUrl = (data as { apiUrl?: string }).apiUrl;
       const graphVersionId = (data as { graphVersionId?: string })
         .graphVersionId;
+      const userName = (data as { userName?: string }).userName;
       if (!token || !apiUrl) return;
       setGraphAuth({
         token,
         apiUrl,
         graphVersionId: graphVersionId ?? '',
       });
+      setUserName(userName?.trim() || 'Studio User');
     };
 
     window.addEventListener('message', onMessage);
     window.parent.postMessage({ type: EDITOR_EMBED.READY }, '*');
     return () => window.removeEventListener('message', onMessage);
-  }, [embedded, setGraphAuth]);
+  }, [embedded, setGraphAuth, setUserName]);
 
   return <EditorShell />;
 }

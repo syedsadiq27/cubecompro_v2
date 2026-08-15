@@ -37,9 +37,11 @@ export type MaterialAssetOption = {
 export type WorkspaceTab =
   | 'product'
   | 'options'
+  | 'variants'
   | '3d'
   | 'commerce'
-  | 'rules';
+  | 'rules'
+  | 'activity';
 
 export type SceneNodeInfo = {
   name: string;
@@ -51,9 +53,11 @@ export type SceneNodeInfo = {
 export function parseWorkspaceTab(value?: string | null): WorkspaceTab {
   if (
     value === 'options' ||
+    value === 'variants' ||
     value === '3d' ||
     value === 'commerce' ||
     value === 'rules' ||
+    value === 'activity' ||
     value === 'product'
   ) {
     return value;

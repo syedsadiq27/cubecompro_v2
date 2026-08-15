@@ -1,4 +1,4 @@
-import { PageHeader } from '@/components/page-header';
+import { PageHeader } from '@/components/suite-ui';
 import { PlanEditor } from '@/components/plan-editor';
 import { loadCatalog, loadPlans } from '@/lib/api';
 

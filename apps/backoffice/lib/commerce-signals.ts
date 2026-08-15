@@ -1,7 +1,4 @@
-import {
-  formatOperationalStatus,
-  toOperationalStatus,
-} from './product-status';
+import { toOperationalStatus } from './product-status';
 
 export type CommerceHealth =
   | 'ready'
@@ -40,7 +37,7 @@ export function deriveCommerceSignals(input: {
     typeof input.priceMin === 'number' && Number.isFinite(input.priceMin);
   const threeDReady = input.hasModels;
   const commerceMapped =
-    Boolean(channel) && threeDReady && operational === 'live';
+    Boolean(channel) && threeDReady && operational === 'published';
 
   let health: CommerceHealth = 'mapping_required';
   if (!threeDReady) {
@@ -97,9 +94,9 @@ export function summarizeCatalog(
   let commerceReady = 0;
 
   for (const product of products) {
-    const status = formatOperationalStatus(product.statusName);
-    if (status === 'Live') live += 1;
-    if (status === 'Draft') draft += 1;
+    const operational = toOperationalStatus(product.statusName);
+    if (operational === 'published') live += 1;
+    if (operational === 'draft') draft += 1;
     if (product.signals.needsAttention) issues += 1;
     if (product.signals.health === 'ready') commerceReady += 1;
     skus += product.signals.skuCount;

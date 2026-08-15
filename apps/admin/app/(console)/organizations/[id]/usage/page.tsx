@@ -1,4 +1,4 @@
-import { Panel } from '@/components/panel';
+import { Panel } from '@/components/suite-ui';
 import { UsageBar } from '@/components/usage-bar';
 import { loadResolved } from '@/lib/api';
 import { limitDisplay, sourceLabel } from '@/lib/format';

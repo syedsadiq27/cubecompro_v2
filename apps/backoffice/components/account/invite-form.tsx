@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Button, Field, Input, Typography } from '@repo/ui';
 
 export function InviteForm({
   organizationId,
@@ -29,22 +30,20 @@ export function InviteForm({
         });
       }}
     >
-      <input
-        name="email"
-        type="email"
-        required
-        placeholder="user@example.com"
-        className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
-      />
-      <button
-        type="submit"
-        disabled={pending}
-        className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
-      >
+      <Field label="Email" htmlFor="invite-email">
+        <Input
+          id="invite-email"
+          name="email"
+          type="email"
+          required
+          placeholder="user@example.com"
+        />
+      </Field>
+      <Button type="submit" disabled={pending} size="md">
         {pending ? 'Inviting…' : 'Invite'}
-      </button>
+      </Button>
       {message ? (
-        <p className="text-sm text-[var(--bo-muted)]">{message}</p>
+        <Typography variant="support">{message}</Typography>
       ) : null}
     </form>
   );

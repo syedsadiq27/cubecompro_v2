@@ -46,6 +46,17 @@ export type EditorDocument = {
 
 export type ToolMode = 'select' | 'translate' | 'rotate' | 'scale';
 
+export type EditorWorkspace =
+  | 'scene'
+  | 'objects'
+  | 'materials'
+  | 'mappings'
+  | 'cameras'
+  | 'lights'
+  | 'environment'
+  | 'behaviors'
+  | 'preview';
+
 export type DrawerId =
   | 'materials'
   | 'textures'
@@ -101,13 +112,16 @@ type EditorState = EditorIds & {
   activeConfigValues: ActiveConfigValues;
   configSelection: ConfigSelection | null;
   graphAuth: GraphSessionAuth | null;
+  userName: string | null;
   graphDetail: GraphDetail | null;
   previewSelections: Record<string, string>;
+  activeWorkspace: EditorWorkspace;
   drawer: DrawerId;
   modal: ModalId;
   inspectorStepId: string | null;
   runtime: EditorRuntime | null;
   setIds: (ids: EditorIds) => void;
+  setActiveWorkspace: (workspace: EditorWorkspace) => void;
   setEmbed: (embed: { embedded: boolean; returnTo?: string }) => void;
   setSelected: (selected: THREE.Object3D | null) => void;
   setToolMode: (mode: ToolMode) => void;
@@ -138,6 +152,7 @@ type EditorState = EditorIds & {
   setOutlineNodes: (outlineNodes: THREE.Object3D[]) => void;
   setDocument: (document: EditorDocument | null) => void;
   setGraphAuth: (graphAuth: GraphSessionAuth | null) => void;
+  setUserName: (userName: string | null) => void;
   setGraphDetail: (graphDetail: GraphDetail | null) => void;
   setPreviewSelection: (attributeId: string, valueId: string) => void;
   resetPreviewSelections: () => void;
@@ -169,13 +184,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   activeConfigValues: {},
   configSelection: null,
   graphAuth: null,
+  userName: null,
   graphDetail: null,
   previewSelections: {},
+  activeWorkspace: 'scene',
   drawer: null,
   modal: null,
   inspectorStepId: null,
   runtime: null,
   setIds: (ids) => set(ids),
+  setActiveWorkspace: (activeWorkspace) => set({ activeWorkspace }),
   setEmbed: ({ embedded, returnTo }) => set({ embedded, returnTo }),
   setSelected: (selected) => {
     const runtime = get().runtime;
@@ -322,6 +340,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     })),
   setDocument: (document) => set({ document, dirty: false }),
   setGraphAuth: (graphAuth) => set({ graphAuth }),
+  setUserName: (userName) => set({ userName }),
   setGraphDetail: (graphDetail) =>
     set({
       graphDetail,

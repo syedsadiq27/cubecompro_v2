@@ -1,3 +1,4 @@
+import type { StatusRole } from '@repo/ui';
 import type { Plan, PlanEntitlement, ResolvedRow } from './types';
 
 export function trialLabel(status: string, trialEndsAt?: string | null) {
@@ -10,6 +11,13 @@ export function trialLabel(status: string, trialEndsAt?: string | null) {
   );
   if (days < 0) return 'Trial expired';
   return `Expires in ${days} day${days === 1 ? '' : 's'}`;
+}
+
+export function tenantStatusRole(status: string): StatusRole {
+  if (status === 'ACTIVE') return 'active';
+  if (status === 'TRIAL') return 'trial';
+  if (status === 'SUSPENDED') return 'suspended';
+  return 'info';
 }
 
 export function sourceLabel(source: string, planName?: string | null) {

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@repo/tailwind-config";
+@source "../../../packages/ui/src";
 
 :root {
   --stage-bg: #F5F3EE;
@@ -36,32 +37,10 @@
   --brand-soft: #E8E6FF;
   --shadow: var(--stage-shadow);
 
-  --font-display:
-    var(--font-inter-tight), "Inter Tight", ui-sans-serif, system-ui,
+  --font-display: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
     sans-serif;
-  --font-ui: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
-
-  --bo-ink: var(--ink);
-  --bo-muted: var(--text-secondary);
-  --bo-surface: var(--canvas);
-  --bo-panel: var(--surface-pure);
-  --bo-line: var(--line);
-  --bo-line-strong: var(--border-strong);
-  --bo-accent: var(--ink);
-  --bo-accent-soft: var(--surface);
-  --bo-success: var(--success);
-  --bo-warning: var(--warning);
-  --bo-danger: var(--danger);
-  --bo-live: var(--success);
-  --bo-draft: var(--warning);
-  --bo-draft-soft: var(--warning-soft);
-  --bo-live-soft: var(--success-soft);
-  --bo-warn-soft: var(--warning-soft);
-  --bo-error-soft: var(--danger-soft);
-  --bo-shadow: var(--stage-shadow);
-  --bo-brand: var(--stage-violet);
-  --bo-brand-hover: var(--brand-hover);
-  --bo-brand-soft: var(--brand-soft);
+  --font-ui: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 @layer base {
@@ -89,45 +68,36 @@
   }
 }
 
-.bo-btn-primary {
-  background: var(--bo-ink);
-  color: #fff;
-}
-
-.bo-btn-primary:hover {
-  background: #000;
-}
-
 .type-page {
   font-family: var(--font-display);
-  font-size: 32px;
-  line-height: 1.05;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-}
-
-.type-section {
-  font-family: var(--font-ui);
-  font-size: 21px;
+  font-size: 22px;
   line-height: 1.15;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
+.type-section {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
 .type-body {
   font-family: var(--font-ui);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.45;
   font-weight: 400;
   color: var(--text-secondary);
 }
 
 .type-meta {
   font-family: var(--font-ui);
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.35;
   font-weight: 450;
   color: var(--text-muted);
 }
@@ -137,44 +107,14 @@
   font-size: 10px;
   line-height: 1.2;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .bo-nav-active {
-  position: relative;
   color: var(--ink);
-  background: transparent;
-}
-
-.bo-nav-active::before {
-  content: "";
-  position: absolute;
-  inset: 0 -4px 0 0;
-  background: linear-gradient(
-    90deg,
-    rgba(95, 87, 247, 0.1),
-    rgba(95, 87, 247, 0.03) 40%,
-    transparent 78%
-  );
-  border-radius: 0 8px 8px 0;
-  pointer-events: none;
-}
-
-.bo-nav-active::after {
-  content: "";
-  position: absolute;
-  top: 20%;
-  bottom: 20%;
-  left: 0;
-  width: 2px;
-  border-radius: 1px;
-  background: linear-gradient(
-    180deg,
-    rgba(166, 159, 255, 0.2),
-    var(--stage-violet),
-    rgba(166, 159, 255, 0.2)
-  );
-  box-shadow: 0 0 12px rgba(95, 87, 247, 0.35);
+  background: var(--surface);
+  font-weight: 550;
+  box-shadow: inset 2px 0 0 0 var(--brand);
 }

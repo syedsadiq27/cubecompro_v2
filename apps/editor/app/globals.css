@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@repo/tailwind-config";
+@source "../../../packages/ui/src";
 
 :root {
   --stage-bg: #F5F3EE;
@@ -13,45 +14,91 @@
   --canvas: #F5F3EE;
   --surface: #ECE9E2;
   --surface-pure: #ffffff;
+
   --line: #D8D5CE;
+  --text: var(--ink);
   --text-secondary: #52504C;
   --text-muted: #73716C;
+
+  --success: #34A853;
+  --success-soft: #E6F4EA;
+  --warning: #B06000;
+  --warning-soft: #FEF7E0;
+  --danger: #D93025;
+  --danger-soft: #FCE8E6;
+  --info: #1A73E8;
+  --info-soft: #E8F0FE;
+
+  --background: var(--canvas);
+  --border: var(--line);
   --border-strong: #C4C0B6;
+  --brand: var(--stage-violet);
+  --brand-hover: #5247E6;
+  --brand-soft: #E8E6FF;
+  --shadow: var(--stage-shadow);
 
-  --font-display:
-    var(--font-inter-tight), "Inter Tight", ui-sans-serif, system-ui,
+  --font-display: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
     sans-serif;
-  --font-ui: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-ui: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
-html,
-body {
-  height: 100%;
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--canvas);
+    font-family: var(--font-ui);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
 }
 
-body {
-  margin: 0;
+.type-page {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--ink);
-  background: var(--canvas);
+}
+
+.type-section {
   font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.type-body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.45;
   font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
+  color: var(--text-secondary);
 }
 
 .type-meta {
   font-family: var(--font-ui);
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.35;
   font-weight: 450;
   color: var(--text-muted);
 }

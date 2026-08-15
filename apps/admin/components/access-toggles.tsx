@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
+import { StatusBadge, Switch } from '@repo/ui';
 import {
   deleteOverrideAction,
   upsertOverrideAction,
 } from '@/actions/tenants';
 import { isOn, sourceLabel } from '@/lib/format';
 import type { CatalogApplication, ResolvedRow } from '@/lib/types';
-import { StateLabel } from './state-label';
 
 export function AccessToggles({
   organizationId,
@@ -31,16 +31,16 @@ export function AccessToggles({
         const planOn = isOn(resolved?.baseValue ?? 'false');
         const checked = resolved?.enabled === true;
         return (
-          <label
+          <div
             key={app.id}
             className="flex items-center justify-between gap-3 rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
           >
             <span className="flex items-center gap-3">
-              <input
-                type="checkbox"
+              <Switch
                 checked={checked}
-                onChange={(event) => {
-                  const next = event.target.checked;
+                aria-label={`Toggle ${app.label}`}
+                disabled={pending}
+                onCheckedChange={(next) => {
                   start(async () => {
                     if (next === planOn) {
                       await deleteOverrideAction(organizationId, app.gate);
@@ -64,12 +64,15 @@ export function AccessToggles({
               </span>
             </span>
             <span className="flex items-center gap-2">
-              <StateLabel enabled={checked} />
+              <StatusBadge
+                role={checked ? 'active' : 'draft'}
+                label={checked ? 'Enabled' : 'Disabled'}
+              />
               <span className="type-meta">
                 {sourceLabel(resolved?.source ?? 'NONE', planName)}
               </span>
             </span>
-          </label>
+          </div>
         );
       })}
     </fieldset>

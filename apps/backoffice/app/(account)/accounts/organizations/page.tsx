@@ -1,9 +1,9 @@
 import {
   EmptyState,
   ErrorState,
-  Panel,
 } from '@/components/ui';
 import { PageChrome } from '@/components/ui/page-chrome';
+import { Panel } from '@repo/ui';
 import { graphRequest } from '@repo/product-graph';
 import {
   ME_QUERY,
@@ -64,10 +64,10 @@ export default async function OrganizationsPage() {
         <div className="grid gap-3 md:grid-cols-2">
           <Panel>
             <h3 className="text-base font-semibold">{organization.name}</h3>
-            <p className="mt-1 text-sm text-[var(--bo-muted)]">
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
               {organization.slug} · {roles.length} roles
             </p>
-            <ul className="mt-4 space-y-1 text-sm text-[var(--bo-muted)]">
+            <ul className="mt-4 space-y-1 text-sm text-[var(--text-secondary)]">
               {roles.map((role) => (
                 <li key={role.id}>{role.name}</li>
               ))}

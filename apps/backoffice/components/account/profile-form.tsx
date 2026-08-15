@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Button, Field, Input, Typography } from '@repo/ui';
 
 export function ProfileForm({
   defaults,
@@ -19,7 +20,7 @@ export function ProfileForm({
 
   return (
     <form
-      className="grid max-w-xl gap-4"
+      className="grid max-w-xl gap-3.5"
       onSubmit={(event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -29,47 +30,31 @@ export function ProfileForm({
         });
       }}
     >
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">Email</span>
-        <input
-          value={defaults.email}
-          disabled
-          className="w-full rounded-xl border border-[var(--bo-line)] bg-[var(--bo-surface)] px-3 py-2 text-sm"
-        />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">First name</span>
-        <input
+      <Field label="Email" htmlFor="email">
+        <Input id="email" value={defaults.email} disabled />
+      </Field>
+      <Field label="First name" htmlFor="firstname">
+        <Input
+          id="firstname"
           name="firstname"
           defaultValue={defaults.firstname}
-          className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
         />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">Last name</span>
-        <input
+      </Field>
+      <Field label="Last name" htmlFor="lastname">
+        <Input
+          id="lastname"
           name="lastname"
           defaultValue={defaults.lastname}
-          className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
         />
-      </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">Role</span>
-        <input
-          name="role"
-          defaultValue={defaults.role}
-          className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={pending}
-        className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
-      >
+      </Field>
+      <Field label="Role" htmlFor="role">
+        <Input id="role" name="role" defaultValue={defaults.role} />
+      </Field>
+      <Button type="submit" disabled={pending} size="md">
         {pending ? 'Saving…' : 'Save profile'}
-      </button>
+      </Button>
       {message ? (
-        <p className="text-sm text-[var(--bo-muted)]">{message}</p>
+        <Typography variant="support">{message}</Typography>
       ) : null}
     </form>
   );

@@ -1,7 +1,8 @@
 import { updateProfileAction } from '@/actions/teams';
 import { ProfileForm } from '@/components/account/profile-form';
-import { ErrorState, Panel } from '@/components/ui';
+import { ErrorState } from '@/components/ui';
 import { PageChrome } from '@/components/ui/page-chrome';
+import { Panel } from '@repo/ui';
 import { graphRequest } from '@repo/product-graph';
 import { ME_QUERY } from '@repo/product-graph';
 import { getSessionUser } from '@/lib/session-server';

@@ -1,5 +1,5 @@
 import { CreateOrgForm } from '@/components/create-org-form';
-import { PageHeader } from '@/components/page-header';
+import { PageHeader } from '@/components/suite-ui';
 import { loadPlans } from '@/lib/api';
 
 export default async function NewOrganizationPage() {

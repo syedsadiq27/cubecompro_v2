@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createProductAction } from '@/actions/products';
-import { Panel } from '@/components/ui';
-import { PageChrome } from '@/components/ui/page-chrome';
+import { BackofficePageHeader, PageBody } from '@/components/bo';
+import { Button } from '@repo/ui';
 import { CreateProductForm } from '@/components/products/create-product-form';
 
 export default async function NewProductPage({
@@ -12,24 +12,31 @@ export default async function NewProductPage({
   const { projectId } = await params;
 
   return (
-    <PageChrome
-      title="Add product"
-      description="Creates a product with an empty draft configuration graph."
-    >
-      <div className="mx-auto max-w-xl space-y-4">
-        <Panel className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--surface-pure)]">
+      <BackofficePageHeader
+        title="Add New Product"
+        description="Configure core product identity, initial option blueprint, 3D assets, and commerce resolution."
+        actions={
+          <Button
+            as={Link}
+            href={`/${projectId}/products`}
+            size="sm"
+            variant="secondary"
+            className="ui:text-[13px]"
+          >
+            Back to products
+          </Button>
+        }
+      />
+
+      <PageBody>
+        <div className="max-w-7xl mx-auto pb-12">
           <CreateProductForm
             projectId={projectId}
             action={createProductAction}
           />
-        </Panel>
-        <Link
-          href={`/${projectId}/products`}
-          className="inline-flex rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm"
-        >
-          Back to products
-        </Link>
-      </div>
-    </PageChrome>
+        </div>
+      </PageBody>
+    </div>
   );
 }

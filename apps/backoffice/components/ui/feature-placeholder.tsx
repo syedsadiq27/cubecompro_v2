@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Button, FilterTab, FilterTabs } from '@repo/ui';
 import {
-  BrowseSearch,
-  BrowseWorkspace,
-} from '@/components/ui/browse-workspace';
-import { PageChrome } from '@/components/ui/page-chrome';
-import { Panel } from '@/components/ui';
+  BackofficePageHeader,
+  ListChrome,
+  PageBody,
+  StatusBadge,
+} from '@/components/bo';
+import { ChevronRightIcon } from '@/components/bo/icons';
 
 export function FeaturePlaceholder({
   title,
@@ -22,72 +23,68 @@ export function FeaturePlaceholder({
   href?: string;
   linkLabel?: string;
 }) {
-  const [query, setQuery] = useState('');
-  const cards = useMemo(
-    () => [
-      {
-        id: 'overview',
-        name: title,
-        subtitle: 'Coming soon',
-        body:
-          detail ??
-          'This surface is deferred in CubeCom v1. Catalog, library, and resolve stay on the API.',
-      },
-    ],
-    [title, detail]
-  );
-
-  const filtered = cards.filter((card) => {
-    if (!query.trim()) return true;
-    const q = query.toLowerCase();
-    return (
-      card.name.toLowerCase().includes(q) ||
-      card.subtitle.toLowerCase().includes(q)
-    );
-  });
-
   return (
-    <PageChrome flush>
-      <BrowseWorkspace
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--surface-pure)]">
+      <BackofficePageHeader
         title={title}
-        meta={description}
+        description={description}
         actions={
           href ? (
-            <Link
+            <Button
+              as={Link}
               href={href}
-              className="rounded-lg border border-[var(--bo-line)] px-3 py-1.5 text-sm font-medium"
+              size="sm"
+              variant="secondary"
+              className="ui:text-[13px]"
             >
               {linkLabel ?? 'Back'}
-            </Link>
+            </Button>
           ) : null
         }
-        filters={
-          <span className="px-1 text-[13px] text-[var(--bo-muted)]">
-            Overview
-          </span>
+      />
+
+      <ListChrome
+        views={
+          <FilterTabs>
+            <FilterTab label="Overview" active onClick={() => {}} />
+          </FilterTabs>
         }
-        search={
-          <BrowseSearch
-            value={query}
-            onChange={setQuery}
-            placeholder="Search…"
-          />
-        }
-      >
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((card) => (
-            <Panel key={card.id} className="space-y-2">
-              <p className="text-[13px] font-medium text-[var(--bo-ink)]">
-                {card.name}
-              </p>
-              <p className="text-[11px] text-[var(--bo-muted)]">
-                {card.subtitle}
-              </p>
-              <p className="text-[13px] text-[var(--bo-muted)]">{card.body}</p>
-            </Panel>
-          ))}
+      />
+
+      <PageBody>
+        <div className="max-w-4xl space-y-4">
+          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+                  Service Status
+                </p>
+                <h3 className="mt-1 text-[16px] font-semibold text-[var(--ink)]">
+                  {title} Workspace
+                </h3>
+              </div>
+              <StatusBadge role="draft" label="Coming Soon" />
+            </div>
+
+            <p className="mt-3 text-[13px] text-[var(--text-secondary)] leading-relaxed">
+              {detail ??
+                'This surface is in active development. Core operational primitives, 3D configurator pipelines, catalog, and product graph remain fully accessible via the Backoffice and GraphQL API.'}
+            </p>
+
+            {href ? (
+              <div className="mt-4 pt-3 border-t border-[var(--line)]">
+                <Link
+                  href={href}
+                  className="inline-flex items-center gap-1 text-[13px] font-medium text-[#665CFF] hover:underline"
+                >
+                  <span>{linkLabel ?? 'Return to previous workspace'}</span>
+                  <ChevronRightIcon size={12} />
+                </Link>
+              </div>
+            ) : null}
+          </div>
         </div>
-      </BrowseWorkspace>
-    </PageChrome>
+      </PageBody>
+    </div>
   );
 }

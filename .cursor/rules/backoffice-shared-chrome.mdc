@@ -1,0 +1,45 @@
+---
+description: Backoffice Pass 2 — shared bo primitives + Products reference composition
+globs: apps/backoffice/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# Backoffice Pass 2 — Shared components first
+
+## Principle
+
+Build reusable ops primitives under `apps/backoffice/components/bo`, then compose pages.
+
+Do **not** implement list pages with page-local Tailwind substitutes for shared patterns.
+
+```text
+@repo/ui → generic controls/tokens
+apps/backoffice/components/bo → ops compositions
+page modules → domain content only
+```
+
+## Phase 1 — `components/bo` (locked)
+
+| Area | Exports |
+| --- | --- |
+| Shell | `BackofficeShell`, `Sidebar`, `WorkspaceSwitcher`, `SidebarSection`, `SidebarItem`, `AccountFooter` |
+| Page | `PageHeader` (+`.Meta` `.Actions`), `PageToolbar`, `PageBody`, `PageFrame` |
+| Filters | `FilterTabs`/`FilterTab`, `EntityTabs`/`EntityTab`, `FilterBar`, `SearchField`, `FilterSelect`, `MoreFiltersButton`, `ClearFiltersButton` |
+| Table | `DataTable` (+ Header/Row/Cell/Checkbox/Identity/Actions/Footer) — thin recipe, not a giant DataTable lib |
+| States | `StatusBadge`, `AttentionState`, `EmptyState`, `BulkActionBar`, `SkeletonRows` |
+| Actions | `OverflowMenu`, `RowActionMenu`, `ConfirmDialog` |
+| Inspector | `InspectorPanel`, `InspectorHeader`, `InspectorActions`, `InspectorSection`, `InspectorField`, `InspectorBody` |
+
+Rules: violet = selected/active only; hover neutral; ops density; no landing spacing.
+
+## Phase 2 — Products list (reference)
+
+Compose Products from `bo` primitives only:
+
+Header → FilterTabs (All/Active/Draft/Archived) → FilterBar → BulkActionBar → DataTable → InspectorPanel → pagination footer.
+
+Domain-only: commerce labels, config fractions, product actions.
+
+## Next (explicit)
+
+Product detail → Projects/Library apply same primitives → dashboard → dense workspace.

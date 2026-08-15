@@ -2,8 +2,7 @@ import {
   ProductsCatalog,
   type CatalogProduct,
 } from '@/components/products/products-catalog';
-import { ErrorState } from '@/components/ui';
-import { PageChrome } from '@/components/ui/page-chrome';
+import { EmptyState } from '@/components/bo';
 import { graphRequest } from '@repo/product-graph';
 import { PRODUCTS_BY_PROJECT_QUERY } from '@repo/product-graph';
 import { deriveCommerceSignals } from '@/lib/commerce-signals';
@@ -60,15 +59,17 @@ export default async function ProductsPage({
     error = err instanceof Error ? err.message : 'Failed to load products.';
   }
 
-  return (
-    <PageChrome flush>
-      {error ? (
-        <div className="p-4">
-          <ErrorState message={error} />
-        </div>
-      ) : (
-        <ProductsCatalog projectId={projectId} products={products} />
-      )}
-    </PageChrome>
-  );
+  if (error) {
+    return (
+      <div data-fill-page className="flex min-h-0 flex-1 flex-col p-4">
+        <EmptyState
+          variant="error"
+          title="Products failed to load"
+          description={error}
+        />
+      </div>
+    );
+  }
+
+  return <ProductsCatalog projectId={projectId} products={products} />;
 }

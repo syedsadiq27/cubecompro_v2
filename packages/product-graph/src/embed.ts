@@ -9,4 +9,5 @@ export type EditorEmbedAuthMessage = {
   token: string;
   apiUrl: string;
   graphVersionId?: string;
+  userName?: string;
 };

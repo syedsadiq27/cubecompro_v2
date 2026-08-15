@@ -1,75 +1,98 @@
 'use client';
 
-import { Wordmark } from '@repo/ui';
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-
+import { useEffect, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { AdminNav } from './admin-nav';
+import { CommandPalette } from './ops/command-palette';
+import { SuiteShell, TopBar } from '@repo/ui';
 
 export function AdminShell({
   children,
   userName,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   userName: string;
 }) {
-  const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
     };
-  }, [open]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-[var(--canvas)] md:flex-row">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[var(--line)] bg-[var(--surface-pure)] px-3 md:hidden">
-        <button
-          type="button"
-          aria-label="Open menu"
-          onClick={() => setOpen(true)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--ink)] hover:bg-[var(--surface)]"
-        >
-          <span className="flex flex-col gap-1.5">
-            <span className="block h-px w-4 bg-current" />
-            <span className="block h-px w-4 bg-current" />
-            <span className="block h-px w-4 bg-current" />
-          </span>
-        </button>
-        <Wordmark size="sm" />
-        <span className="text-[10px] font-semibold tracking-[0.08em] text-[var(--text-muted)] uppercase">
-          Admin
-        </span>
-      </header>
-
-      {open ? (
-        <button
-          type="button"
-          aria-label="Close menu"
-          className="fixed inset-0 z-40 bg-[var(--ink)]/30 md:hidden"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
-
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-[min(220px,86vw)] transform transition-transform duration-200 md:static md:z-auto md:w-[220px] md:translate-x-0 ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
+    <>
+      <SuiteShell
+        mobileTitle={
+          <>
+            cubecom{' '}
+            <span className="font-mono text-[9px] font-semibold uppercase text-[var(--text-muted)]">
+              admin
+            </span>
+          </>
+        }
+        sidebar={<AdminNav userName={userName} />}
+        topBar={
+          <TopBar
+            start={
+              <>
+                <button
+                  type="button"
+                  onClick={() => setPaletteOpen(true)}
+                  className="flex h-8 w-64 items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--canvas)]/40 px-2.5 text-left text-[12px] text-[var(--text-muted)] transition-colors hover:border-[var(--ink)]"
+                >
+                  <span>🔍</span>
+                  <span className="flex-1 truncate">Search platform... ⌘K</span>
+                  <kbd className="rounded border bg-[var(--surface-pure)] px-1 py-0.5 font-mono text-[9px]">
+                    ⌘K
+                  </kbd>
+                </button>
+                <span className="hidden h-8 items-center gap-1.5 rounded-md border border-[var(--line)] bg-[var(--canvas)] px-2.5 font-mono text-[10px] text-[var(--text-muted)] sm:inline-flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                  us-east-1 · prod
+                </span>
+              </>
+            }
+            end={
+              <>
+                <Link
+                  href="/audit"
+                  className="flex h-8 items-center text-[12px] text-[var(--text-muted)] hover:text-[var(--ink)]"
+                >
+                  Audit feed
+                </Link>
+                <span className="text-[var(--text-muted)]">·</span>
+                <Link
+                  href="/settings"
+                  className="flex h-8 items-center text-[12px] text-[var(--text-muted)] hover:text-[var(--ink)]"
+                >
+                  Settings
+                </Link>
+                <span className="text-[var(--text-muted)]">·</span>
+                <button
+                  type="button"
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--line)] text-[12px] text-[var(--ink)] hover:bg-[var(--canvas)]"
+                  title="Help"
+                >
+                  ?
+                </button>
+              </>
+            }
+          />
+        }
       >
-        <AdminNav userName={userName} />
-      </div>
-
-      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[var(--canvas)]">
-        <div className="mx-auto w-full max-w-5xl px-4 py-4 md:px-6 md:py-6">
-          {children}
-        </div>
-      </main>
-    </div>
+        {children}
+      </SuiteShell>
+      <CommandPalette
+        isOpen={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
+    </>
   );
 }

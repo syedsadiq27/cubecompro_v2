@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
-import { PageHeader } from '@/components/page-header';
-import { Panel } from '@/components/panel';
+import { PageHeader, Panel } from '@/components/suite-ui';
 import { PlanEditor } from '@/components/plan-editor';
 import { PlanSummary } from '@/components/plan-summary';
 import { loadCatalog, loadPlans } from '@/lib/api';

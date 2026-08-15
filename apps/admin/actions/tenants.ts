@@ -107,7 +107,7 @@ export async function setStatusAction(
 export async function upsertOverrideAction(input: {
   organizationId: string;
   key: string;
-  kind: 'CAPABILITY' | 'LIMIT';
+  kind?: string;
   value: string;
 }): Promise<ActionResult> {
   try {

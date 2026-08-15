@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Button } from '@repo/ui';
 import type { SceneNodeInfo } from '@/lib/product-workspace';
 
 function buildNodePath(object: THREE.Object3D, root: THREE.Object3D): string {
@@ -195,21 +196,21 @@ export function ModelMappingViewer({
   }, [modelUrl, applyHighlight]);
 
   return (
-    <div className="relative h-full min-h-[280px] overflow-hidden rounded-[12px] border border-[var(--bo-line)] bg-[var(--bo-surface)]">
+    <div className="relative h-full min-h-[280px] overflow-hidden rounded-[12px] border border-[var(--line)] bg-[var(--canvas)]">
       <div ref={hostRef} className="absolute inset-0" />
       {loading ? (
-        <p className="absolute inset-x-0 top-3 text-center text-[12px] text-[var(--bo-muted)]">
+        <p className="absolute inset-x-0 top-3 text-center text-[12px] text-[var(--text-secondary)]">
           Loading model…
         </p>
       ) : null}
       {error ? (
-        <p className="absolute inset-x-4 bottom-3 text-center text-[12px] text-[var(--bo-danger)]">
+        <p className="absolute inset-x-4 bottom-3 text-center text-[12px] text-[var(--danger)]">
           {error}
         </p>
       ) : null}
       {!modelUrl ? (
         <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
-          <p className="text-[13px] text-[var(--bo-muted)]">
+          <p className="text-[13px] text-[var(--text-secondary)]">
             Attach a library object to preview and pick parts.
           </p>
         </div>
@@ -229,7 +230,7 @@ export function ModelPartsTree({
 }) {
   if (!tree) {
     return (
-      <p className="text-[13px] text-[var(--bo-muted)]">
+      <p className="text-[13px] text-[var(--text-secondary)]">
         Model parts appear after the GLB loads.
       </p>
     );
@@ -261,25 +262,23 @@ function TreeNode({
   const active = selectedPath === node.nodePath;
   return (
     <li>
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant={active ? 'primary' : 'ghost'}
         onClick={() => onSelectPath(node.nodePath)}
-        className={`flex w-full items-center rounded-md px-2 py-1.5 text-left ${
-          active
-            ? 'bo-btn-primary'
-            : 'text-[var(--bo-ink)] hover:bg-black/[0.04]'
-        }`}
+        className="w-full justify-start rounded-md px-2 py-1.5"
         style={{ paddingLeft: 8 + depth * 12 }}
       >
         <span className="truncate">{node.name}</span>
         <span
           className={`ml-auto pl-2 text-[10px] uppercase tracking-wide ${
-            active ? 'opacity-70' : 'text-[var(--bo-muted)]'
+            active ? 'opacity-70' : 'text-[var(--text-secondary)]'
           }`}
         >
           {node.nodeType}
         </span>
-      </button>
+      </Button>
       {node.children.length > 0 ? (
         <ul>
           {node.children.map((child) => (

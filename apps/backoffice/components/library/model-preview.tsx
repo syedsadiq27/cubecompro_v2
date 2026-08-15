@@ -232,12 +232,12 @@ export function ModelGlbPreview({
     >
       <div ref={mountRef} className="absolute inset-0" />
       {status === 'loading' || status === 'idle' ? (
-        <p className="pointer-events-none absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 text-center text-[11px] text-[var(--bo-muted)]">
+        <p className="pointer-events-none absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 text-center text-[11px] text-[var(--text-secondary)]">
           {status === 'idle' ? '3D' : 'Loading 3D…'}
         </p>
       ) : null}
       {status === 'error' ? (
-        <p className="pointer-events-none absolute inset-x-2 top-1/2 z-10 -translate-y-1/2 text-center text-[11px] text-[var(--bo-danger)]">
+        <p className="pointer-events-none absolute inset-x-2 top-1/2 z-10 -translate-y-1/2 text-center text-[11px] text-[var(--danger)]">
           Preview unavailable
         </p>
       ) : null}

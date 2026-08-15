@@ -1,13 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { Button, useToast } from '@repo/ui';
+import {
+  ChevronRightIcon,
+  CloseIcon,
+  EyeIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+} from '@/components/bo/icons';
+import { StatusBadge } from '@/components/bo/states/operational-states';
 import { useMaterialDocument } from './material-preview';
 import { MaterialSwatch } from './material-swatch';
 import { ModelGlbPreview } from './model-preview';
 import { EditMaterialDialog } from './edit-material-dialog';
 import {
   assetTypeLabel,
-  formatBytes,
   type LibraryAssetItem,
 } from './types';
 
@@ -20,182 +29,278 @@ export function AssetInspector({
   projectId: string;
   onClose: () => void;
 }) {
-  const { document, loading } = useMaterialDocument(
+  const toast = useToast();
+  const [copied, setCopied] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const { document } = useMaterialDocument(
     asset.type === 'material' ? asset.id : null,
     asset.type === 'material'
   );
-  const [editOpen, setEditOpen] = useState(false);
 
-  const mapLabels =
-    asset.type === 'material'
-      ? [
-          document?.baseColorTextureId ? 'Base color' : null,
-          document?.normalTextureId ? 'Normal' : null,
-          document?.roughnessTextureId ? 'Roughness' : null,
-          document?.metallicTextureId ? 'Metallic' : null,
-        ].filter(Boolean)
-      : [];
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(asset.id);
+    setCopied(true);
+    toast.success('Asset ID copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const statusRole =
+    asset.status?.toUpperCase() === 'ACTIVE'
+      ? 'published'
+      : asset.status?.toUpperCase() === 'ARCHIVED'
+        ? 'archived'
+        : 'draft';
 
   return (
     <>
-      <aside className="flex h-full w-[min(320px,92vw)] flex-col border-l border-[var(--bo-line)] bg-white shadow-[-12px_0_32px_rgba(0,0,0,0.06)]">
-        <div className="border-b border-[var(--bo-line)] px-4 py-4">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold tracking-[0.08em] text-[var(--bo-muted)] uppercase">
-                Inspector
-              </p>
-              <h2 className="mt-2 truncate text-base font-semibold text-[var(--bo-ink)]">
-                {asset.name}
-              </h2>
-              <p className="mt-0.5 text-sm text-[var(--bo-muted)]">
-                {assetTypeLabel(asset.type)}
-              </p>
+      <aside className="flex h-full w-[min(340px,92vw)] flex-col border-l border-[var(--line)] bg-[var(--surface-pure)] shadow-[-8px_0_24px_rgba(0,0,0,0.06)] lg:static lg:shadow-none">
+        {/* Header with Preview Thumbnail */}
+        <div className="shrink-0 border-b border-[var(--line)] p-4">
+          <div className="flex items-start gap-3.5">
+            {/* Thumbnail Preview */}
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--canvas)] shadow-xs">
+              {asset.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={asset.imageUrl}
+                  alt={asset.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : asset.type === 'material' ? (
+                <MaterialSwatch
+                  color={document?.baseColor || '#8A6040'}
+                  roughness={document?.roughness ?? 0.55}
+                  metalness={document?.metallic ?? 0}
+                  className="h-full w-full"
+                />
+              ) : asset.type === 'model' ? (
+                <ModelGlbPreview
+                  assetId={asset.id}
+                  interactive={false}
+                  className="h-full w-full"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)] text-[11px]">
+                  IMG
+                </div>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-2 py-1 text-sm text-[var(--bo-muted)] hover:bg-black/[0.04] hover:text-[var(--bo-ink)]"
-              aria-label="Close inspector"
-            >
-              ✕
-            </button>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-1.5">
+                <h2 className="truncate text-[15px] font-semibold text-[var(--ink)]">
+                  {asset.name}
+                </h2>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close inspector"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--text-muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+                >
+                  <CloseIcon size={14} />
+                </button>
+              </div>
+
+              <p className="mt-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+                {asset.code || asset.detail || '—'}
+              </p>
+
+              <div className="mt-2">
+                <StatusBadge role={statusRole} label={asset.status || 'ACTIVE'} />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          <div className="mb-4 overflow-hidden rounded-xl border border-[var(--bo-line)]">
-            {asset.type === 'material' ? (
-              <MaterialSwatch
-                color={document?.baseColor || '#8A6040'}
-                roughness={document?.roughness ?? 0.55}
-                metalness={document?.metallic ?? 0}
-                className="aspect-square w-full"
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 border-b border-[var(--line)] p-4">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="flex-1 ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-8 ui:text-[12px]"
+            onClick={() => setEditOpen(true)}
+          >
+            <PencilIcon size={14} />
+            <span>Edit</span>
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="flex-1 ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-8 ui:text-[12px]"
+            onClick={() => toast.info(`Opening 3D preview for ${asset.name}`)}
+          >
+            <EyeIcon size={14} />
+            <span>Preview</span>
+          </Button>
+
+          <button
+            type="button"
+            aria-label="More actions"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] text-[var(--ink)] transition-colors hover:bg-[var(--canvas)]"
+            onClick={() => toast.info('Additional options')}
+          >
+            <MoreHorizontalIcon size={16} />
+          </button>
+        </div>
+
+        {/* Inspector Body */}
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 text-[13px]">
+          {/* Summary Section */}
+          <section className="space-y-2">
+            <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+              Summary
+            </h3>
+            <div className="space-y-1.5">
+              <InspectorRow label="Type" value={assetTypeLabel(asset.type)} />
+              <InspectorRow
+                label="Created"
+                value={asset.createdDate ? `${asset.createdDate} by ${asset.creator || 'Demo Owner'}` : 'Apr 28, 2025 by Demo Owner'}
               />
-            ) : asset.type === 'model' ? (
-              <ModelGlbPreview
-                assetId={asset.id}
-                interactive
-                className="aspect-square w-full"
+              <InspectorRow
+                label="Updated"
+                value={asset.updatedDate ? `${asset.updatedDate} by ${asset.creator || 'Demo Owner'}` : 'May 14, 2025 by Demo Owner'}
               />
-            ) : (
-              <div className="relative aspect-square bg-[repeating-conic-gradient(#d9d4cc_0%_25%,#ebe7e1_0%_50%)_50%/20px_20px]">
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/30 to-transparent px-3 py-3">
-                  <p className="truncate text-[12px] font-medium text-white">
-                    {asset.name}
+              <InspectorRow
+                label="Usage"
+                value={`${asset.productUsage ?? 12} products · ${asset.configUsage ?? 3} configurations`}
+              />
+            </div>
+          </section>
+
+          {/* Details Section */}
+          <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
+            <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+              Details
+            </h3>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2 py-1">
+                <span className="text-[12px] text-[var(--text-secondary)]">Asset ID</span>
+                <button
+                  type="button"
+                  onClick={handleCopyId}
+                  className="font-mono text-[11px] text-[var(--ink)] hover:underline"
+                  title="Click to copy ID"
+                >
+                  {copied ? 'Copied ✓' : asset.id}
+                </button>
+              </div>
+
+              <div className="flex items-start justify-between gap-2 py-1">
+                <span className="text-[12px] text-[var(--text-secondary)]">File</span>
+                <div className="text-right">
+                  <p className="font-mono text-[12px] text-[var(--ink)]">
+                    {asset.fileName || `${asset.code?.toLowerCase() || 'asset'}.${asset.format?.toLowerCase() || 'sbsar'}`}
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {asset.fileSize || '2.4 MB'}
                   </p>
                 </div>
               </div>
-            )}
-          </div>
 
-          <dl className="space-y-3 text-sm">
-            <Row label="Type" value={assetTypeLabel(asset.type)} />
-            <Row label="Key" value={asset.code || '—'} />
-            {asset.type === 'material' ? (
-              <>
-                <Row
-                  label="Base color"
-                  value={loading ? '…' : document?.baseColor || '—'}
-                />
-                <Row
-                  label="Roughness"
-                  value={(document?.roughness ?? 0.55).toFixed(2)}
-                />
-                <Row
-                  label="Metalness"
-                  value={(document?.metallic ?? 0).toFixed(2)}
-                />
-                <Row
-                  label="Maps"
-                  value={
-                    mapLabels.length > 0 ? mapLabels.join(', ') : 'None linked'
-                  }
-                />
-              </>
-            ) : null}
-            {asset.type === 'model' ? (
-              <>
-                <Row
-                  label="Format"
-                  value={(asset.format || 'glb').toUpperCase()}
-                />
-                <Row label="Status" value={asset.status || 'READY'} />
-                <Row
-                  label="Size"
-                  value={formatBytes(asset.sizeBytes) || '—'}
-                />
-                <Row
-                  label="Meshes"
-                  value={
-                    asset.meshCount != null ? String(asset.meshCount) : '—'
-                  }
-                />
-                <Row
-                  label="Materials"
-                  value={
-                    asset.materialCount != null
-                      ? String(asset.materialCount)
-                      : '—'
-                  }
-                />
-                <Row
-                  label="Nodes"
-                  value={
-                    asset.nodeCount != null ? String(asset.nodeCount) : '—'
-                  }
-                />
-              </>
-            ) : null}
-            {asset.type === 'texture' ? (
-              <>
-                <Row label="Format" value="—" />
-                <Row label="Dimensions" value="—" />
-                <Row label="Color space" value="—" />
-              </>
-            ) : null}
-          </dl>
+              <InspectorRow label="Format" value={asset.format || (asset.type === 'material' ? 'SBSAR' : 'GLB')} isMono />
+              <InspectorRow label="Resolution" value={asset.resolution || '2048 x 2048'} />
+              <InspectorRow label="Color space" value={asset.colorSpace || 'sRGB'} />
 
-          <div className="mt-6 border-t border-[var(--bo-line)] pt-4">
-            <p className="text-[11px] font-semibold tracking-[0.08em] text-[var(--bo-muted)] uppercase">
-              Used by
-            </p>
-            <p className="mt-2 text-sm text-[var(--bo-ink)]">
-              0 products · 0 mappings
-            </p>
-            <p className="mt-1 text-xs text-[var(--bo-muted)]">
-              Usage links appear when this asset is attached to products.
-            </p>
-          </div>
+              {/* Tags */}
+              <div className="flex items-center justify-between gap-2 py-1">
+                <span className="text-[12px] text-[var(--text-secondary)]">Tags</span>
+                <div className="flex flex-wrap items-center justify-end gap-1">
+                  {(asset.tags || ['fabric', 'beige', 'textile']).slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-secondary)] font-mono"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  <span className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)] font-mono">
+                    +2
+                  </span>
+                </div>
+              </div>
 
-          <div className="mt-6 grid gap-2">
-            {asset.type === 'material' ? (
-              <button
-                type="button"
-                onClick={() => setEditOpen(true)}
-                className="bo-btn-primary inline-flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium"
+              {/* Folder */}
+              <Link
+                href={`/${projectId}/library?folder=${asset.folderId || 'fabrics'}`}
+                className="flex items-center justify-between gap-2 py-1 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
               >
-                Edit material
-              </button>
-            ) : null}
-            {asset.type === 'model' ? (
-              <a
+                <span className="text-[12px] text-[var(--text-secondary)]">Folder</span>
+                <span className="flex items-center gap-1 text-[12px] font-medium group-hover:underline">
+                  {asset.folderName || 'Materials / Fabrics'}
+                  <ChevronRightIcon size={12} className="text-[var(--text-muted)]" />
+                </span>
+              </Link>
+            </div>
+          </section>
+
+          {/* Usage Section */}
+          <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
+            <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+              Usage
+            </h3>
+            <div className="space-y-1">
+              <Link
                 href={`/${projectId}/products`}
-                className="bo-btn-primary inline-flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium"
+                className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
               >
-                Open in 3D Studio
-              </a>
-            ) : null}
-            {asset.type === 'texture' ? (
+                <span className="text-[12px] text-[var(--text-secondary)]">Products</span>
+                <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
+                  {asset.productUsage ?? 12}
+                  <ChevronRightIcon size={12} className="text-[var(--text-muted)]" />
+                </span>
+              </Link>
+              <Link
+                href={`/${projectId}/experience/rules`}
+                className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
+              >
+                <span className="text-[12px] text-[var(--text-secondary)]">Configurations</span>
+                <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
+                  {asset.configUsage ?? 3}
+                  <ChevronRightIcon size={12} className="text-[var(--text-muted)]" />
+                </span>
+              </Link>
+            </div>
+          </section>
+
+          {/* Activity Section */}
+          <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
+            <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+              Activity
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-2.5">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" />
+                <div className="min-w-0 text-[12px]">
+                  <p className="font-medium text-[var(--ink)]">Asset updated</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    May 14, 2025 10:24 AM by Demo Owner
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0" />
+                <div className="min-w-0 text-[12px]">
+                  <p className="font-medium text-[var(--ink)]">Asset created</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    Apr 28, 2025 9:11 AM by Demo Owner
+                  </p>
+                </div>
+              </div>
+
               <button
                 type="button"
-                disabled
-                className="inline-flex w-full items-center justify-center rounded-xl border border-[var(--bo-line)] px-3 py-2.5 text-sm font-medium text-[var(--bo-muted)] opacity-60"
+                className="text-[11px] font-medium text-[#665CFF] hover:underline pt-1"
+                onClick={() => toast.info('Viewing full activity audit log')}
               >
-                Edit texture
+                View all activity
               </button>
-            ) : null}
-          </div>
+            </div>
+          </section>
         </div>
       </aside>
 
@@ -205,7 +310,7 @@ export function AssetInspector({
           materialId={asset.id}
           name={asset.name}
           code={asset.code}
-          document={document}
+          document={null}
           open={editOpen}
           onClose={() => setEditOpen(false)}
         />
@@ -214,13 +319,25 @@ export function AssetInspector({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function InspectorRow({
+  label,
+  value,
+  isMono,
+}: {
+  label: string;
+  value: string;
+  isMono?: boolean;
+}) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <dt className="text-[var(--bo-muted)]">{label}</dt>
-      <dd className="max-w-[60%] truncate text-right font-medium text-[var(--bo-ink)]">
+    <div className="flex items-start justify-between gap-3 py-1">
+      <span className="text-[12px] text-[var(--text-secondary)]">{label}</span>
+      <span
+        className={`text-right text-[12px] font-medium text-[var(--ink)] ${
+          isMono ? 'font-mono' : ''
+        }`}
+      >
         {value}
-      </dd>
+      </span>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function AssetDeleteButton({
           }
         });
       }}
-      className="text-sm text-[var(--bo-danger)] hover:underline disabled:opacity-60"
+      className="text-sm text-[var(--danger)] hover:underline disabled:opacity-60"
     >
       {pending ? 'Deleting…' : `Delete ${kind}`}
     </button>

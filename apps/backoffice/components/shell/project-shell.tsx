@@ -25,7 +25,7 @@ export function ProjectShell({
 
   if (isStudioEditorPath(pathname)) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[var(--bo-canvas,#f4f2ee)]">
+      <div className="fixed inset-0 z-[100] bg-[var(--canvas)]">
         {children}
       </div>
     );

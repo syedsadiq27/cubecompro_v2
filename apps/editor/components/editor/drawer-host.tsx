@@ -26,7 +26,7 @@ export function DrawerHost() {
         className="absolute inset-0 bg-black/20"
         onClick={closeDrawer}
       />
-      <aside className="absolute inset-y-0 right-0 flex w-[360px] max-w-[90vw] flex-col border-l border-[var(--line)] bg-[var(--surface-pure)] shadow-xl">
+      <aside className="absolute inset-y-0 right-0 flex w-[var(--suite-inspector-width-lg,350px)] max-w-[90vw] flex-col border-l border-[var(--line)] bg-[var(--surface-pure)] shadow-xl">
         <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-3">
           <div>
             <p className="type-nav-label">Drawer</p>

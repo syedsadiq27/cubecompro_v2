@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { Button, Field, Input, Select } from '@repo/ui';
 import { createTenantAction } from '@/actions/tenants';
 import { slugify } from '@/lib/format';
 import type { Plan } from '@/lib/types';
@@ -33,61 +34,47 @@ export function CreateOrgForm({ plans }: { plans: Plan[] }) {
         });
       }}
     >
-      <label className="block space-y-1 text-[12px]">
-        <span className="type-meta block">Name</span>
-        <input
+      <Field label="Name" htmlFor="org-name">
+        <Input
+          id="org-name"
           name="name"
           required
-          className="w-full rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
           onChange={(event) => setSlug(slugify(event.target.value))}
         />
-      </label>
-      <label className="block space-y-1 text-[12px]">
-        <span className="type-meta block">Slug</span>
-        <input
+      </Field>
+      <Field label="Slug" htmlFor="org-slug">
+        <Input
+          id="org-slug"
           name="slug"
           required
           value={slug}
           onChange={(event) => setSlug(slugify(event.target.value))}
-          className="w-full rounded-lg border border-[var(--line)] px-3 py-2 font-mono text-[13px]"
+          className="ui:font-mono"
         />
-      </label>
-      <label className="block space-y-1 text-[12px]">
-        <span className="type-meta block">Plan</span>
-        <select
-          name="planId"
-          className="w-full rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
-        >
+      </Field>
+      <Field label="Plan" htmlFor="org-plan">
+        <Select id="org-plan" name="planId">
           <option value="">Default (Starter)</option>
           {plans.map((plan) => (
             <option key={plan.id} value={plan.id}>
               {plan.name}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="block space-y-1 text-[12px]">
-        <span className="type-meta block">Status</span>
-        <select
-          name="status"
-          defaultValue="TRIAL"
-          className="w-full rounded-lg border border-[var(--line)] px-3 py-2 text-[13px]"
-        >
+        </Select>
+      </Field>
+      <Field label="Status" htmlFor="org-status">
+        <Select id="org-status" name="status" defaultValue="TRIAL">
           <option value="TRIAL">Trial</option>
           <option value="ACTIVE">Active</option>
           <option value="SUSPENDED">Suspended</option>
-        </select>
-      </label>
+        </Select>
+      </Field>
       {error ? (
         <p className="text-[12px] text-[var(--danger)]">{error}</p>
       ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--ink)] px-4 py-2 text-[13px] text-white disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending}>
         Create organization
-      </button>
+      </Button>
     </form>
   );
 }

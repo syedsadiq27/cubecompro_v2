@@ -1,6 +1,5 @@
 import { ProductWorkspace } from '@/components/products/workspace/product-workspace';
-import { ErrorState } from '@/components/ui';
-import { PageChrome } from '@/components/ui/page-chrome';
+import { EmptyState } from '@/components/bo';
 import {
   MATERIAL_ASSETS_QUERY,
   OBJECT_ASSETS_QUERY,
@@ -83,7 +82,11 @@ export default async function ProductDetailPage({
           version.status === 'PUBLISHED' || version.status === 'ARCHIVED'
       )
       .sort((a, b) => b.version - a.version)
-      .map((version) => ({ id: version.id, version: version.version }));
+      .map((version) => ({
+        id: version.id,
+        versionNumber: version.version,
+        publishedAt: version.publishedAt ?? new Date().toISOString(),
+      }));
 
     let detail: GraphDetail | null = null;
     if (versions.length > 0) {
@@ -99,28 +102,28 @@ export default async function ProductDetailPage({
     }
 
     return (
-      <PageChrome flush>
-        <ProductWorkspace
-          projectId={projectId}
-          productId={id}
-          product={productData.product}
-          detail={detail}
-          objectAssets={objectsData.objectAssets}
-          materialAssets={materialsData.materialAssets}
-          publishedVersions={publishedVersions}
-          initialTab={parseWorkspaceTab(tab)}
-        />
-      </PageChrome>
+      <ProductWorkspace
+        projectId={projectId}
+        productId={id}
+        product={productData.product}
+        detail={detail}
+        objectAssets={objectsData.objectAssets}
+        materialAssets={materialsData.materialAssets}
+        publishedVersions={publishedVersions}
+        initialTab={parseWorkspaceTab(tab)}
+      />
     );
   } catch (error) {
     return (
-      <PageChrome title="Product">
-        <ErrorState
-          message={
+      <div data-fill-page className="flex min-h-0 flex-1 flex-col p-6">
+        <EmptyState
+          variant="error"
+          title="Product failed to load"
+          description={
             error instanceof Error ? error.message : 'Failed to load product.'
           }
         />
-      </PageChrome>
+      </div>
     );
   }
 }

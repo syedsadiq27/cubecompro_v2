@@ -1,7 +1,13 @@
 import "@repo/ui/styles.css";
 import "./globals.css";
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
+import { Geist } from "next/font/google";
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Product Customizer",
@@ -14,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${GeistSans.className} antialiased`}>{children}</body>
+    <html lang="en" className={geist.variable}>
+      <body className={`${geist.className} antialiased`}>{children}</body>
     </html>
   );
 }

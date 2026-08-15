@@ -1,4 +1,4 @@
-export type LibraryAssetType = 'material' | 'model' | 'texture';
+export type LibraryAssetType = 'material' | 'model' | 'texture' | 'image';
 
 export type LibraryFolderItem = {
   id: string;
@@ -15,8 +15,22 @@ export type LibraryAssetItem = {
   folderId?: string | null;
   documentUrl?: string | null;
   fileUrl?: string | null;
+  imageUrl?: string | null;
   format?: string | null;
   status?: string | null;
+  detail?: string | null;
+  updatedDate?: string | null;
+  updatedTime?: string | null;
+  createdDate?: string | null;
+  creator?: string | null;
+  fileName?: string | null;
+  fileSize?: string | null;
+  resolution?: string | null;
+  colorSpace?: string | null;
+  tags?: string[];
+  folderName?: string | null;
+  productUsage?: number;
+  configUsage?: number;
   meshCount?: number | null;
   materialCount?: number | null;
   nodeCount?: number | null;
@@ -32,7 +46,8 @@ export type LibraryScope =
 export function assetTypeLabel(type: LibraryAssetType): string {
   if (type === 'material') return 'Material';
   if (type === 'model') return 'Model';
-  return 'Texture';
+  if (type === 'texture') return 'Texture';
+  return 'Image';
 }
 
 export function formatBytes(size?: number | null): string | null {

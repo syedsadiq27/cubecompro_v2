@@ -4,8 +4,7 @@ import type {
   LibraryFolderItem,
   LibraryScope,
 } from '@/components/library/types';
-import { ErrorState } from '@/components/ui';
-import { PageChrome } from '@/components/ui/page-chrome';
+import { EmptyState } from '@/components/bo';
 import { graphRequest } from '@repo/product-graph';
 import {
   LIBRARY_FOLDERS_QUERY,
@@ -117,25 +116,29 @@ export default async function LibraryPage({
     error = err instanceof Error ? err.message : 'Failed to load library.';
   }
 
+  if (error) {
+    return (
+      <div data-fill-page className="flex min-h-0 flex-1 flex-col p-6">
+        <EmptyState
+          variant="error"
+          title="Library failed to load"
+          description={error}
+        />
+      </div>
+    );
+  }
+
   const initialScope: LibraryScope | undefined =
     type === 'material' || type === 'model' || type === 'texture'
       ? { kind: 'type', type }
       : undefined;
 
   return (
-    <PageChrome flush>
-      {error ? (
-        <div className="p-4">
-          <ErrorState message={error} />
-        </div>
-      ) : (
-        <AssetLibrary
-          projectId={projectId}
-          folders={folders}
-          assets={assets}
-          initialScope={initialScope}
-        />
-      )}
-    </PageChrome>
+    <AssetLibrary
+      projectId={projectId}
+      folders={folders}
+      assets={assets}
+      initialScope={initialScope}
+    />
   );
 }

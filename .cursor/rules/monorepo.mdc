@@ -60,8 +60,28 @@ apps → shared feature packages → ui / contracts / config
 - Do not hide errors (`ignoreBuildErrors`, blanket `any`, silenced lint)
 - Migrate: preserve behavior → reuse/extend primitive → migrate call sites → remove local dup → verify
 
+## Suite Baseline & Shared Platform Architecture
+
+The platform operates as a **single product suite / shared platform architecture**:
+
+```text
+admin.cubecompro.com       (apps/admin)       -> Platform Operations & Tenant Control
+backoffice.cubecompro.com  (apps/backoffice)  -> Merchant Catalog & Product Authoring
+3d.cubecompro.com          (apps/editor)      -> 3D Studio & Real-Time Configurator Authoring
+```
+
+> **Suite UI convergence is in progress. Documentation does not constitute implementation. A shared pattern is considered established only when it is implemented in `@repo/ui` and consumed by at least two suite applications.**
+
+- `@repo/ui`, `@repo/tailwind-config`, and `@repo/fonts` are mandatory sources of truth.
+- App-local code composes shared primitives; never recreate buttons, badges, tabs, inputs, cards, typography, modal shells, or inspector shells.
+- Dark navigation sidebar (`#0E0F12`, `border-r border-white/10`) and global top chrome (<kbd>⌘K</kbd>, cluster status, breadcrumbs) are suite-level patterns.
+- Violet (`#665CFF`) is reserved strictly for semantic states (selected, active, focused, synchronized) — never decorative.
+- Canonical status vocabulary (`Active`, `Trial`, `Suspended`, `Running`, `Completed`, `Failed`) and 330px–350px contextual inspector standards.
+- Shared architecture does not mean identical composition: promote to `@repo/ui` ONLY when genuinely generic across the suite; domain compositions stay app-local.
+
 ## After editing
 
 Report files changed, shared packages reused, new shared APIs, validation run, and known/pre-existing failures.
 
 **Golden rule:** reuse shared packages by default. Apps compose the platform; they do not recreate it.
+

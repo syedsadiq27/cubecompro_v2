@@ -569,6 +569,51 @@ Editorial credibility page: thesis-first, brief Introfinity ownership, candid ea
 
 ---
 
+## Backoffice UI (pass 1 + grammar + Pass 2)
+
+- **Pass 1** (identity): `.cursor/rules/backoffice-ui.mdc`
+- **Grammar**: `.cursor/rules/backoffice-page-grammar.mdc`
+- **Pass 2** (shared `bo` primitives + Products reference): `.cursor/rules/backoffice-shared-chrome.mdc` — compose from `apps/backoffice/components/bo`; no page-local substitutes for shell/header/tabs/table/inspector patterns.
+- **Next** (explicit): Product detail → Projects/Library → dashboard → workspace.
+
+## 26. Suite Baseline & Shared Platform Architecture
+
+The platform operates as a **single product suite / shared platform architecture**:
+
+```text
+admin.cubecompro.com       (apps/admin)       -> Platform Operations & Tenant Control
+backoffice.cubecompro.com  (apps/backoffice)  -> Merchant Catalog & Product Authoring
+3d.cubecompro.com          (apps/editor)      -> 3D Studio & Real-Time Configurator Authoring
+```
+
+> **Suite UI convergence is in progress. Documentation does not constitute implementation. A shared pattern is considered established only when it is implemented in `@repo/ui` and consumed by at least two suite applications.**
+
+### Strict Suite Governance Rules:
+
+1. **Mandatory Shared Sources**:
+   - `@repo/ui`, `@repo/tailwind-config`, and `@repo/fonts` are the mandatory sources of shared visual primitives, tokens, and typography.
+2. **No Local Primitive Recreation**:
+   - App-local code may compose shared primitives, but MUST NOT recreate buttons, badges, tabs, inputs, cards, typography, modal shells, inspector shells, or common status patterns locally.
+3. **Shared Identity, Domain-Specific Density**:
+   - `admin`, `backoffice`, and `editor` share identity and visual language, but not identical composition density:
+     - **Admin** = platform control, global operations, telemetry, and tenant management.
+     - **Backoffice** = tenant operations, merchant catalog, products, and commerce channels.
+     - **Editor** = canvas-first 3D authoring, geometry tree, PBR materials, and visual behaviors.
+4. **Dark Sidebar & Top Chrome**:
+   - The dark navigation sidebar (`#0E0F12`, `border-r border-white/10`) and global top chrome header (<kbd>⌘K</kbd>, cluster status, breadcrumbs) are suite-level patterns. Any visual change MUST be reviewed across all three apps.
+5. **Sparse & Semantic Violet Accent**:
+   - Violet (`#665CFF`) is reserved strictly for semantic states: selected, active, focused, synchronized. Never use violet decoratively.
+6. **Canonical Status Vocabulary**:
+   - Status indicators (`Active`, `Trial`, `Suspended`, `Running`, `Completed`, `Failed`) and semantic dot colors (`emerald`, `amber`, `red`, `blue`) are canonical across all apps.
+7. **Contextual Inspector Standard**:
+   - Contextual right inspectors must reuse standard dimensions (`330px`–`350px`) and tab behaviors (`Overview`, `Limits`, `Entitlements`, `Activity`), while content remains app-specific.
+8. **Cohesive Cross-App Navigation**:
+   - Moving between `admin`, `backoffice`, and `editor` must feel like moving between integrated surfaces of one product, not opening unrelated tools.
+9. **Shared Architecture Does Not Mean Identical Composition**:
+   - A component belongs in `@repo/ui` ONLY if it is genuinely generic across the suite. Domain-specific compositions, state visualizations, and authoring workflows must remain app-local.
+
+---
+
 ## Golden rule
 
 **Reuse shared packages by default.**
@@ -580,3 +625,4 @@ If the current shared API is almost sufficient, extend it carefully rather than 
 Apps should compose the platform.
 
 They should not recreate it.
+

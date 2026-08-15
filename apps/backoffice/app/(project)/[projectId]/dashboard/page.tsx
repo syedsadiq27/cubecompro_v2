@@ -1,6 +1,5 @@
 import { DashboardBrowse } from '@/components/dashboard/dashboard-browse';
-import { ErrorState } from '@/components/ui';
-import { PageChrome } from '@/components/ui/page-chrome';
+import { EmptyState } from '@/components/bo';
 import { graphRequest } from '@repo/product-graph';
 import { PRODUCTS_BY_PROJECT_QUERY } from '@repo/product-graph';
 import { getProjectSession } from '@/lib/session-server';
@@ -30,15 +29,17 @@ export default async function DashboardPage({
     error = err instanceof Error ? err.message : 'Failed to load dashboard.';
   }
 
-  return (
-    <PageChrome flush>
-      {error ? (
-        <div className="p-4">
-          <ErrorState message={error} />
-        </div>
-      ) : (
-        <DashboardBrowse projectId={projectId} productCount={productCount} />
-      )}
-    </PageChrome>
-  );
+  if (error) {
+    return (
+      <div data-fill-page className="flex min-h-0 flex-1 flex-col p-6">
+        <EmptyState
+          variant="error"
+          title="Dashboard failed to load"
+          description={error}
+        />
+      </div>
+    );
+  }
+
+  return <DashboardBrowse projectId={projectId} productCount={productCount} />;
 }

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Button, Field, Input, Typography } from '@repo/ui';
 
-type Field = {
+type SettingsField = {
   name: string;
   label: string;
   value?: string;
@@ -14,7 +15,7 @@ export function SettingsForm({
   onSave,
   onDelete,
 }: {
-  fields: Field[];
+  fields: SettingsField[];
   onSave: (formData: FormData) => Promise<{ ok: boolean; error?: string }>;
   onDelete?: () => Promise<{ ok: boolean; error?: string }>;
 }) {
@@ -23,7 +24,7 @@ export function SettingsForm({
 
   return (
     <form
-      className="grid gap-4 md:grid-cols-2"
+      className="grid gap-3.5 md:grid-cols-2"
       onSubmit={(event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -42,29 +43,30 @@ export function SettingsForm({
             defaultValue={field.value}
           />
         ) : (
-          <label key={field.name} className="block space-y-1.5">
-            <span className="text-sm font-medium">{field.label}</span>
-            <input
+          <Field
+            key={field.name}
+            label={field.label}
+            htmlFor={field.name}
+          >
+            <Input
+              id={field.name}
               name={field.name}
               type={field.type || 'text'}
               defaultValue={field.value}
-              className="w-full rounded-xl border border-[var(--bo-line)] px-3 py-2 text-sm"
             />
-          </label>
+          </Field>
         )
       )}
       <div className="flex flex-wrap gap-2 md:col-span-2">
-        <button
-          type="submit"
-          disabled={pending}
-          className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
-        >
+        <Button type="submit" disabled={pending} size="md">
           {pending ? 'Saving…' : 'Save'}
-        </button>
+        </Button>
         {onDelete ? (
-          <button
+          <Button
             type="button"
             disabled={pending}
+            variant="danger"
+            size="md"
             onClick={() => {
               if (!confirm('Delete this configuration?')) return;
               startTransition(async () => {
@@ -74,14 +76,15 @@ export function SettingsForm({
                 );
               });
             }}
-            className="rounded-xl border border-[var(--bo-line)] px-4 py-2 text-sm text-[var(--bo-danger)]"
           >
             Delete
-          </button>
+          </Button>
         ) : null}
       </div>
       {message ? (
-        <p className="text-sm text-[var(--bo-muted)] md:col-span-2">{message}</p>
+        <Typography variant="support" className="md:col-span-2">
+          {message}
+        </Typography>
       ) : null}
     </form>
   );

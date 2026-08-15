@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Button, Typography } from '@repo/ui';
 import { publishProductGraphAction } from '@/actions/products';
 
 export function PublishGraphButton({
@@ -15,8 +16,9 @@ export function PublishGraphButton({
 
   return (
     <div>
-      <button
+      <Button
         type="button"
+        size="md"
         disabled={pending}
         onClick={() => {
           startTransition(async () => {
@@ -28,12 +30,13 @@ export function PublishGraphButton({
             );
           });
         }}
-        className="bo-btn-primary rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60"
       >
         {pending ? 'Publishing…' : 'Publish draft graph'}
-      </button>
+      </Button>
       {message ? (
-        <p className="mt-3 text-sm text-[var(--bo-muted)]">{message}</p>
+        <Typography variant="support" className="mt-3">
+          {message}
+        </Typography>
       ) : null}
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { Button, Field, Input } from '@repo/ui';
 import { updateTenantAction } from '@/actions/tenants';
 
 export function OrgIdentityForm({
@@ -37,32 +38,27 @@ export function OrgIdentityForm({
         });
       }}
     >
-      <label className="space-y-1 text-[12px]">
-        <span className="type-meta block">Name</span>
-        <input
+      <Field label="Name" htmlFor="identity-name">
+        <Input
+          id="identity-name"
           name="name"
           defaultValue={name}
           required
-          className="w-full rounded-lg border border-[var(--line)] px-2 py-2 text-[13px]"
         />
-      </label>
-      <label className="space-y-1 text-[12px]">
-        <span className="type-meta block">Slug</span>
-        <input
+      </Field>
+      <Field label="Slug" htmlFor="identity-slug">
+        <Input
+          id="identity-slug"
           name="slug"
           defaultValue={slug}
           required
-          className="w-full rounded-lg border border-[var(--line)] px-2 py-2 font-mono text-[13px]"
+          className="ui:font-mono"
         />
-      </label>
+      </Field>
       <div className="sm:col-span-2 flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-[var(--ink)] px-3 py-1.5 text-[12px] text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={pending} size="sm">
           Save
-        </button>
+        </Button>
         {error ? (
           <p className="text-[12px] text-[var(--danger)]">{error}</p>
         ) : null}

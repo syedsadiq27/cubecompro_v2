@@ -1,9 +1,9 @@
 import {
   EmptyState,
   ErrorState,
-  Panel,
 } from '@/components/ui';
 import { PageChrome } from '@/components/ui/page-chrome';
+import { Panel } from '@repo/ui';
 import { graphRequest } from '@repo/product-graph';
 import {
   ME_QUERY,
@@ -48,7 +48,7 @@ export default async function UserGroupsPage() {
           <h3 className="mb-4 text-sm font-semibold tracking-wide uppercase">
             Create role
           </h3>
-          <p className="text-sm text-[var(--bo-muted)]">
+          <p className="text-sm text-[var(--text-secondary)]">
             Creating roles is not enabled on CubeCom API yet.
           </p>
         </Panel>

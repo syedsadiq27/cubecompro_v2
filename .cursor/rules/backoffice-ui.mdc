@@ -1,0 +1,45 @@
+---
+description: Frozen Backoffice ↔ @repo/ui alignment — shared identity, ops density, system-tool tone
+globs: apps/backoffice/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# Backoffice UI — pass 1 frozen (+ system-tool tone)
+
+Landing stays frozen separately. Backoffice shares CubeCom identity without marketing composition.
+
+- **Page anatomy / states:** `backoffice-page-grammar.mdc`
+- **Pass 2 (`components/bo` + Products reference):** `backoffice-shared-chrome.mdc`
+
+## Governing rule
+
+```text
+same tokens + same typography + same controls + same tone system
+≠ same density + same composition
+```
+
+Backoffice is a **system tool**: maximize useful content per screen, minimize chrome and clicks. Prefer dense tables/lists over card galleries. Primary actions (open product) should be one click from the list.
+
+## Locked
+
+- Instrument Sans via `@repo/fonts`
+- Shared CSS tokens — no `--bo-*` / `.bo-btn-primary`
+- Compact ops density; flush work surfaces; no Stage heroes
+- Auth is a plain form, not a marketing split layout
+- Generic UI → `@repo/ui`; ops compositions → `apps/backoffice/components/bo`
+- Violet / `--brand` = selected / active / synchronized only
+
+## Do not
+
+- Import landing section spacing / PageHero / Stage into ops surfaces
+- Promote Dialog / Sidebar / DataTable to `@repo/ui` unless cross-app
+- Rebuild list pages with page-local substitutes for `bo` primitives
+
+## Pass ladder
+
+| Pass | Status | Scope |
+| --- | --- | --- |
+| 1 | Frozen | Identity: fonts, tokens, shared controls |
+| Grammar | Frozen | Page anatomy + states |
+| 2 | Frozen | `components/bo` + Products list reference |
+| Next | Explicit only | Product detail → Projects/Library → dashboard → workspace |

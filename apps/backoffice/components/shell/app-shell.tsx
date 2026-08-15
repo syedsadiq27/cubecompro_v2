@@ -1,109 +1,248 @@
 'use client';
 
-import { Wordmark } from '@repo/ui';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { logoutAction } from '@/actions/auth';
+import {
+  AccountFooter,
+  BackofficeShell,
+  Sidebar,
+  SidebarItem,
+  SidebarNav,
+  SidebarSection,
+  WorkspaceSwitcher,
+} from '@/components/bo';
+import {
+  BarChartIcon,
+  BoxIcon,
+  BranchIcon,
+  FolderIcon,
+  LayersIcon,
+  LinkIcon,
+  MediaIcon,
+  PuzzleIcon,
+  SettingsIcon,
+  StoreIcon,
+  TagIcon,
+} from '@/components/bo/icons';
+import type { ReactNode } from 'react';
 
-import { AppSidebar } from './app-sidebar';
+type NavItem = { href: string; label: string; icon: ReactNode };
+
+function ProjectSidebar({
+  projectId,
+  projectName,
+  userName,
+}: {
+  projectId?: string;
+  projectName?: string;
+  userName: string;
+}) {
+  const catalog: NavItem[] = projectId
+    ? [
+        {
+          href: `/${projectId}/products`,
+          label: 'Products',
+          icon: <BoxIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/categories`,
+          label: 'Categories',
+          icon: <FolderIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/library`,
+          label: 'Assets',
+          icon: <MediaIcon size={16} />,
+        },
+      ]
+    : [];
+
+  const commerce: NavItem[] = projectId
+    ? [
+        {
+          href: `/${projectId}/commerce/mappings`,
+          label: 'Mappings',
+          icon: <LinkIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/settings/commerce`,
+          label: 'Channels',
+          icon: <StoreIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/commerce/pricing`,
+          label: 'Pricing',
+          icon: <TagIcon size={16} />,
+        },
+      ]
+    : [];
+
+  const experience: NavItem[] = projectId
+    ? [
+        {
+          href: `/${projectId}/experience/rules`,
+          label: 'Configurations',
+          icon: <LayersIcon size={16} />,
+        },
+      ]
+    : [];
+
+  const operations: NavItem[] = projectId
+    ? [
+        {
+          href: `/${projectId}/workflow`,
+          label: 'Workflow',
+          icon: <BranchIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/dashboard`,
+          label: 'Analytics',
+          icon: <BarChartIcon size={16} />,
+        },
+      ]
+    : [];
+
+  const platform: NavItem[] = projectId
+    ? [
+        {
+          href: `/${projectId}/settings/cms`,
+          label: 'Integrations',
+          icon: <PuzzleIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/components`,
+          label: 'Components',
+          icon: <LayersIcon size={16} />,
+        },
+        {
+          href: `/${projectId}/settings`,
+          label: 'Settings',
+          icon: <SettingsIcon size={16} />,
+        },
+      ]
+    : [];
+
+  return (
+    <Sidebar product="backoffice">
+      <WorkspaceSwitcher name={projectName || 'Showroom'} />
+      <SidebarNav>
+        {catalog.length > 0 ? (
+          <SidebarSection title="Catalog">
+            {catalog.map((item) => (
+              <SidebarItem
+                key={`${item.label}:${item.href}`}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+        {commerce.length > 0 ? (
+          <SidebarSection title="Commerce">
+            {commerce.map((item) => (
+              <SidebarItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+        {experience.length > 0 ? (
+          <SidebarSection title="Experience">
+            {experience.map((item) => (
+              <SidebarItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+        {operations.length > 0 ? (
+          <SidebarSection title="Operations">
+            {operations.map((item) => (
+              <SidebarItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+        {platform.length > 0 ? (
+          <SidebarSection title="Platform">
+            {platform.map((item) => (
+              <SidebarItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+      </SidebarNav>
+      <AccountFooter
+        userName={userName}
+        orgName="Default Org"
+        signOutAction={logoutAction}
+      />
+    </Sidebar>
+  );
+}
 
 export function AppShell({
   children,
   projectId,
   projectName,
   userName,
+  supportSession,
 }: {
   children: React.ReactNode;
   projectId?: string;
   projectName?: string;
   userName: string;
+  supportSession?: {
+    actingAdmin: string;
+    sessionId: string;
+    expiresAt: string;
+  } | null;
 }) {
-  const pathname = usePathname();
-  const [navOpen, setNavOpen] = useState(false);
-
-  useEffect(() => {
-    setNavOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!navOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setNavOpen(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navOpen]);
-
   return (
-    <div className="flex h-dvh overflow-hidden bg-[var(--canvas)]">
-      <header className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-3 border-b border-[var(--bo-line)] bg-[var(--bo-panel)] px-3 lg:hidden">
-        <button
-          type="button"
-          aria-label="Open navigation"
-          aria-expanded={navOpen}
-          onClick={() => setNavOpen(true)}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--bo-ink)] hover:bg-black/[0.04]"
-        >
-          <span className="flex w-4 flex-col gap-1">
-            <span className="h-px w-full bg-current" />
-            <span className="h-px w-full bg-current" />
-            <span className="h-px w-full bg-current" />
-          </span>
-        </button>
-        <div className="min-w-0 flex-1">
-          {projectName ? (
-            <p className="truncate text-[13px] font-medium tracking-tight text-[var(--bo-ink)]">
-              {projectName}
-            </p>
-          ) : (
-            <Wordmark size="sm" />
-          )}
-        </div>
-        <Link
-          href="/projects"
-          className="shrink-0 rounded-md px-2 py-1 text-[12px] text-[var(--bo-muted)] hover:bg-black/[0.04] hover:text-[var(--bo-ink)]"
-        >
-          Switch
-        </Link>
-      </header>
-
-      {navOpen ? (
-        <button
-          type="button"
-          aria-label="Close navigation"
-          className="fixed inset-0 z-40 bg-black/35 lg:hidden"
-          onClick={() => setNavOpen(false)}
-        />
-      ) : null}
-
-      <div
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] transform transition-transform duration-200 ease-out lg:static lg:z-auto lg:w-auto lg:translate-x-0 ${
-          navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        <AppSidebar
+    <BackofficeShell
+      projectName={projectName}
+      sidebar={
+        <ProjectSidebar
           projectId={projectId}
           projectName={projectName}
           userName={userName}
-          onNavigate={() => setNavOpen(false)}
         />
-      </div>
-
-      <main className="relative min-h-0 min-w-0 flex-1 overflow-hidden pt-12 lg:pt-0">
-        <div className="absolute inset-0 flex flex-col px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto has-[[data-fill-page]]:overflow-hidden">
-            {children}
+      }
+    >
+      {supportSession && (
+        <div className="bg-[#665CFF] text-white px-6 py-2 flex items-center justify-between text-[12px] font-medium shadow-xs select-none sticky top-0 z-30">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+            <span>
+              ELEVATED SUPPORT SESSION: Acting as Admin (<strong>{supportSession.actingAdmin}</strong>) &middot; Session: {supportSession.sessionId}
+            </span>
           </div>
+          <a
+            href="http://admin.cubecompro.com:3002/organizations"
+            className="rounded bg-white/20 hover:bg-white/30 px-2.5 py-0.5 text-[11px] font-bold text-white transition-colors cursor-pointer"
+          >
+            Exit Support Mode ✕
+          </a>
         </div>
-      </main>
-    </div>
+      )}
+      {children}
+    </BackofficeShell>
   );
 }
+
+/** @deprecated Use Sidebar primitives from `@/components/bo`. */
+export { ProjectSidebar as AppSidebar };

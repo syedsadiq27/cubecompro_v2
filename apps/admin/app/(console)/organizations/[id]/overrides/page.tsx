@@ -1,5 +1,5 @@
 import { OverrideForm } from '@/components/override-form';
-import { Panel } from '@/components/panel';
+import { Panel } from '@/components/suite-ui';
 import { loadCatalog, loadResolved } from '@/lib/api';
 
 export default async function OrganizationOverridesPage({

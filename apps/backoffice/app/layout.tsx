@@ -1,19 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Inter_Tight } from 'next/font/google';
 import '@repo/ui/styles.css';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const interTight = Inter_Tight({
-  subsets: ['latin'],
-  variable: '--font-inter-tight',
-  display: 'swap',
-});
+import { instrumentSans } from '@/lib/fonts';
 
 export const metadata: Metadata = {
   title: {
@@ -44,12 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${interTight.variable}`}
-      suppressHydrationWarning
-    >
-      <body className={inter.className} suppressHydrationWarning>
+    <html lang="en" className={instrumentSans.variable} suppressHydrationWarning>
+      <body className={`${instrumentSans.className} ui-type-body`} suppressHydrationWarning>
         {children}
       </body>
     </html>

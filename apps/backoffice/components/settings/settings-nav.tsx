@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '@repo/ui';
 
 const tabs = [
   { href: 'cms', label: 'CMS' },
@@ -15,22 +16,21 @@ export function SettingsNav({
   active: string;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap gap-2">
+    <div className="mb-4 flex flex-wrap gap-1.5">
       {tabs.map((tab) => {
         const href = `/${projectId}/settings/${tab.href}`;
         const isActive = active === tab.href;
         return (
-          <Link
+          <Button
             key={tab.href}
+            as={Link}
             href={href}
-            className={`rounded-full px-4 py-2 text-sm ${
-              isActive
-                ? 'bo-btn-primary'
-                : 'border border-[var(--bo-line)] bg-white'
-            }`}
+            size="sm"
+            variant={isActive ? 'primary' : 'secondary'}
+            className="rounded-full"
           >
             {tab.label}
-          </Link>
+          </Button>
         );
       })}
     </div>

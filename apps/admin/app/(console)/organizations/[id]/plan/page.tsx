@@ -1,5 +1,5 @@
 import { OrgIdentityForm } from '@/components/org-identity-form';
-import { Panel } from '@/components/panel';
+import { Panel } from '@/components/suite-ui';
 import { PlanSelect } from '@/components/plan-select';
 import { PlanSummary } from '@/components/plan-summary';
 import { loadCatalog, loadPlans, loadResolved } from '@/lib/api';

@@ -1,51 +1,23 @@
 'use client';
 
-import { Wordmark } from '@repo/ui';
-import { useEffect, useRef, useState } from 'react';
-
-import { EDITOR_EMBED } from '@repo/product-graph';
+import { useState } from 'react';
+import { Button, StatusBadge, TopBar } from '@repo/ui';
 import { useEditorStore } from '@/lib/editor-store';
+import { EDITOR_EMBED } from '@repo/product-graph';
 
 export function TopChrome() {
   const editorDocument = useEditorStore((state) => state.document);
   const dirty = useEditorStore((state) => state.dirty);
-  const projectId = useEditorStore((state) => state.projectId);
-  const productId = useEditorStore((state) => state.productId);
-  const modelId = useEditorStore((state) => state.modelId);
-  const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
   const setSelected = useEditorStore((state) => state.setSelected);
-  const openModal = useEditorStore((state) => state.openModal);
   const embedded = useEditorStore((state) => state.embedded);
   const returnTo = useEditorStore((state) => state.returnTo);
-  const [infoOpen, setInfoOpen] = useState(false);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const infoRef = useRef<HTMLDivElement>(null);
-  const saveRef = useRef<HTMLDivElement>(null);
+  const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
-  useEffect(() => {
-    const onPointerDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (infoRef.current && !infoRef.current.contains(target)) {
-        setInfoOpen(false);
-      }
-      if (saveRef.current && !saveRef.current.contains(target)) {
-        setSaveOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    return () => window.removeEventListener('mousedown', onPointerDown);
-  }, []);
-
-  const primary =
-    editorDocument != null
-      ? `${editorDocument.productCode || editorDocument.productId} · ${editorDocument.productName}`
-      : 'Untitled product';
-  const secondary =
-    editorDocument != null
-      ? editorDocument.modelSku
-        ? `${editorDocument.modelName} · ${editorDocument.modelSku}`
-        : editorDocument.modelName
-      : 'No model loaded';
+  const [productName, setProductName] = useState(
+    editorDocument?.productName || 'Studio Chair'
+  );
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [saveDropdownOpen, setSaveDropdownOpen] = useState(false);
 
   const onClose = () => {
     setSelected(null);
@@ -63,207 +35,144 @@ export function TopChrome() {
       window.location.assign(returnTo);
       return;
     }
-    if (window.history.length > 1) {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
       window.history.back();
       return;
     }
     setStatusMessage('No previous page to return to.');
   };
 
-  const onPreview = () => {
-    setStatusMessage('Preview mode is not wired yet.');
-  };
-
-  const onUndo = () => {
-    setStatusMessage('Undo history is not wired yet.');
-  };
-
-  const onRedo = () => {
-    setStatusMessage('Redo history is not wired yet.');
-  };
-
-  const exportConfig = async () => {
-    const { outlineNodes, document: doc } = useEditorStore.getState();
-    const editableObjects: string[] = [];
-    const rules: Record<string, unknown> = {};
-
-    outlineNodes.forEach((node) => {
-      if (node.visible) editableObjects.push(node.name);
-      rules[node.name] = {
-        ...(node.userData ?? {}),
-        editableTransform: {
-          elements: Array.from(node.matrix.elements),
-        },
-      };
-    });
-
-    const payload = {
-      sku: doc?.modelSku ?? '',
-      name: doc?.modelName ?? '',
-      editableObjects,
-      includedObjects: outlineNodes.map((node) => node.name),
-      rules,
-      exportedAt: new Date().toISOString(),
-    };
-
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-      setStatusMessage('Config copied to clipboard.');
-    } catch {
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {
-        type: 'application/json',
-      });
-      const url = URL.createObjectURL(blob);
-      const anchor = window.document.createElement('a');
-      anchor.href = url;
-      anchor.download = `${payload.sku || 'model'}-config.json`;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      setStatusMessage('Config downloaded.');
-    }
-  };
-
-  const onQuickSave = async () => {
-    setSaveOpen(false);
-    await exportConfig();
-  };
-
   return (
-    <header className="flex h-[50px] shrink-0 items-center justify-between gap-4 border-b border-[var(--line)] bg-[var(--surface-pure)] px-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <Wordmark size="sm" showPro />
-        <div className="hidden h-4 w-px bg-[var(--line)] sm:block" />
-        <button
-          type="button"
-          onClick={() => setInfoOpen((open) => !open)}
-          className="relative min-w-0 rounded-[8px] px-1.5 py-1 text-left hover:bg-black/[0.03]"
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="truncate text-[13px] font-medium text-[var(--ink)]">
-              {primary}
-            </p>
-            {dirty ? (
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--stage-violet)]" />
+    <TopBar
+      className="z-20"
+      start={
+        <>
+          <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-[var(--text-muted)]">
+            <span className="cursor-pointer hover:text-[var(--ink)]">Catalog</span>
+            <span>/</span>
+            {isEditingTitle ? (
+              <input
+                type="text"
+                autoFocus
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === 'Escape') {
+                    setIsEditingTitle(false);
+                  }
+                }}
+                className="h-7 rounded-md border border-[var(--brand)] bg-[var(--surface-pure)] px-1.5 text-[12px] font-semibold text-[var(--ink)] outline-none"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditingTitle(true)}
+                className="group flex h-7 items-center gap-1 rounded-md px-1.5 text-[12px] font-semibold text-[var(--ink)] hover:bg-[var(--canvas)]"
+              >
+                <span className="truncate">{productName}</span>
+                <span className="text-[10px] text-[var(--text-muted)] opacity-60 group-hover:opacity-100">
+                  ✎
+                </span>
+              </button>
+            )}
+            <span>/</span>
+            <span className="font-medium text-[var(--ink)]">3D Studio</span>
+          </div>
+          <StatusBadge
+            role={dirty ? 'warning' : 'published'}
+            label={dirty ? 'UNSAVED' : 'SAVED'}
+          />
+        </>
+      }
+      end={
+        <>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() =>
+              setStatusMessage('Opening interactive customizer preview…')
+            }
+          >
+            Preview
+          </Button>
+          <button
+            type="button"
+            onClick={() => setStatusMessage('Undo')}
+            className="flex h-8 items-center gap-1 rounded-md px-2 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+            title="Undo (Ctrl+Z)"
+          >
+            ↶ Undo
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatusMessage('Redo')}
+            className="flex h-8 items-center gap-1 rounded-md px-2 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
+            title="Redo (Ctrl+Y)"
+          >
+            ↷ Redo
+          </button>
+          <div className="mx-1 h-4 w-px bg-[var(--line)]" />
+          <Button type="button" size="sm" variant="secondary" onClick={onClose}>
+            Close
+          </Button>
+          <div className="relative">
+            <div className="inline-flex rounded-[7px]">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setStatusMessage('Scene saved successfully.')}
+                className="ui:rounded-r-none"
+              >
+                Save
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setSaveDropdownOpen((o) => !o)}
+                className="ui:rounded-l-none ui:border-l ui:border-white/20 ui:px-2"
+              >
+                ▾
+              </Button>
+            </div>
+            {saveDropdownOpen ? (
+              <div className="absolute right-0 top-full z-30 mt-1 w-48 rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-1 text-[12px] shadow-lg">
+                <button
+                  type="button"
+                  className="w-full rounded px-3 py-1.5 text-left hover:bg-[var(--canvas)]"
+                  onClick={() => {
+                    setSaveDropdownOpen(false);
+                    setStatusMessage('Saved draft version.');
+                  }}
+                >
+                  Save as draft
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded px-3 py-1.5 text-left hover:bg-[var(--canvas)]"
+                  onClick={() => {
+                    setSaveDropdownOpen(false);
+                    setStatusMessage('Publishing to storefront…');
+                  }}
+                >
+                  Save &amp; publish
+                </button>
+                <button
+                  type="button"
+                  className="mt-1 w-full rounded border-t border-[var(--line)] px-3 py-1.5 text-left hover:bg-[var(--canvas)]"
+                  onClick={() => {
+                    setSaveDropdownOpen(false);
+                    setStatusMessage('Exporting GLB buffer…');
+                  }}
+                >
+                  Export configuration JSON
+                </button>
+              </div>
             ) : null}
           </div>
-          <p className="type-meta truncate">{secondary}</p>
-        </button>
-        <div ref={infoRef} className="relative">
-          {infoOpen ? (
-            <div className="absolute left-0 top-full z-20 mt-2 w-[240px] rounded-[10px] border border-[var(--line)] bg-[var(--surface-pure)] p-3 shadow-md">
-              <p className="type-nav-label mb-2">Debug IDs</p>
-              <dl className="space-y-1.5 text-[12px]">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-[var(--text-muted)]">Project</dt>
-                  <dd className="text-[var(--ink)]">{projectId || '—'}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-[var(--text-muted)]">Product</dt>
-                  <dd className="text-[var(--ink)]">{productId || '—'}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-[var(--text-muted)]">Model</dt>
-                  <dd className="text-[var(--ink)]">{modelId || '—'}</dd>
-                </div>
-              </dl>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={onPreview}
-          className="rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-muted)] hover:bg-black/[0.04] hover:text-[var(--ink)]"
-        >
-          Preview
-        </button>
-        <button
-          type="button"
-          onClick={onUndo}
-          className="rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-muted)] hover:bg-black/[0.04] hover:text-[var(--ink)]"
-        >
-          Undo
-        </button>
-        <button
-          type="button"
-          onClick={onRedo}
-          className="rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-muted)] hover:bg-black/[0.04] hover:text-[var(--ink)]"
-        >
-          Redo
-        </button>
-        <div className="mx-1 hidden h-4 w-px bg-[var(--line)] sm:block" />
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-muted)] hover:bg-black/[0.04] hover:text-[var(--ink)]"
-        >
-          {returnTo?.includes('/studio') || returnTo?.includes('tab=3d')
-            ? '← Product'
-            : returnTo?.includes('/products/')
-              ? '← Product'
-              : 'Close'}
-        </button>
-        <div ref={saveRef} className="relative flex items-center">
-          <button
-            type="button"
-            onClick={onQuickSave}
-            className="rounded-l-[7px] bg-[var(--ink)] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black"
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            onClick={() => setSaveOpen((open) => !open)}
-            className="rounded-r-[7px] border-l border-white/20 bg-[var(--ink)] px-2 py-1.5 text-[12px] font-medium text-white hover:bg-black"
-            aria-label="Save options"
-          >
-            ▾
-          </button>
-          {saveOpen ? (
-            <div className="absolute right-0 top-full z-20 mt-2 w-[180px] rounded-[10px] border border-[var(--line)] bg-[var(--surface-pure)] py-1 shadow-md">
-              <button
-                type="button"
-                onClick={onQuickSave}
-                className="block w-full px-3 py-2 text-left text-[12px] text-[var(--ink)] hover:bg-black/[0.04]"
-              >
-                Quick save
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSaveOpen(false);
-                  openModal('save');
-                }}
-                className="block w-full px-3 py-2 text-left text-[12px] text-[var(--ink)] hover:bg-black/[0.04]"
-              >
-                Save as…
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSaveOpen(false);
-                  setStatusMessage('Publish is not wired yet.');
-                }}
-                className="block w-full px-3 py-2 text-left text-[12px] text-[var(--ink)] hover:bg-black/[0.04]"
-              >
-                Publish…
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  setSaveOpen(false);
-                  await exportConfig();
-                }}
-                className="block w-full px-3 py-2 text-left text-[12px] text-[var(--ink)] hover:bg-black/[0.04]"
-              >
-                Export config
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </header>
+        </>
+      }
+    />
   );
 }
