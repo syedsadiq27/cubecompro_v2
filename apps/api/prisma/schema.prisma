@@ -148,7 +148,7 @@ model Organization {
   roles               Role[]
   projects            Project[]
   products            Product[]
-  graphVersions       ProductGraphVersion[]
+  revisions           ProductRevision[]
   libraryFolders      LibraryFolder[]
   mediaAssets         MediaAsset[]
   materialAssets      MaterialAsset[]
@@ -253,21 +253,21 @@ model Project {
 }
 
 model Product {
-  id                   String        @id @default(cuid())
-  organizationId       String
-  projectId            String
-  key                  String
-  name                 String
-  description          String?
-  status               ProductStatus @default(DRAFT)
-  activeGraphVersionId String?       @unique
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  id               String        @id @default(cuid())
+  organizationId   String
+  projectId        String
+  key              String
+  name             String
+  description      String?
+  status           ProductStatus @default(DRAFT)
+  activeRevisionId String?       @unique @map("activeGraphVersionId")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  organization        Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project             Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  activeGraphVersion  ProductGraphVersion?  @relation("ActiveGraphVersion", fields: [activeGraphVersionId], references: [id], onDelete: SetNull)
-  graphVersions       ProductGraphVersion[] @relation("ProductVersions")
+  organization        Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project             Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activeRevision      ProductRevision?  @relation("ActiveRevision", fields: [activeRevisionId], references: [id], onDelete: SetNull)
+  revisions           ProductRevision[] @relation("ProductRevisions")
   savedConfigurations SavedConfiguration[]
 
   @@unique([projectId, key])
@@ -275,7 +275,7 @@ model Product {
   @@index([projectId])
 }
 
-model ProductGraphVersion {
+model ProductRevision {
   id             String             @id @default(cuid())
   organizationId String
   productId      String
@@ -287,9 +287,9 @@ model ProductGraphVersion {
   publishedAt    DateTime?
 
   organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  product             Product              @relation("ProductVersions", fields: [productId], references: [id], onDelete: Cascade)
-  activeFor           Product?             @relation("ActiveGraphVersion")
-  attributes          ProductAttribute[]
+  product             Product              @relation("ProductRevisions", fields: [productId], references: [id], onDelete: Cascade)
+  activeFor           Product?             @relation("ActiveRevision")
+  choices             Choice[]
   rules               ConfigurationRule[]
   constraints         Constraint[]
   models              ProductModel[]
@@ -299,61 +299,64 @@ model ProductGraphVersion {
   @@unique([productId, version])
   @@index([organizationId])
   @@index([productId, status])
+  @@map("ProductGraphVersion")
 }
 
-model ProductAttribute {
-  id               String        @id @default(cuid())
-  graphVersionId   String
-  key              String
-  name             String
-  type             AttributeType
-  required         Boolean       @default(true)
-  sortOrder        Int           @default(0)
-  defaultValueId   String?       @unique
+model Choice {
+  id                String        @id @default(cuid())
+  productRevisionId String        @map("graphVersionId")
+  key               String
+  name              String
+  type              AttributeType
+  required          Boolean       @default(true)
+  sortOrder         Int           @default(0)
+  defaultValueId    String?       @unique
 
-  graphVersion     ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
-  defaultValue     AttributeValue?     @relation("AttributeDefault", fields: [defaultValueId], references: [id], onDelete: SetNull)
-  values           AttributeValue[]    @relation("AttributeValues")
+  productRevision   ProductRevision    @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  defaultValue      ChoiceValue?       @relation("ChoiceDefault", fields: [defaultValueId], references: [id], onDelete: SetNull)
+  values            ChoiceValue[]      @relation("ChoiceValues")
   variantSelections VariantSelection[]
 
-  @@unique([graphVersionId, key])
-  @@index([graphVersionId])
+  @@unique([productRevisionId, key])
+  @@index([productRevisionId])
+  @@map("ProductAttribute")
 }
 
-model AttributeValue {
-  id          String @id @default(cuid())
-  attributeId String
-  key         String
-  name        String
-  sortOrder   Int    @default(0)
-  metadata    Json?
+model ChoiceValue {
+  id        String @id @default(cuid())
+  choiceId  String @map("attributeId")
+  key       String
+  name      String
+  sortOrder Int    @default(0)
+  metadata  Json?
 
-  attribute         ProductAttribute   @relation("AttributeValues", fields: [attributeId], references: [id], onDelete: Cascade)
-  defaultFor        ProductAttribute?  @relation("AttributeDefault")
+  choice            Choice             @relation("ChoiceValues", fields: [choiceId], references: [id], onDelete: Cascade)
+  defaultFor        Choice?            @relation("ChoiceDefault")
   visualEffects     VisualEffect[]
   variantSelections VariantSelection[]
   constraintTerms   ConstraintTerm[]
 
-  @@unique([attributeId, key])
-  @@index([attributeId])
+  @@unique([choiceId, key])
+  @@index([choiceId])
+  @@map("AttributeValue")
 }
 
 model ConfigurationRule {
-  id             String @id @default(cuid())
-  graphVersionId String
-  condition      Json
-  effect         Json
+  id                String @id @default(cuid())
+  productRevisionId String @map("graphVersionId")
+  condition         Json
+  effect            Json
 
-  graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
+  productRevision ProductRevision @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
 
-  @@index([graphVersionId])
+  @@index([productRevisionId])
 }
 
 model Constraint {
-  id                 String @id @default(cuid())
-  productRevisionId  String
+  id                String @id @default(cuid())
+  productRevisionId String
 
-  productRevision ProductGraphVersion @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  productRevision ProductRevision @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
   terms           ConstraintTerm[]
 
   @@index([productRevisionId])
@@ -363,26 +366,26 @@ model ConstraintTerm {
   constraintId  String
   choiceValueId String
 
-  constraint  Constraint     @relation(fields: [constraintId], references: [id], onDelete: Cascade)
-  choiceValue AttributeValue @relation(fields: [choiceValueId], references: [id], onDelete: Restrict)
+  constraint  Constraint  @relation(fields: [constraintId], references: [id], onDelete: Cascade)
+  choiceValue ChoiceValue @relation(fields: [choiceValueId], references: [id], onDelete: Restrict)
 
   @@id([constraintId, choiceValueId])
   @@index([choiceValueId])
 }
 
 model ProductModel {
-  id             String @id @default(cuid())
-  graphVersionId String
-  assetId        String
-  key            String
-  name           String
+  id                String @id @default(cuid())
+  productRevisionId String @map("graphVersionId")
+  assetId           String
+  key               String
+  name              String
 
-  graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
-  asset        ObjectAsset         @relation(fields: [assetId], references: [id], onDelete: Restrict)
-  targets      ModelTarget[]
+  productRevision ProductRevision @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  asset           ObjectAsset     @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  targets         ModelTarget[]
 
-  @@unique([graphVersionId, key])
-  @@index([graphVersionId])
+  @@unique([productRevisionId, key])
+  @@index([productRevisionId])
   @@index([assetId])
 }
 
@@ -403,46 +406,46 @@ model ModelTarget {
 }
 
 model VisualEffect {
-  id               String          @id @default(cuid())
-  attributeValueId String
-  modelTargetId    String
-  operation        VisualOperation
-  value            Json
+  id            String          @id @default(cuid())
+  choiceValueId String          @map("attributeValueId")
+  modelTargetId String
+  operation     VisualOperation
+  value         Json
 
-  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id], onDelete: Cascade)
-  modelTarget    ModelTarget    @relation(fields: [modelTargetId], references: [id], onDelete: Cascade)
+  choiceValue ChoiceValue @relation(fields: [choiceValueId], references: [id], onDelete: Cascade)
+  modelTarget ModelTarget @relation(fields: [modelTargetId], references: [id], onDelete: Cascade)
 
-  @@index([attributeValueId])
+  @@index([choiceValueId])
   @@index([modelTargetId])
 }
 
 model ProductVariant {
-  id             String  @id @default(cuid())
-  graphVersionId String
-  provider       String
-  externalId     String
-  sku            String?
+  id                String  @id @default(cuid())
+  productRevisionId String  @map("graphVersionId")
+  provider          String
+  externalId        String
+  sku               String?
 
-  graphVersion ProductGraphVersion @relation(fields: [graphVersionId], references: [id], onDelete: Cascade)
-  selections   VariantSelection[]
+  productRevision ProductRevision   @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  selections      VariantSelection[]
 
-  @@index([graphVersionId])
-  @@unique([graphVersionId, provider, externalId])
+  @@index([productRevisionId])
+  @@unique([productRevisionId, provider, externalId])
 }
 
 model VariantSelection {
-  id               String @id @default(cuid())
-  variantId        String
-  attributeId      String
-  attributeValueId String
+  id            String @id @default(cuid())
+  variantId     String
+  choiceId      String @map("attributeId")
+  choiceValueId String @map("attributeValueId")
 
-  variant        ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  attribute      ProductAttribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  attributeValue AttributeValue  @relation(fields: [attributeValueId], references: [id], onDelete: Cascade)
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  choice      Choice         @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+  choiceValue ChoiceValue    @relation(fields: [choiceValueId], references: [id], onDelete: Cascade)
 
-  @@unique([variantId, attributeId])
+  @@unique([variantId, choiceId])
   @@index([variantId])
-  @@index([attributeValueId])
+  @@index([choiceValueId])
 }
 
 model LibraryFolder {
@@ -583,24 +586,24 @@ model PlatformSetting {
 }
 
 model SavedConfiguration {
-  id                    String    @id @default(cuid())
-  organizationId        String
-  projectId             String
-  productId             String
-  productGraphVersionId String
-  stateUri              String
-  stateSha256           String
-  metadata              Json?
-  createdAt             DateTime  @default(now())
-  expiresAt             DateTime?
+  id                String    @id @default(cuid())
+  organizationId    String
+  projectId         String
+  productId         String
+  productRevisionId String    @map("productGraphVersionId")
+  stateUri          String
+  stateSha256       String
+  metadata          Json?
+  createdAt         DateTime  @default(now())
+  expiresAt         DateTime?
 
-  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project             Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  product             Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productGraphVersion ProductGraphVersion @relation(fields: [productGraphVersionId], references: [id], onDelete: Restrict)
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productRevision ProductRevision @relation(fields: [productRevisionId], references: [id], onDelete: Restrict)
 
   @@index([organizationId])
   @@index([projectId])
   @@index([productId])
-  @@index([productGraphVersionId])
+  @@index([productRevisionId])
 }

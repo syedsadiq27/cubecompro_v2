@@ -27,7 +27,7 @@ export default async function ProductsPage({
         name: string;
         key: string;
         status: string;
-        activeGraphVersionId?: string | null;
+        activeRevisionId?: string | null;
       }>;
     }>(
       PRODUCTS_BY_PROJECT_QUERY,
@@ -43,13 +43,13 @@ export default async function ProductsPage({
       imageUrl: null,
       categoryNames: [],
       brandLabel: null,
-      modelCount: product.activeGraphVersionId ? 1 : 0,
-      hasModels: Boolean(product.activeGraphVersionId),
+      modelCount: product.activeRevisionId ? 1 : 0,
+      hasModels: Boolean(product.activeRevisionId),
       updatedLabel: null,
       signals: deriveCommerceSignals({
         statusName: product.status,
-        modelCount: product.activeGraphVersionId ? 1 : 0,
-        hasModels: Boolean(product.activeGraphVersionId),
+        modelCount: product.activeRevisionId ? 1 : 0,
+        hasModels: Boolean(product.activeRevisionId),
         channelPlatform: null,
         priceMin: null,
         priceMax: null,

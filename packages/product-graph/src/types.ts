@@ -1,19 +1,24 @@
-export type GraphAttributeValue = {
+export type GraphChoiceValue = {
   id: string;
   key: string;
   name: string;
   sortOrder: number;
 };
 
-export type GraphAttribute = {
+export type GraphChoice = {
   id: string;
   key: string;
   name: string;
   type: string;
   required: boolean;
   sortOrder: number;
-  values: GraphAttributeValue[];
+  values: GraphChoiceValue[];
 };
+
+/** @deprecated Use GraphChoiceValue */
+export type GraphAttributeValue = GraphChoiceValue;
+/** @deprecated Use GraphChoice */
+export type GraphAttribute = GraphChoice;
 
 export type GraphRule = {
   id: string;
@@ -52,7 +57,7 @@ export type GraphModel = {
 
 export type GraphVisualEffect = {
   id: string;
-  attributeValueId: string;
+  choiceValueId: string;
   modelTargetId: string;
   operation: string;
   valueJson: string;
@@ -60,8 +65,8 @@ export type GraphVisualEffect = {
 
 export type GraphVariantSelection = {
   id: string;
-  attributeId: string;
-  attributeValueId: string;
+  choiceId: string;
+  choiceValueId: string;
 };
 
 export type GraphVariant = {
@@ -78,7 +83,7 @@ export type GraphDetail = {
   status: string;
   publishedAt?: string | null;
   graphUri?: string | null;
-  attributes: GraphAttribute[];
+  choices: GraphChoice[];
   rules: GraphRule[];
   constraints: GraphConstraint[];
   models: GraphModel[];
@@ -89,7 +94,9 @@ export type GraphDetail = {
 export type GraphSessionAuth = {
   token: string;
   apiUrl: string;
-  graphVersionId: string;
+  productRevisionId?: string;
+  /** @deprecated Use productRevisionId */
+  graphVersionId?: string;
 };
 
 export type GraphObjectAsset = {
@@ -139,11 +146,11 @@ export type GraphVersionSummary = {
 
 /**
  * Canonical Storefront Runtime Published Revision Artifact Contract.
- * Invariant: productId, graphVersionId, sceneVersionId, and publishedRevisionId MUST remain distinct concepts.
+ * Invariant: productId, productRevisionId, sceneVersionId, and publishedRevisionId MUST remain distinct concepts.
  */
 export type PublishedRevision = {
   productId: string;
-  graphVersionId: string;
+  productRevisionId: string;
   sceneVersionId: string;
   publishedRevisionId: string;
   publishedAt: string;
@@ -153,4 +160,3 @@ export type PublishedRevision = {
   visualEffects: GraphVisualEffect[];
   environmentPreset?: string;
 };
-

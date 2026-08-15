@@ -21,7 +21,7 @@ export class ConstraintService {
         terms: {
           include: {
             choiceValue: {
-              include: { attribute: true },
+              include: { choice: true },
             },
           },
         },
@@ -34,7 +34,7 @@ export class ConstraintService {
     productRevisionId: string;
     choiceValueIds: string[];
   }) {
-    const revision = await this.prisma.productGraphVersion.findUnique({
+    const revision = await this.prisma.productRevision.findUnique({
       where: { id: input.productRevisionId },
     });
     if (!revision) {
@@ -46,9 +46,9 @@ export class ConstraintService {
       );
     }
 
-    const values = await this.prisma.attributeValue.findMany({
+    const values = await this.prisma.choiceValue.findMany({
       where: { id: { in: input.choiceValueIds } },
-      include: { attribute: true },
+      include: { choice: true },
     });
     if (values.length !== input.choiceValueIds.length) {
       throw new NotFoundException('One or more ChoiceValues were not found');
@@ -57,9 +57,9 @@ export class ConstraintService {
     const refs: ConstraintValueRef[] = values.map((value) => ({
       id: value.id,
       key: value.key,
-      attributeId: value.attributeId,
-      attributeKey: value.attribute.key,
-      graphVersionId: value.attribute.graphVersionId,
+      choiceId: value.choiceId,
+      choiceKey: value.choice.key,
+      productRevisionId: value.choice.productRevisionId,
     }));
 
     try {
@@ -75,7 +75,7 @@ export class ConstraintService {
       include: {
         terms: {
           include: {
-            choiceValue: { include: { attribute: true } },
+            choiceValue: { include: { choice: true } },
           },
         },
       },
@@ -85,9 +85,9 @@ export class ConstraintService {
       constraint.terms.map((term) => ({
         id: term.choiceValue.id,
         key: term.choiceValue.key,
-        attributeId: term.choiceValue.attributeId,
-        attributeKey: term.choiceValue.attribute.key,
-        graphVersionId: term.choiceValue.attribute.graphVersionId,
+        choiceId: term.choiceValue.choiceId,
+        choiceKey: term.choiceValue.choice.key,
+        productRevisionId: term.choiceValue.choice.productRevisionId,
       }))
     );
 
@@ -111,7 +111,7 @@ export class ConstraintService {
       include: {
         terms: {
           include: {
-            choiceValue: { include: { attribute: true } },
+            choiceValue: { include: { choice: true } },
           },
         },
       },

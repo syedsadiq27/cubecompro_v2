@@ -40,7 +40,7 @@ export default async function ProductDetailPage({
         };
       }>(PRODUCT_QUERY, { id }, project.projectToken),
       graphRequest<{
-        productGraphVersions: Array<{
+        productRevisions: Array<{
           id: string;
           version: number;
           status: string;
@@ -75,7 +75,7 @@ export default async function ProductDetailPage({
       ),
     ]);
 
-    const versions = versionsData.productGraphVersions;
+    const versions = versionsData.productRevisions;
     const publishedVersions = versions
       .filter(
         (version) =>
@@ -92,13 +92,13 @@ export default async function ProductDetailPage({
     if (versions.length > 0) {
       const selectedId = pickGraphVersionId(versions);
       const detailData = await graphRequest<{
-        productGraphVersionDetail: GraphDetail;
+        productRevisionDetail: GraphDetail;
       }>(
         PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
         { id: selectedId },
         project.projectToken
       );
-      detail = detailData.productGraphVersionDetail;
+      detail = detailData.productRevisionDetail;
     }
 
     return (

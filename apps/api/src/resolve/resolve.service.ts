@@ -3,8 +3,8 @@ import {
   AttributeType,
   GraphVersionStatus,
   VisualOperation,
-  type AttributeValue,
-  type ProductAttribute,
+  type ChoiceValue,
+  type Choice,
 } from '@prisma/client';
 import {
   deriveAvailability,
@@ -18,7 +18,7 @@ import { ProductService } from '../product/product.service';
 
 export type ConfigurationState = {
   productId: string;
-  graphVersionId?: string;
+  productRevisionId?: string;
   selections: Record<string, unknown>;
 };
 
@@ -46,7 +46,7 @@ export type ResolvedConfiguration = {
     sku: string | null;
     cartPayload: Record<string, unknown> | null;
   };
-  graphVersionId: string;
+  productRevisionId: string;
   graphVersion: number;
 };
 
@@ -57,25 +57,25 @@ export class ResolveService {
   async resolve(state: ConfigurationState): Promise<ResolvedConfiguration> {
     const versionMeta = await this.products.getActiveOrVersion(
       state.productId,
-      state.graphVersionId
+      state.productRevisionId
     );
 
     if (
-      !state.graphVersionId &&
+      !state.productRevisionId &&
       versionMeta.status !== GraphVersionStatus.PUBLISHED
     ) {
       return emptyUnresolved(
         versionMeta.id,
         versionMeta.version,
         state.selections,
-        ['Active graph version is not published']
+        ['Active product revision is not published']
       );
     }
 
     const detail = await this.products.getGraphVersionDetail(versionMeta.id);
-    const attributes = detail.attributes;
+    const choicesData = detail.choices;
     const { selection, choices, constraints, legacyViolations } =
-      buildKernelInputs(state.selections, attributes, detail.constraints);
+      buildKernelInputs(state.selections, choicesData, detail.constraints);
 
     const validation = validateSelection(selection, choices, constraints);
     const violations = [
@@ -101,7 +101,7 @@ export class ResolveService {
 
     if (valid) {
       const selectedValueIds = new Set<string>();
-      for (const attribute of attributes) {
+      for (const attribute of choicesData) {
         if (attribute.type !== AttributeType.SELECT) {
           continue;
         }
@@ -119,7 +119,7 @@ export class ResolveService {
       );
 
       for (const effect of detail.visualEffects) {
-        if (!selectedValueIds.has(effect.attributeValueId)) continue;
+        if (!selectedValueIds.has(effect.choiceValueId)) continue;
         const target = targetById.get(effect.modelTargetId);
         if (!target) continue;
 
@@ -152,12 +152,12 @@ export class ResolveService {
       const matched = detail.variants.find((variant) => {
         if (variant.selections.length === 0) return false;
         return variant.selections.every((variantSelection) => {
-          const attribute = attributes.find(
-            (entry) => entry.id === variantSelection.attributeId
+          const attribute = choicesData.find(
+            (entry) => entry.id === variantSelection.choiceId
           );
           if (!attribute) return false;
           const value = attribute.values.find(
-            (entry) => entry.id === variantSelection.attributeValueId
+            (entry) => entry.id === variantSelection.choiceValueId
           );
           if (!value) return false;
           return selection[attribute.key] === value.key;
@@ -185,7 +185,7 @@ export class ResolveService {
       availability,
       threeD,
       commerce,
-      graphVersionId: detail.id,
+      productRevisionId: detail.id,
       graphVersion: detail.version,
     };
   }
@@ -193,30 +193,30 @@ export class ResolveService {
 
 function buildKernelInputs(
   selections: Record<string, unknown>,
-  attributes: Array<ProductAttribute & { values: AttributeValue[] }>,
+  choicesData: Array<Choice & { values: ChoiceValue[] }>,
   constraints: Array<{
     id: string;
     terms: Array<{
       choiceValue?: {
         key: string;
-        attribute?: { key: string } | null;
+        choice?: { key: string } | null;
       } | null;
     }>;
   }>
 ) {
   const legacyViolations: string[] = [];
-  const choices: KernelChoice[] = attributes
-    .filter((attribute) => attribute.type === AttributeType.SELECT)
-    .map((attribute) => ({
-      key: attribute.key,
-      required: attribute.required,
-      values: attribute.values.map((value) => ({ key: value.key })),
+  const choices: KernelChoice[] = choicesData
+    .filter((choice) => choice.type === AttributeType.SELECT)
+    .map((choice) => ({
+      key: choice.key,
+      required: choice.required,
+      values: choice.values.map((value) => ({ key: value.key })),
     }));
 
   const selection: Selection = {};
 
   for (const [key, raw] of Object.entries(selections)) {
-    const attribute = attributes.find((entry) => entry.key === key);
+    const attribute = choicesData.find((entry) => entry.key === key);
     if (!attribute) {
       if (typeof raw === 'string') {
         selection[key] = raw;
@@ -241,7 +241,7 @@ function buildKernelInputs(
       id: constraint.id,
       terms: constraint.terms
         .map((term) => {
-          const choiceKey = term.choiceValue?.attribute?.key;
+          const choiceKey = term.choiceValue?.choice?.key;
           const choiceValueKey = term.choiceValue?.key;
           if (!choiceKey || !choiceValueKey) return null;
           return { choiceKey, choiceValueKey };
@@ -262,7 +262,7 @@ function buildKernelInputs(
 }
 
 function emptyUnresolved(
-  graphVersionId: string,
+  productRevisionId: string,
   graphVersion: number,
   selections: Record<string, unknown>,
   violations: string[]
@@ -282,7 +282,7 @@ function emptyUnresolved(
       sku: null,
       cartPayload: null,
     },
-    graphVersionId,
+    productRevisionId,
     graphVersion,
   };
 }

@@ -26,6 +26,8 @@ export type { MaterialDocument, SetMaterialValue } from './materials.js';
 export type {
   GraphAttribute,
   GraphAttributeValue,
+  GraphChoice,
+  GraphChoiceValue,
   GraphConstraint,
   GraphConstraintTerm,
   GraphDetail,
@@ -40,6 +42,7 @@ export type {
   GraphVisualEffect,
   ParsedObjectMetadata,
   ParsedObjectNode,
+  PublishedRevision,
 } from './types.js';
 export {
   FORBIDDEN_CHOICE_VALUE_METADATA_KEYS,

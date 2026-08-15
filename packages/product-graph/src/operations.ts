@@ -234,7 +234,7 @@ export const PRODUCTS_BY_PROJECT_QUERY = `
       status
       projectId
       organizationId
-      activeGraphVersionId
+      activeRevisionId
     }
   }
 `;
@@ -249,14 +249,14 @@ export const PRODUCT_QUERY = `
       status
       projectId
       organizationId
-      activeGraphVersionId
+      activeRevisionId
     }
   }
 `;
 
-export const PRODUCT_GRAPH_VERSIONS_QUERY = `
-  query ProductGraphVersions($productId: String!) {
-    productGraphVersions(productId: $productId) {
+export const PRODUCT_REVISIONS_QUERY = `
+  query ProductRevisions($productId: String!) {
+    productRevisions(productId: $productId) {
       id
       productId
       version
@@ -275,7 +275,7 @@ export const CREATE_PRODUCT_MUTATION = `
       key
       projectId
       organizationId
-      activeGraphVersionId
+      activeRevisionId
     }
   }
 `;
@@ -290,7 +290,7 @@ export const UPDATE_PRODUCT_MUTATION = `
       status
       projectId
       organizationId
-      activeGraphVersionId
+      activeRevisionId
     }
   }
 `;
@@ -301,9 +301,9 @@ export const DELETE_PRODUCT_MUTATION = `
   }
 `;
 
-export const PUBLISH_GRAPH_VERSION_MUTATION = `
-  mutation PublishGraphVersion($id: String!) {
-    publishGraphVersion(id: $id) {
+export const PUBLISH_PRODUCT_REVISION_MUTATION = `
+  mutation PublishProductRevision($id: String!) {
+    publishProductRevision(id: $id) {
       id
       version
       status
@@ -312,14 +312,14 @@ export const PUBLISH_GRAPH_VERSION_MUTATION = `
   }
 `;
 
-export const CREATE_DRAFT_GRAPH_VERSION_MUTATION = `
-  mutation CreateDraftGraphVersion(
+export const CREATE_DRAFT_PRODUCT_REVISION_MUTATION = `
+  mutation CreateDraftProductRevision(
     $productId: String!
-    $sourceGraphVersionId: String
+    $sourceProductRevisionId: String
   ) {
-    createDraftGraphVersion(
+    createDraftProductRevision(
       productId: $productId
-      sourceGraphVersionId: $sourceGraphVersionId
+      sourceProductRevisionId: $sourceProductRevisionId
     ) {
       id
       version
@@ -328,22 +328,22 @@ export const CREATE_DRAFT_GRAPH_VERSION_MUTATION = `
   }
 `;
 
-export const DISCARD_DRAFT_GRAPH_VERSION_MUTATION = `
-  mutation DiscardDraftGraphVersion($productId: String!) {
-    discardDraftGraphVersion(productId: $productId)
+export const DISCARD_DRAFT_PRODUCT_REVISION_MUTATION = `
+  mutation DiscardDraftProductRevision($productId: String!) {
+    discardDraftProductRevision(productId: $productId)
   }
 `;
 
-export const PRODUCT_GRAPH_VERSION_DETAIL_QUERY = `
-  query ProductGraphVersionDetail($id: String!) {
-    productGraphVersionDetail(id: $id) {
+export const PRODUCT_REVISION_DETAIL_QUERY = `
+  query ProductRevisionDetail($id: String!) {
+    productRevisionDetail(id: $id) {
       id
       productId
       version
       status
       graphUri
       publishedAt
-      attributes {
+      choices {
         id
         key
         name
@@ -387,7 +387,7 @@ export const PRODUCT_GRAPH_VERSION_DETAIL_QUERY = `
       }
       visualEffects {
         id
-        attributeValueId
+        choiceValueId
         modelTargetId
         operation
         valueJson
@@ -399,17 +399,17 @@ export const PRODUCT_GRAPH_VERSION_DETAIL_QUERY = `
         sku
         selections {
           id
-          attributeId
-          attributeValueId
+          choiceId
+          choiceValueId
         }
       }
     }
   }
 `;
 
-export const CREATE_PRODUCT_ATTRIBUTE_MUTATION = `
-  mutation CreateProductAttribute($input: CreateProductAttributeInput!) {
-    createProductAttribute(input: $input) {
+export const CREATE_CHOICE_MUTATION = `
+  mutation CreateChoice($input: CreateChoiceInput!) {
+    createChoice(input: $input) {
       id
       key
       name
@@ -418,9 +418,9 @@ export const CREATE_PRODUCT_ATTRIBUTE_MUTATION = `
   }
 `;
 
-export const SET_PRODUCT_ATTRIBUTE_DEFAULT_MUTATION = `
-  mutation SetProductAttributeDefault($input: SetProductAttributeDefaultInput!) {
-    setProductAttributeDefault(input: $input) {
+export const SET_CHOICE_DEFAULT_MUTATION = `
+  mutation SetChoiceDefault($input: SetChoiceDefaultInput!) {
+    setChoiceDefault(input: $input) {
       id
       defaultValueId
     }
@@ -463,15 +463,15 @@ export const CONSTRAINTS_BY_REVISION_QUERY = `
   }
 `;
 
-export const DELETE_ATTRIBUTE_VALUE_MUTATION = `
-  mutation DeleteAttributeValue($id: String!) {
-    deleteAttributeValue(id: $id)
+export const DELETE_CHOICE_VALUE_MUTATION = `
+  mutation DeleteChoiceValue($id: String!) {
+    deleteChoiceValue(id: $id)
   }
 `;
 
-export const CREATE_ATTRIBUTE_VALUE_MUTATION = `
-  mutation CreateAttributeValue($input: CreateAttributeValueInput!) {
-    createAttributeValue(input: $input) {
+export const CREATE_CHOICE_VALUE_MUTATION = `
+  mutation CreateChoiceValue($input: CreateChoiceValueInput!) {
+    createChoiceValue(input: $input) {
       id
       key
       name
@@ -799,3 +799,23 @@ export const CREATE_VARIANT_SELECTION_MUTATION = `
     }
   }
 `;
+
+
+/** @deprecated Use PRODUCT_REVISIONS_QUERY */
+export const PRODUCT_GRAPH_VERSIONS_QUERY = PRODUCT_REVISIONS_QUERY;
+/** @deprecated Use PUBLISH_PRODUCT_REVISION_MUTATION */
+export const PUBLISH_GRAPH_VERSION_MUTATION = PUBLISH_PRODUCT_REVISION_MUTATION;
+/** @deprecated Use CREATE_DRAFT_PRODUCT_REVISION_MUTATION */
+export const CREATE_DRAFT_GRAPH_VERSION_MUTATION = CREATE_DRAFT_PRODUCT_REVISION_MUTATION;
+/** @deprecated Use DISCARD_DRAFT_PRODUCT_REVISION_MUTATION */
+export const DISCARD_DRAFT_GRAPH_VERSION_MUTATION = DISCARD_DRAFT_PRODUCT_REVISION_MUTATION;
+/** @deprecated Use PRODUCT_REVISION_DETAIL_QUERY */
+export const PRODUCT_GRAPH_VERSION_DETAIL_QUERY = PRODUCT_REVISION_DETAIL_QUERY;
+/** @deprecated Use CREATE_CHOICE_MUTATION */
+export const CREATE_PRODUCT_ATTRIBUTE_MUTATION = CREATE_CHOICE_MUTATION;
+/** @deprecated Use SET_CHOICE_DEFAULT_MUTATION */
+export const SET_PRODUCT_ATTRIBUTE_DEFAULT_MUTATION = SET_CHOICE_DEFAULT_MUTATION;
+/** @deprecated Use DELETE_CHOICE_VALUE_MUTATION */
+export const DELETE_ATTRIBUTE_VALUE_MUTATION = DELETE_CHOICE_VALUE_MUTATION;
+/** @deprecated Use CREATE_CHOICE_VALUE_MUTATION */
+export const CREATE_ATTRIBUTE_VALUE_MUTATION = CREATE_CHOICE_VALUE_MUTATION;

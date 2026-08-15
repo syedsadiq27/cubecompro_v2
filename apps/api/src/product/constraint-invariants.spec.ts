@@ -7,10 +7,10 @@ import {
 
 function ref(
   partial: Partial<ConstraintValueRef> &
-    Pick<ConstraintValueRef, 'id' | 'key' | 'attributeId' | 'attributeKey'>
+    Pick<ConstraintValueRef, 'id' | 'key' | 'choiceId' | 'choiceKey'>
 ): ConstraintValueRef {
   return {
-    graphVersionId: 'rev_1',
+    productRevisionId: 'rev_1',
     ...partial,
   };
 }
@@ -19,20 +19,20 @@ describe('constraint-invariants', () => {
   const leather = ref({
     id: 'v1',
     key: 'leather',
-    attributeId: 'material',
-    attributeKey: 'material',
+    choiceId: 'material',
+    choiceKey: 'material',
   });
   const white = ref({
     id: 'v2',
     key: 'white',
-    attributeId: 'color',
-    attributeKey: 'color',
+    choiceId: 'color',
+    choiceKey: 'color',
   });
   const red = ref({
     id: 'v3',
     key: 'red',
-    attributeId: 'color',
-    attributeKey: 'color',
+    choiceId: 'color',
+    choiceKey: 'color',
   });
 
   it('requires at least two terms', () => {
@@ -45,7 +45,7 @@ describe('constraint-invariants', () => {
     expect(() =>
       assertConstraintValueSet('rev_1', [
         leather,
-        { ...white, graphVersionId: 'rev_other' },
+        { ...white, productRevisionId: 'rev_other' },
       ])
     ).toThrow(/not on product revision/);
   });

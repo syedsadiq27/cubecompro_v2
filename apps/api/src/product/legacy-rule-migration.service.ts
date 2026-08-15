@@ -23,12 +23,12 @@ export class LegacyRuleMigrationService {
     const dryRun = options?.dryRun ?? false;
     const rules = await this.prisma.configurationRule.findMany({
       where: options?.productRevisionId
-        ? { graphVersionId: options.productRevisionId }
+        ? { productRevisionId: options.productRevisionId }
         : undefined,
       include: {
-        graphVersion: {
+        productRevision: {
           include: {
-            attributes: { include: { values: true } },
+            choices: { include: { values: true } },
             product: true,
           },
         },
@@ -39,21 +39,21 @@ export class LegacyRuleMigrationService {
     const results = [];
 
     for (const rule of rules) {
-      const values: ChoiceValueLookup[] = rule.graphVersion.attributes.flatMap(
-        (attribute) =>
-          attribute.values.map((value) => ({
-            attributeKey: attribute.key,
+      const values: ChoiceValueLookup[] = rule.productRevision.choices.flatMap(
+        (choice) =>
+          choice.values.map((value) => ({
+            attributeKey: choice.key,
             valueKey: value.key,
             choiceValueId: value.id,
-            attributeId: attribute.id,
+            attributeId: choice.id,
           }))
       );
 
       const mapped = mapLegacyRuleToConstraint(
         {
           id: rule.id,
-          productRevisionId: rule.graphVersionId,
-          productId: rule.graphVersion.productId,
+          productRevisionId: rule.productRevisionId,
+          productId: rule.productRevision.productId,
           condition: rule.condition,
           effect: rule.effect,
         },

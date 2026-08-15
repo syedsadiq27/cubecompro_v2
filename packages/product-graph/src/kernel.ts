@@ -1,8 +1,8 @@
 /**
  * Product configuration kernel contract (Commit 1).
  *
- * Runtime / domain selections use semantic keys scoped to a ProductRevision
- * (today: ProductGraphVersion). DB ids are persistence-only.
+ * Runtime / domain selections use semantic keys scoped to a ProductRevision.
+ * DB ids are persistence-only.
  *
  * Defaults initialize Selection; they are never implicit validation state.
  * Required completeness: every required Choice has exactly one ChoiceValue.

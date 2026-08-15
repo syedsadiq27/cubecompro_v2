@@ -1,26 +1,26 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
-  AttributeValueModel,
+  ChoiceModel,
+  ChoiceValueModel,
   ConfigurationRuleModel,
   ConstraintModel,
-  CreateAttributeValueInput,
+  CreateChoiceInput,
+  CreateChoiceValueInput,
   CreateConfigurationRuleInput,
   CreateConstraintInput,
   CreateModelTargetInput,
-  CreateProductAttributeInput,
   CreateProductInput,
   CreateProductModelInput,
   CreateProductVariantInput,
   CreateVariantSelectionInput,
   CreateVisualEffectInput,
   ModelTargetModel,
-  ProductAttributeModel,
-  ProductGraphVersionDetailModel,
-  ProductGraphVersionModel,
   ProductModel,
   ProductModelAssetModel,
+  ProductRevisionDetailModel,
+  ProductRevisionModel,
   ProductVariantModel,
-  SetProductAttributeDefaultInput,
+  SetChoiceDefaultInput,
   UpdateProductInput,
   VariantSelectionModel,
   VisualEffectModel,
@@ -60,61 +60,59 @@ export class ProductResolver {
     return this.products.listByProject(projectId);
   }
 
-  @Mutation(() => ProductGraphVersionModel)
-  createDraftGraphVersion(
+  @Mutation(() => ProductRevisionModel)
+  createDraftProductRevision(
     @Args('productId') productId: string,
-    @Args('sourceGraphVersionId', { nullable: true })
-    sourceGraphVersionId?: string
+    @Args('sourceProductRevisionId', { nullable: true })
+    sourceProductRevisionId?: string
   ) {
     return this.products.createDraftGraphVersion(
       productId,
-      sourceGraphVersionId
+      sourceProductRevisionId
     );
   }
 
   @Mutation(() => Boolean)
-  discardDraftGraphVersion(@Args('productId') productId: string) {
+  discardDraftProductRevision(@Args('productId') productId: string) {
     return this.products.discardDraftGraphVersion(productId);
   }
 
-  @Query(() => ProductGraphVersionModel)
-  productGraphVersion(@Args('id') id: string) {
+  @Query(() => ProductRevisionModel)
+  productRevision(@Args('id') id: string) {
     return this.products.getGraphVersion(id);
   }
 
-  @Query(() => [ProductGraphVersionModel])
-  productGraphVersions(@Args('productId') productId: string) {
+  @Query(() => [ProductRevisionModel])
+  productRevisions(@Args('productId') productId: string) {
     return this.products.listGraphVersions(productId);
   }
 
-  @Query(() => ProductGraphVersionDetailModel)
-  async productGraphVersionDetail(@Args('id') id: string) {
+  @Query(() => ProductRevisionDetailModel)
+  async productRevisionDetail(@Args('id') id: string) {
     const detail = await this.products.getGraphVersionDetail(id);
     return mapVersionDetail(detail);
   }
 
-  @Mutation(() => ProductGraphVersionModel)
-  publishGraphVersion(@Args('id') id: string) {
+  @Mutation(() => ProductRevisionModel)
+  publishProductRevision(@Args('id') id: string) {
     return this.products.publishGraphVersion(id);
   }
 
-  @Mutation(() => ProductAttributeModel)
-  createProductAttribute(@Args('input') input: CreateProductAttributeInput) {
+  @Mutation(() => ChoiceModel)
+  createChoice(@Args('input') input: CreateChoiceInput) {
     return this.products.createAttribute(input);
   }
 
-  @Mutation(() => ProductAttributeModel)
-  setProductAttributeDefault(
-    @Args('input') input: SetProductAttributeDefaultInput
-  ) {
+  @Mutation(() => ChoiceModel)
+  setChoiceDefault(@Args('input') input: SetChoiceDefaultInput) {
     return this.products.setAttributeDefaultValue({
-      attributeId: input.attributeId,
+      choiceId: input.choiceId,
       defaultValueId: input.defaultValueId ?? null,
     });
   }
 
-  @Mutation(() => AttributeValueModel)
-  async createAttributeValue(@Args('input') input: CreateAttributeValueInput) {
+  @Mutation(() => ChoiceValueModel)
+  async createChoiceValue(@Args('input') input: CreateChoiceValueInput) {
     const value = await this.products.createAttributeValue(input);
     return {
       ...value,
@@ -123,7 +121,7 @@ export class ProductResolver {
   }
 
   @Mutation(() => Boolean)
-  deleteAttributeValue(@Args('id') id: string) {
+  deleteChoiceValue(@Args('id') id: string) {
     return this.products.deleteAttributeValue(id);
   }
 
@@ -190,8 +188,8 @@ function mapConstraint(
       constraintId: term.constraintId,
       choiceValueId: term.choiceValueId,
       choiceKey:
-        'choiceValue' in term && term.choiceValue?.attribute
-          ? term.choiceValue.attribute.key
+        'choiceValue' in term && term.choiceValue?.choice
+          ? term.choiceValue.choice.key
           : null,
       choiceValueKey:
         'choiceValue' in term && term.choiceValue
@@ -209,7 +207,7 @@ function mapConstraints(
 
 function mapVersionDetail(
   detail: Awaited<ReturnType<ProductService['getGraphVersionDetail']>>
-): ProductGraphVersionDetailModel {
+): ProductRevisionDetailModel {
   return {
     id: detail.id,
     productId: detail.productId,
@@ -219,16 +217,16 @@ function mapVersionDetail(
     graphUri: detail.graphUri,
     graphSha256: detail.graphSha256,
     publishedAt: detail.publishedAt,
-    attributes: detail.attributes.map((attribute) => ({
-      ...attribute,
-      values: attribute.values.map((value) => ({
+    choices: detail.choices.map((choice) => ({
+      ...choice,
+      values: choice.values.map((value) => ({
         ...value,
         metadataJson: value.metadata ? JSON.stringify(value.metadata) : null,
       })),
     })),
     rules: detail.rules.map((rule) => ({
       id: rule.id,
-      graphVersionId: rule.graphVersionId,
+      productRevisionId: rule.productRevisionId,
       conditionJson: JSON.stringify(rule.condition),
       effectJson: JSON.stringify(rule.effect),
     })),
@@ -238,7 +236,7 @@ function mapVersionDetail(
       terms: constraint.terms.map((term) => ({
         constraintId: term.constraintId,
         choiceValueId: term.choiceValueId,
-        choiceKey: term.choiceValue?.attribute?.key ?? null,
+        choiceKey: term.choiceValue?.choice?.key ?? null,
         choiceValueKey: term.choiceValue?.key ?? null,
       })),
     })),

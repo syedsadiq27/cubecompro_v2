@@ -25,7 +25,7 @@ export class ResolveResolver {
 
     const resolved = await this.resolveService.resolve({
       productId: input.productId,
-      graphVersionId: input.graphVersionId,
+      productRevisionId: input.productRevisionId,
       selections,
     });
 
@@ -57,7 +57,7 @@ export class ResolveResolver {
           ? JSON.stringify(resolved.commerce.cartPayload)
           : null,
       },
-      graphVersionId: resolved.graphVersionId,
+      productRevisionId: resolved.productRevisionId,
       graphVersion: resolved.graphVersion,
     };
   }

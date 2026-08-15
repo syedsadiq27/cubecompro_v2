@@ -10,8 +10,8 @@ enum AttributeType {
   TEXT
 }
 
-type AttributeValueModel {
-  attributeId: String!
+type ChoiceValueModel {
+  choiceId: String!
   id: ID!
   key: String!
   metadataJson: String
@@ -36,7 +36,7 @@ type AuthUserModel {
 type ConfigurationRuleModel {
   conditionJson: String!
   effectJson: String!
-  graphVersionId: String!
+  productRevisionId: String!
   id: ID!
 }
 
@@ -54,13 +54,13 @@ type ConstraintModel {
 }
 
 input ConfigurationStateInput {
-  graphVersionId: String
+  productRevisionId: String
   productId: String!
   selectionsJson: String!
 }
 
-input CreateAttributeValueInput {
-  attributeId: String!
+input CreateChoiceValueInput {
+  choiceId: String!
   key: String!
   metadataJson: String
   name: String!
@@ -70,7 +70,7 @@ input CreateAttributeValueInput {
 input CreateConfigurationRuleInput {
   conditionJson: String!
   effectJson: String!
-  graphVersionId: String!
+  productRevisionId: String!
 }
 
 input CreateConstraintInput {
@@ -119,8 +119,8 @@ input CreateOrganizationInput {
   slug: String!
 }
 
-input CreateProductAttributeInput {
-  graphVersionId: String!
+input CreateChoiceInput {
+  productRevisionId: String!
   key: String!
   name: String!
   required: Boolean
@@ -129,8 +129,8 @@ input CreateProductAttributeInput {
   type: AttributeType
 }
 
-input SetProductAttributeDefaultInput {
-  attributeId: String!
+input SetChoiceDefaultInput {
+  choiceId: String!
   defaultValueId: ID
 }
 
@@ -144,14 +144,14 @@ input CreateProductInput {
 
 input CreateProductModelInput {
   assetId: String!
-  graphVersionId: String!
+  productRevisionId: String!
   key: String!
   name: String!
 }
 
 input CreateProductVariantInput {
   externalId: String!
-  graphVersionId: String!
+  productRevisionId: String!
   provider: String!
   sku: String
 }
@@ -172,13 +172,13 @@ input CreateTextureAssetInput {
 }
 
 input CreateVariantSelectionInput {
-  attributeId: String!
-  attributeValueId: String!
+  choiceId: String!
+  choiceValueId: String!
   variantId: String!
 }
 
 input CreateVisualEffectInput {
-  attributeValueId: String!
+  choiceValueId: String!
   modelTargetId: String!
   operation: VisualOperation!
   valueJson: String!
@@ -231,33 +231,33 @@ type ModelTargetModel {
 }
 
 type Mutation {
-  createAttributeValue(input: CreateAttributeValueInput!): AttributeValueModel!
+  createChoiceValue(input: CreateChoiceValueInput!): ChoiceValueModel!
   createConfigurationRule(input: CreateConfigurationRuleInput!): ConfigurationRuleModel!
   createConstraint(input: CreateConstraintInput!): ConstraintModel!
-  createDraftGraphVersion(productId: String!, sourceGraphVersionId: String): ProductGraphVersionModel!
+  createDraftProductRevision(productId: String!, sourceProductRevisionId: String): ProductRevisionModel!
   createLibraryFolder(input: CreateLibraryFolderInput!): LibraryFolderModel!
   createMaterialAsset(input: CreateMaterialAssetInput!): MaterialAssetModel!
   createModelTarget(input: CreateModelTargetInput!): ModelTargetModel!
   createObjectAsset(input: CreateObjectAssetInput!): ObjectAssetModel!
   createOrganization(input: CreateOrganizationInput!): OrganizationModel!
   createProduct(input: CreateProductInput!): ProductModel!
-  createProductAttribute(input: CreateProductAttributeInput!): ProductAttributeModel!
+  createChoice(input: CreateChoiceInput!): ChoiceModel!
   createProductModel(input: CreateProductModelInput!): ProductModelAssetModel!
   createProductVariant(input: CreateProductVariantInput!): ProductVariantModel!
   createProject(input: CreateProjectInput!): ProjectModel!
   createTextureAsset(input: CreateTextureAssetInput!): TextureAssetModel!
   createVariantSelection(input: CreateVariantSelectionInput!): VariantSelectionModel!
   createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!
-  deleteAttributeValue(id: String!): Boolean!
+  deleteChoiceValue(id: String!): Boolean!
   deleteConstraint(id: String!): Boolean!
   deleteObjectAsset(id: String!): Boolean!
   deleteProduct(id: String!): Boolean!
   deleteTextureAsset(id: String!): Boolean!
-  discardDraftGraphVersion(productId: String!): Boolean!
+  discardDraftProductRevision(productId: String!): Boolean!
   login(input: LoginInput!): AuthPayloadModel!
-  publishGraphVersion(id: String!): ProductGraphVersionModel!
+  publishProductRevision(id: String!): ProductRevisionModel!
   saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!
-  setProductAttributeDefault(input: SetProductAttributeDefaultInput!): ProductAttributeModel!
+  setChoiceDefault(input: SetChoiceDefaultInput!): ChoiceModel!
   updateMaterialAsset(input: UpdateMaterialAssetInput!): MaterialAssetModel!
   updateProduct(input: UpdateProductInput!): ProductModel!
   updateProfile(input: UpdateProfileInput!): AuthUserModel!
@@ -327,20 +327,20 @@ type OrganizationModel {
   slug: String!
 }
 
-type ProductAttributeModel {
+type ChoiceModel {
   defaultValueId: ID
-  graphVersionId: String!
+  productRevisionId: String!
   id: ID!
   key: String!
   name: String!
   required: Boolean!
   sortOrder: Float!
   type: AttributeType!
-  values: [AttributeValueModel!]
+  values: [ChoiceValueModel!]
 }
 
-type ProductGraphVersionDetailModel {
-  attributes: [ProductAttributeModel!]!
+type ProductRevisionDetailModel {
+  choices: [ChoiceModel!]!
   constraints: [ConstraintModel!]!
   graphSha256: String
   graphUri: String
@@ -356,7 +356,7 @@ type ProductGraphVersionDetailModel {
   visualEffects: [VisualEffectModel!]!
 }
 
-type ProductGraphVersionModel {
+type ProductRevisionModel {
   graphSha256: String
   graphUri: String
   id: ID!
@@ -368,7 +368,7 @@ type ProductGraphVersionModel {
 }
 
 type ProductModel {
-  activeGraphVersionId: ID
+  activeRevisionId: ID
   description: String
   id: ID!
   key: String!
@@ -380,7 +380,7 @@ type ProductModel {
 
 type ProductModelAssetModel {
   assetId: String!
-  graphVersionId: String!
+  productRevisionId: String!
   id: ID!
   key: String!
   name: String!
@@ -395,7 +395,7 @@ enum ProductStatus {
 
 type ProductVariantModel {
   externalId: String!
-  graphVersionId: String!
+  productRevisionId: String!
   id: ID!
   provider: String!
   selections: [VariantSelectionModel!]
@@ -422,9 +422,9 @@ type Query {
   organizationMembers(organizationId: String!): [OrganizationMemberModel!]!
   organizationRoles(organizationId: String!): [RoleModel!]!
   product(id: String!): ProductModel!
-  productGraphVersion(id: String!): ProductGraphVersionModel!
-  productGraphVersionDetail(id: String!): ProductGraphVersionDetailModel!
-  productGraphVersions(productId: String!): [ProductGraphVersionModel!]!
+  productRevision(id: String!): ProductRevisionModel!
+  productRevisionDetail(id: String!): ProductRevisionDetailModel!
+  productRevisions(productId: String!): [ProductRevisionModel!]!
   productsByProject(projectId: String!): [ProductModel!]!
   constraintsByRevision(productRevisionId: String!): [ConstraintModel!]!
   project(id: String!): ProjectModel!
@@ -451,7 +451,7 @@ type ResolvedConfigurationModel {
   availabilityJson: String
   commerce: ResolvedCommerceStateModel!
   graphVersion: Float!
-  graphVersionId: String!
+  productRevisionId: String!
   selectionsJson: String!
   threeD: Resolved3DStateModel!
   valid: Boolean!
@@ -475,7 +475,7 @@ type RoleModel {
 }
 
 input SaveConfigurationInput {
-  graphVersionId: String!
+  productRevisionId: String!
   metadataJson: String
   productId: String!
   selectionsJson: String!
@@ -486,7 +486,7 @@ type SavedConfigurationModel {
   expiresAt: DateTime
   id: ID!
   organizationId: String!
-  productGraphVersionId: String!
+  productRevisionId: String!
   productId: String!
   projectId: String!
   stateSha256: String!
@@ -524,14 +524,14 @@ input UpdateProfileInput {
 }
 
 type VariantSelectionModel {
-  attributeId: String!
-  attributeValueId: String!
+  choiceId: String!
+  choiceValueId: String!
   id: ID!
   variantId: String!
 }
 
 type VisualEffectModel {
-  attributeValueId: String!
+  choiceValueId: String!
   id: ID!
   modelTargetId: String!
   operation: VisualOperation!

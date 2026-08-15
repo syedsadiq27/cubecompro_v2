@@ -50,7 +50,7 @@ export function assertDescriptiveAttributeValueMetadata(
   );
   if (bad.length > 0) {
     throw new BadRequestException(
-      `AttributeValue.metadata is descriptive only; forbidden keys: ${bad.join(', ')}`
+      `ChoiceValue.metadata is descriptive only; forbidden keys: ${bad.join(', ')}`
     );
   }
 }

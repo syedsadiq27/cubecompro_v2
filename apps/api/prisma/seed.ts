@@ -444,9 +444,9 @@ async function seed() {
   if (product) {
     await prisma.product.update({
       where: { id: product.id },
-      data: { activeGraphVersionId: null },
+      data: { activeRevisionId: null },
     });
-    await prisma.productGraphVersion.deleteMany({
+    await prisma.productRevision.deleteMany({
       where: { productId: product.id },
     });
     product = await prisma.product.update({
@@ -470,7 +470,7 @@ async function seed() {
     });
   }
 
-  const version = await prisma.productGraphVersion.create({
+  const version = await prisma.productRevision.create({
     data: {
       organizationId: organization.id,
       productId: product.id,
@@ -479,9 +479,9 @@ async function seed() {
     },
   });
 
-  const color = await prisma.productAttribute.create({
+  const color = await prisma.choice.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       key: 'color',
       name: 'Color',
       type: AttributeType.SELECT,
@@ -489,9 +489,9 @@ async function seed() {
       sortOrder: 0,
     },
   });
-  const size = await prisma.productAttribute.create({
+  const size = await prisma.choice.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       key: 'size',
       name: 'Size',
       type: AttributeType.SELECT,
@@ -499,9 +499,9 @@ async function seed() {
       sortOrder: 1,
     },
   });
-  const frame = await prisma.productAttribute.create({
+  const frame = await prisma.choice.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       key: 'frame',
       name: 'Frame',
       type: AttributeType.SELECT,
@@ -509,9 +509,9 @@ async function seed() {
       sortOrder: 2,
     },
   });
-  const material = await prisma.productAttribute.create({
+  const material = await prisma.choice.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       key: 'material',
       name: 'Material',
       type: AttributeType.SELECT,
@@ -520,32 +520,32 @@ async function seed() {
     },
   });
 
-  const colorBlack = await prisma.attributeValue.create({
-    data: { attributeId: color.id, key: 'black', name: 'Black', sortOrder: 0 },
+  const colorBlack = await prisma.choiceValue.create({
+    data: { choiceId: color.id, key: 'black', name: 'Black', sortOrder: 0 },
   });
-  const colorWhite = await prisma.attributeValue.create({
-    data: { attributeId: color.id, key: 'white', name: 'White', sortOrder: 1 },
+  const colorWhite = await prisma.choiceValue.create({
+    data: { choiceId: color.id, key: 'white', name: 'White', sortOrder: 1 },
   });
-  const sizeL = await prisma.attributeValue.create({
-    data: { attributeId: size.id, key: 'l', name: 'L', sortOrder: 0 },
+  const sizeL = await prisma.choiceValue.create({
+    data: { choiceId: size.id, key: 'l', name: 'L', sortOrder: 0 },
   });
-  const sizeXl = await prisma.attributeValue.create({
-    data: { attributeId: size.id, key: 'xl', name: 'XL', sortOrder: 1 },
+  const sizeXl = await prisma.choiceValue.create({
+    data: { choiceId: size.id, key: 'xl', name: 'XL', sortOrder: 1 },
   });
-  const frameWalnut = await prisma.attributeValue.create({
+  const frameWalnut = await prisma.choiceValue.create({
     data: {
-      attributeId: frame.id,
+      choiceId: frame.id,
       key: 'walnut',
       name: 'Walnut',
       sortOrder: 0,
     },
   });
-  const frameOak = await prisma.attributeValue.create({
-    data: { attributeId: frame.id, key: 'oak', name: 'Oak', sortOrder: 1 },
+  const frameOak = await prisma.choiceValue.create({
+    data: { choiceId: frame.id, key: 'oak', name: 'Oak', sortOrder: 1 },
   });
-  const materialLeather = await prisma.attributeValue.create({
+  const materialLeather = await prisma.choiceValue.create({
     data: {
-      attributeId: material.id,
+      choiceId: material.id,
       key: 'leather',
       name: 'Leather',
       sortOrder: 0,
@@ -558,7 +558,7 @@ async function seed() {
 
   await prisma.configurationRule.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       condition: { all: [{ attr: 'material', eq: 'leather' }] },
       effect: { forbid: { attr: 'color', eq: 'white' } },
     },
@@ -566,7 +566,7 @@ async function seed() {
 
   const productModel = await prisma.productModel.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       assetId: chairAsset.id,
       key: 'primary',
       name: 'Primary Chair',
@@ -602,7 +602,7 @@ async function seed() {
 
   await prisma.visualEffect.create({
     data: {
-      attributeValueId: frameWalnut.id,
+      choiceValueId: frameWalnut.id,
       modelTargetId: frameTarget.id,
       operation: VisualOperation.SET_MATERIAL,
       value: { materialAssetId: walnutMaterial.id },
@@ -610,7 +610,7 @@ async function seed() {
   });
   await prisma.visualEffect.create({
     data: {
-      attributeValueId: colorBlack.id,
+      choiceValueId: colorBlack.id,
       modelTargetId: bodyTarget.id,
       operation: VisualOperation.SET_MATERIAL,
       value: { materialAssetId: blackMaterial.id },
@@ -619,7 +619,7 @@ async function seed() {
 
   const variant = await prisma.productVariant.create({
     data: {
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       provider: 'generic',
       externalId: 'SKU-BLK-XL-WAL',
       sku: 'SKU-BLK-XL-WAL',
@@ -630,18 +630,18 @@ async function seed() {
     data: [
       {
         variantId: variant.id,
-        attributeId: color.id,
-        attributeValueId: colorBlack.id,
+        choiceId: color.id,
+        choiceValueId: colorBlack.id,
       },
       {
         variantId: variant.id,
-        attributeId: size.id,
-        attributeValueId: sizeXl.id,
+        choiceId: size.id,
+        choiceValueId: sizeXl.id,
       },
       {
         variantId: variant.id,
-        attributeId: frame.id,
-        attributeValueId: frameWalnut.id,
+        choiceId: frame.id,
+        choiceValueId: frameWalnut.id,
       },
     ],
   });
@@ -656,7 +656,7 @@ async function seed() {
     snapshot
   );
 
-  const published = await prisma.productGraphVersion.update({
+  const published = await prisma.productRevision.update({
     where: { id: version.id },
     data: {
       status: GraphVersionStatus.PUBLISHED,
@@ -669,7 +669,7 @@ async function seed() {
   await prisma.product.update({
     where: { id: product.id },
     data: {
-      activeGraphVersionId: published.id,
+      activeRevisionId: published.id,
       status: ProductStatus.ACTIVE,
     },
   });
@@ -700,7 +700,7 @@ async function seed() {
         organizationId: organization.id,
         projectId: project.id,
         productId: product.id,
-        graphVersionId: published.id,
+        productRevisionId: published.id,
         graphVersion: published.version,
         login: {
           email: 'owner@demo.cubecom.dev',

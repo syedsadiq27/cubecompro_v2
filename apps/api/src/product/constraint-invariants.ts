@@ -1,14 +1,14 @@
 export type ConstraintValueRef = {
   id: string;
   key: string;
-  attributeId: string;
-  attributeKey: string;
-  graphVersionId: string;
+  choiceId: string;
+  choiceKey: string;
+  productRevisionId: string;
 };
 
 export function constraintSignature(values: ConstraintValueRef[]): string {
   return [...values]
-    .map((value) => `${value.attributeKey}=${value.key}`)
+    .map((value) => `${value.choiceKey}=${value.key}`)
     .sort()
     .join('&');
 }
@@ -27,14 +27,14 @@ export function assertConstraintValueSet(
   }
 
   for (const value of values) {
-    if (value.graphVersionId !== productRevisionId) {
+    if (value.productRevisionId !== productRevisionId) {
       throw new Error(
         `ChoiceValue ${value.id} is not on product revision ${productRevisionId}`
       );
     }
   }
 
-  const choiceIds = new Set(values.map((value) => value.attributeId));
+  const choiceIds = new Set(values.map((value) => value.choiceId));
   if (choiceIds.size !== values.length) {
     throw new Error(
       'Constraint may include at most one ChoiceValue per Choice'

@@ -124,16 +124,16 @@ Cutover gate passes when `failed === 0` and every rule is `migrated` or `unsuppo
 - `validateSelection` — distinct codes: unknown_choice, unknown_value, value_wrong_choice, missing_required, violated_constraint
 - `deriveAvailability` — replacement semantics; returned as `availabilityJson`
 
-## Vocabulary cleanup (Commit 4) — deferred to dedicated pass
+## Vocabulary cleanup (Commit 4)
 
-Plan target (Prisma `@@map`, no table rename):
+Prisma domain names (tables unchanged via `@@map`):
 
 ```text
-ProductGraphVersion → ProductRevision
-ProductAttribute    → Choice
-AttributeValue      → ChoiceValue
+ProductRevision  @@map("ProductGraphVersion")
+Choice           @@map("ProductAttribute")
+ChoiceValue      @@map("AttributeValue")
 ```
 
-Status: **not applied yet**. A mechanical rename was started and reverted because it spans the entire API/seed/client surface and must land as its own green PR (schema `@@map` + all `prisma.*` call sites + GraphQL decision).
+Field maps include `productRevisionId`→`graphVersionId`, `choiceId`→`attributeId`.
 
-Until then, TypeScript domain code uses kernel names (`Selection`, `ChoiceKey`, …) while Prisma models remain `ProductGraphVersion` / `ProductAttribute` / `AttributeValue`.
+GraphQL / `@repo/product-graph` / backoffice use `choices` and revision vocabulary. No physical PostgreSQL table renames.

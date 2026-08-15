@@ -18,7 +18,7 @@ export class SavedConfigurationService {
 
   async save(input: {
     productId: string;
-    graphVersionId: string;
+    productRevisionId: string;
     selectionsJson: string;
     metadataJson?: string;
   }) {
@@ -29,16 +29,16 @@ export class SavedConfigurationService {
       throw new NotFoundException('Product not found');
     }
 
-    const version = await this.prisma.productGraphVersion.findFirst({
+    const version = await this.prisma.productRevision.findFirst({
       where: {
-        id: input.graphVersionId,
+        id: input.productRevisionId,
         productId: product.id,
         status: GraphVersionStatus.PUBLISHED,
       },
     });
     if (!version) {
       throw new BadRequestException(
-        'SavedConfiguration requires a published ProductGraphVersion'
+        'SavedConfiguration requires a published ProductRevision'
       );
     }
 
@@ -51,14 +51,14 @@ export class SavedConfigurationService {
 
     const resolved = await this.resolveService.resolve({
       productId: product.id,
-      graphVersionId: version.id,
+      productRevisionId: version.id,
       selections,
     });
 
     const statePayload = {
       configurationState: {
         productId: product.id,
-        graphVersionId: version.id,
+        productRevisionId: version.id,
         graphVersion: version.version,
         selections,
       },
@@ -84,7 +84,7 @@ export class SavedConfigurationService {
         organizationId: product.organizationId,
         projectId: product.projectId,
         productId: product.id,
-        productGraphVersionId: version.id,
+        productRevisionId: version.id,
         stateUri: stored.uri,
         stateSha256: stored.sha256,
         metadata: metadata as object | undefined,

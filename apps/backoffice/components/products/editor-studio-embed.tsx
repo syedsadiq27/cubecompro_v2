@@ -12,7 +12,7 @@ export function EditorStudioEmbed({
   returnTo,
   accessToken,
   apiUrl,
-  graphVersionId,
+  productRevisionId,
   userName,
 }: {
   projectId: string;
@@ -21,7 +21,7 @@ export function EditorStudioEmbed({
   returnTo: string;
   accessToken: string;
   apiUrl: string;
-  graphVersionId?: string;
+  productRevisionId?: string;
   userName?: string;
 }) {
   const router = useRouter();
@@ -43,7 +43,8 @@ export function EditorStudioEmbed({
             type: EDITOR_EMBED.AUTH,
             token: accessToken,
             apiUrl,
-            graphVersionId: graphVersionId ?? '',
+            productRevisionId: productRevisionId ?? '',
+            graphVersionId: productRevisionId ?? '',
             userName: userName ?? '',
           },
           '*'
@@ -61,7 +62,7 @@ export function EditorStudioEmbed({
 
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [accessToken, apiUrl, graphVersionId, returnTo, router, userName]);
+  }, [accessToken, apiUrl, productRevisionId, returnTo, router, userName]);
 
   return (
     <iframe
