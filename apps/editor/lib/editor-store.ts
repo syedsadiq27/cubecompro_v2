@@ -26,10 +26,14 @@ import {
   type ParsedModelMaterials,
 } from './materials';
 import {
+  bindingSemanticKey,
   captureVisualBaseline,
+  documentsMatchForSaveProof,
   normalizeVisualDocumentFromGraphDetail,
+  persistVisualDocument,
   replayVisualDocument,
   type VisualBaseline,
+  type VisualBinding,
   type VisualDocument,
   type VisualSelection,
 } from './visual';
@@ -174,6 +178,16 @@ type EditorState = EditorIds & {
     detail: GraphDetail;
     productModelId?: string | null;
   }) => Promise<void>;
+  updateVisualBinding: (
+    key: {
+      choiceKey: string;
+      valueKey: string;
+      targetKey: string;
+      operation: VisualBinding['operation'];
+    },
+    patch: { materialAssetId?: string; visible?: boolean }
+  ) => void;
+  saveVisualDocument: () => Promise<void>;
   setVisualSelection: (choiceKey: string, valueKey: string) => void;
   clearVisualSelection: () => void;
   resetVisualSelection: () => void;
@@ -410,6 +424,108 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     });
     set({ loadError: null });
     runtime.render();
+  },
+  updateVisualBinding: (key, patch) => {
+    const semantic = bindingSemanticKey(key);
+    set((state) => {
+      if (!state.visualDocument) return state;
+      const bindings = state.visualDocument.bindings.map((binding) => {
+        if (bindingSemanticKey(binding) !== semantic) return binding;
+        if (
+          binding.operation === 'SET_MATERIAL' &&
+          typeof patch.materialAssetId === 'string'
+        ) {
+          return { ...binding, materialAssetId: patch.materialAssetId };
+        }
+        if (
+          binding.operation === 'SET_VISIBILITY' &&
+          typeof patch.visible === 'boolean'
+        ) {
+          return { ...binding, visible: patch.visible };
+        }
+        return binding;
+      });
+      return {
+        visualDocument: { ...state.visualDocument, bindings },
+        dirty: true,
+      };
+    });
+    void get()
+      .replayActiveVisual()
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : 'Visual replay failed';
+        set({ loadError: message, statusMessage: message });
+      });
+  },
+  saveVisualDocument: async () => {
+    const {
+      graphAuth,
+      productId,
+      document,
+      graphDetail,
+      visualDocument,
+    } = get();
+    if (!graphAuth || !productId || !graphDetail || !visualDocument) {
+      throw new Error('Load a product revision before saving bindings');
+    }
+    const productModelId =
+      visualDocument.productModelId || document?.modelId || '';
+    if (!productModelId) {
+      throw new Error('Missing product model for visual save');
+    }
+
+    set({ loading: true, statusMessage: 'Saving visual bindings…' });
+    try {
+      const desired = visualDocument;
+      const result = await persistVisualDocument({
+        auth: graphAuth,
+        productId,
+        productModelId,
+        detail: graphDetail,
+        desired,
+      });
+
+      if (!documentsMatchForSaveProof(desired, result.document)) {
+        throw new Error(
+          'Save proof failed: reloaded VisualDocument does not match'
+        );
+      }
+
+      await get().hydrateVisualReplay({
+        detail: result.detail,
+        productModelId: result.document.productModelId,
+      });
+
+      const nextAuth: GraphSessionAuth = {
+        ...graphAuth,
+        productRevisionId: result.detail.id,
+        graphVersionId: result.detail.id,
+      };
+      const currentDoc = get().document;
+      set({
+        graphAuth: nextAuth,
+        dirty: false,
+        loading: false,
+        statusMessage:
+          result.opsApplied === 0
+            ? 'Visual bindings already up to date.'
+            : `Saved ${result.opsApplied} visual change(s).`,
+        document: currentDoc
+          ? {
+              ...currentDoc,
+              modelId: result.document.productModelId,
+              ruleCount: result.detail.visualEffects.length,
+            }
+          : currentDoc,
+        modelId: result.document.productModelId,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to save visual bindings';
+      set({ loading: false, loadError: message, statusMessage: message });
+      throw error;
+    }
   },
   setVisualSelection: (choiceKey, valueKey) => {
     set((state) => ({

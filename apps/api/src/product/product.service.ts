@@ -687,6 +687,97 @@ export class ProductService {
     });
   }
 
+  async updateVisualEffect(input: {
+    id: string;
+    operation?: VisualOperation;
+    valueJson?: string;
+  }) {
+    const existing = await this.prisma.visualEffect.findUnique({
+      where: { id: input.id },
+      include: {
+        choiceValue: { include: { choice: true } },
+        modelTarget: { include: { productModel: { include: { productRevision: { include: { product: true } } } } } },
+      },
+    });
+    if (!existing) {
+      throw new NotFoundException('Visual effect not found');
+    }
+    await this.assertDraft(existing.choiceValue.choice.productRevisionId);
+
+    const operation = input.operation ?? existing.operation;
+    let parsed: Prisma.InputJsonValue =
+      (existing.value as Prisma.InputJsonValue) ?? {};
+
+    if (input.valueJson !== undefined) {
+      try {
+        parsed = JSON.parse(input.valueJson) as Prisma.InputJsonValue;
+      } catch {
+        throw new BadRequestException('valueJson must be valid JSON');
+      }
+    }
+
+    if (operation === VisualOperation.SET_MATERIAL) {
+      const materialAssetId =
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        !Array.isArray(parsed) &&
+        typeof (parsed as { materialAssetId?: unknown }).materialAssetId ===
+          'string'
+          ? (parsed as { materialAssetId: string }).materialAssetId.trim()
+          : '';
+      if (!materialAssetId) {
+        throw new BadRequestException(
+          'SET_MATERIAL value must be { "materialAssetId": "<id>" }'
+        );
+      }
+      const revision = existing.modelTarget.productModel.productRevision;
+      const material = await this.prisma.materialAsset.findFirst({
+        where: {
+          id: materialAssetId,
+          organizationId: revision.organizationId,
+          projectId: revision.product.projectId,
+        },
+      });
+      if (!material) {
+        throw new BadRequestException(
+          'materialAssetId must reference a material in this project'
+        );
+      }
+      parsed = { materialAssetId };
+    }
+
+    if (operation === VisualOperation.SET_VISIBILITY) {
+      if (typeof parsed !== 'boolean') {
+        throw new BadRequestException(
+          'SET_VISIBILITY value must be a boolean JSON value'
+        );
+      }
+    }
+
+    return this.prisma.visualEffect.update({
+      where: { id: input.id },
+      data: {
+        operation,
+        value: parsed,
+      },
+    });
+  }
+
+  async deleteVisualEffect(id: string) {
+    const existing = await this.prisma.visualEffect.findUnique({
+      where: { id },
+      include: {
+        choiceValue: { include: { choice: true } },
+      },
+    });
+    if (!existing) {
+      throw new NotFoundException('Visual effect not found');
+    }
+    await this.assertDraft(existing.choiceValue.choice.productRevisionId);
+    await this.prisma.visualEffect.delete({ where: { id } });
+    return true;
+  }
+
   async createVariant(input: {
     productRevisionId: string;
     provider: string;

@@ -38,6 +38,18 @@ export {
   toKernelConstraints,
 } from './configurator-preview';
 export type { ConfiguratorPreviewState } from './configurator-preview';
+export {
+  bindingSemanticKey,
+  bindingsEqualForPersist,
+  diffVisualBindings,
+  serializeBindingValueJson,
+} from './serialize';
+export type { VisualPersistOp } from './serialize';
+export {
+  documentsMatchForSaveProof,
+  persistVisualDocument,
+} from './persist';
+export type { PersistVisualDocumentResult } from './persist';
 export type {
   ChoiceKey,
   ChoiceValueKey,

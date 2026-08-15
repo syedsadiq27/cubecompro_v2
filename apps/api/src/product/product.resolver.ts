@@ -14,6 +14,7 @@ import {
   CreateProductVariantInput,
   CreateVariantSelectionInput,
   CreateVisualEffectInput,
+  UpdateVisualEffectInput,
   ModelTargetModel,
   ProductModel,
   ProductModelAssetModel,
@@ -165,6 +166,20 @@ export class ProductResolver {
       ...effect,
       valueJson: JSON.stringify(effect.value),
     };
+  }
+
+  @Mutation(() => VisualEffectModel)
+  async updateVisualEffect(@Args('input') input: UpdateVisualEffectInput) {
+    const effect = await this.products.updateVisualEffect(input);
+    return {
+      ...effect,
+      valueJson: JSON.stringify(effect.value),
+    };
+  }
+
+  @Mutation(() => Boolean)
+  deleteVisualEffect(@Args('id') id: string) {
+    return this.products.deleteVisualEffect(id);
   }
 
   @Mutation(() => ProductVariantModel)

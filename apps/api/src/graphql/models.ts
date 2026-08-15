@@ -793,6 +793,18 @@ export class CreateVisualEffectInput {
 }
 
 @InputType()
+export class UpdateVisualEffectInput {
+  @Field()
+  id: string;
+
+  @Field(() => VisualOperation, { nullable: true })
+  operation?: VisualOperation;
+
+  @Field(() => String, { nullable: true })
+  valueJson?: string;
+}
+
+@InputType()
 export class CreateProductVariantInput {
   @Field()
   productRevisionId: string;

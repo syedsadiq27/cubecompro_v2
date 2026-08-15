@@ -654,27 +654,25 @@ Out of scope (creep):
 
 ---
 
-## 16. Phase 2C — Save later
+## 16. Phase 2C — Save (implemented)
 
-Only after 2B.5 / 2B.6 Preview proof works.
-
-Then:
+Vertical slice on the editor Mappings workspace + top-chrome Save:
 
 ```text
-edit supported binding
+edit supported binding (SET_MATERIAL / SET_VISIBILITY)
 ↓
 serialize VisualDocument
 ↓
-API create/update/delete
+API create/update/delete (draft revision; auto-create draft from published)
 ↓
-reload
+reload productRevisionDetail
 ↓
-same normalized VisualDocument
+same normalized VisualDocument (semantic keys + payloads)
 ↓
-same VisualState
+same VisualState via hydrate + replay
 ```
 
-Definition of done eventually:
+Definition of done:
 
 ```text
 save
@@ -683,7 +681,7 @@ save
 → identical persisted visual behavior
 ```
 
-But do not implement 2C before 2A/2B passes.
+Not persisted (still out of scope): camera, gizmo, preview Selection, transforms, publish.
 
 ---
 
@@ -827,7 +825,7 @@ Order:
 2B — baseline + deriveVisualState + reconcileScene + determinism tests
 2B.5 — Visual Projection Proof
 2B.6 — Constraint-aware 3D Preview (same Preview + validate + availability)
-2C — Save only after Preview proof passes
+2C — Save (serialize → API → reload parity) — done on this branch
 ```
 
 Do not:
