@@ -16,6 +16,9 @@ export function useEditorProductLoad() {
   const setDocument = useEditorStore((state) => state.setDocument);
   const setConfiguration = useEditorStore((state) => state.setConfiguration);
   const setGraphDetail = useEditorStore((state) => state.setGraphDetail);
+  const hydrateVisualReplay = useEditorStore(
+    (state) => state.hydrateVisualReplay
+  );
 
   useEffect(() => {
     if (!runtime || !projectId || !productId) {
@@ -54,7 +57,12 @@ export function useEditorProductLoad() {
         });
         if (cancelled) return;
 
-        setGraphDetail(bundle.detail);
+        await hydrateVisualReplay({
+          detail: bundle.detail,
+          productModelId: bundle.productModelId,
+        });
+        if (cancelled) return;
+
         setDocument({
           productId,
           productName: bundle.product.name,
@@ -95,5 +103,6 @@ export function useEditorProductLoad() {
     setDocument,
     setConfiguration,
     setGraphDetail,
+    hydrateVisualReplay,
   ]);
 }
