@@ -1,0 +1,29 @@
+---
+title: Root models
+description: Attach a library object in Backoffice, inspect it in Editor, and understand publication pinning.
+---
+
+Every 3D-configurable product revision needs an attached root model. Model assignment is currently a Backoffice workflow, not an Editor upload workflow.
+
+## Attach or change the model
+
+1. Open the draft product in Backoffice.
+2. Open the **3D** tab or **3D Studio**.
+3. Choose a library object and attach it as the primary model, or use **Change model** on an existing assignment.
+4. Save the draft and open the Stage editor to inspect it.
+
+The Backoffice form selects a library object. Do not document a working Editor **Import model** or **Browse library** modal: those Editor controls currently set status text only.
+
+## Revision behavior
+
+A product model stores an immutable object-asset revision pin. Changing the model in a draft updates that pin. Publication then checks the selected library object, advances the draft pin to its latest library revision if necessary, and freezes that tip in the published snapshot.
+
+This means an older published revision keeps its historical pin, while a draft may change at publication if the library tip changed after preview.
+
+## Verify
+
+1. Attach the object in Backoffice and reload the product before opening Editor.
+2. Confirm Editor loads the expected product name, model name, and geometry.
+3. Reopen the publish dependency resolver and review any **Will advance to tip** entry.
+4. If the pin will advance, preview that latest library revision before publishing.
+5. After publication, confirm resolution returns the expected `rootObjectAssetRevisionId`.

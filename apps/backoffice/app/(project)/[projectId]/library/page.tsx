@@ -1,4 +1,5 @@
 import { AssetLibrary } from '@/components/library/asset-library';
+import { libraryAssetStatusLabel } from '@/components/library/asset-status';
 import type {
   LibraryAssetItem,
   LibraryFolderItem,
@@ -95,7 +96,7 @@ export default async function LibraryPage({
           folderId: asset.folderId,
           fileUrl: asset.fileUrl,
           format: asset.format,
-          status: asset.status,
+          status: libraryAssetStatusLabel(asset.status),
           meshCount: asset.meshCount,
           materialCount: asset.materialCount,
           nodeCount: asset.nodeCount,

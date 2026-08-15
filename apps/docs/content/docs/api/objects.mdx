@@ -1,0 +1,164 @@
+---
+title: GraphQL Objects
+description: Field reference for selected GraphQL output objects in the CubeCom Pro schema.
+---
+
+Partial reference for the output types most relevant to configuration resolution and storefront integration. See [schema coverage](/api/schema-coverage) for missing declarations.
+
+## `ResolvedConfigurationModel`
+Primary output of `resolveConfiguration`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `valid` | `Boolean!` | True if configuration satisfies all constraints. |
+| `violations` | `[String!]!` | Human-readable violation descriptions if invalid. |
+| `availabilityJson` | `String` | Nullable JSON-encoded availability matrix for choice values. |
+| `threeD` | `Resolved3DStateModel!` | 3D scene dispatch and active asset revisions. |
+| `commerce` | `ResolvedCommerceStateModel!` | Mapped SKU and external variant references. |
+| `graphVersion` | `Float!` | Version number of resolved revision. |
+| `productRevisionId` | `String!` | Unique ID of resolved revision. |
+| `selectionsJson` | `String!` | Normalized selection dictionary used by resolution. |
+
+### `availabilityJson` shape
+
+```json
+{
+  "fabric": { "beige": true, "green": true },
+  "legs": { "brass": false, "black": true }
+}
+```
+
+Each outer key is a choice key; each inner key is a value key. `false` means that value is unavailable in the current selection context. `true` means available under constraints, not necessarily commerce-mapped. The field can be null when resolution cannot produce an availability matrix.
+
+### `selectionsJson` shape
+
+```json
+{
+  "fabric": "beige",
+  "legs": "black"
+}
+```
+
+For selectable choices, values are value keys. Required choices can be absent in an incomplete request; inspect `valid` and `violations`.
+
+---
+
+## `Resolved3DStateModel`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `rootObjectAssetRevisionId` | `String` | ID of root GLB revision to render. |
+| `activeObjectAssetRevisionIds` | `[String!]!` | List of all active asset revisions (root + components). |
+| `effects` | `[ResolvedVisualEffectModel!]!` | List of active visual effects to apply. |
+| `modelId` | `String` | Parent ProductModel ID. |
+
+---
+
+## `ResolvedVisualEffectModel`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `operation` | `VisualOperation!` | Visual action to apply. |
+| `targetKey` | `String!` | Stable authored scene-target key. |
+| `targetType` | `String!` | Authored target category. |
+| `nodePath` | `String` | Optional scene path for locating the target. |
+| `valueJson` | `String!` | JSON-encoded operation data. |
+| `materialAssetId` | `String` | Material ID for `SET_MATERIAL`, otherwise null. |
+| `objectAssetRevisionId` | `String` | Object revision for `REPLACE_COMPONENT`, otherwise null. |
+| `linkedAssetKey` | `String` | Linked object key for `REPLACE_COMPONENT`, otherwise null. |
+| `documentUrl` | `String` | Relative document URL when the resolver exposes one. |
+
+Known `valueJson` shapes emitted by the current resolver:
+
+```json
+{ "materialAssetId": "mat_velvet_green" }
+```
+
+```json
+{ "linkedAssetKey": "legs-brass", "role": "OBJECT" }
+```
+
+For `SET_VISIBILITY` and `SET_MODEL`, `valueJson` reflects the authored effect value; validate the shape in the consuming renderer.
+
+---
+
+## `ResolvedCommerceStateModel`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `provider` | `String` | Provider identifier (e.g. `shopify`). |
+| `sku` | `String` | Sellable SKU string. |
+| `variantReference` | `String` | External variant GID (e.g. Shopify variant GID). |
+| `productReference` | `String` | Currently populated with the matched external item ID. |
+| `cartPayloadJson` | `String` | JSON-encoded resolved commerce data; not a provider cart request. |
+
+### `cartPayloadJson` shape
+
+```json
+{
+  "sku": "CHAIR-WAL-BEI",
+  "provider": "shopify",
+  "externalId": "gid://shopify/ProductVariant/44912019",
+  "selections": { "frame": "walnut", "fabric": "beige" }
+}
+```
+
+The field is null when the selection is invalid or no mapping matches. Parse and translate it before calling a provider cart API.
+
+---
+
+## `CommerceResolutionModel`
+
+Returned by `resolveCommerce`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status` | `String!` | Commerce-resolution status. |
+| `provider` | `String` | Provider on the matched mapping. |
+| `identityJson` | `String!` | JSON-encoded projected identity used for matching. |
+| `identitySignature` | `String!` | Deterministic signature of that identity. |
+| `externalReference` | `CommerceExternalReferenceModel` | Matched external item, or null when unmapped. |
+
+`CommerceExternalReferenceModel` contains required `id` and `type` strings plus nullable `sku`.
+
+---
+
+## `ProductRevisionDetailModel`
+
+Complete authored graph for one revision.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `ID!` | Revision ID. |
+| `productId` | `String!` | Owning product ID. |
+| `organizationId` | `String!` | Owning organization ID. |
+| `version` | `Float!` | Revision version number. |
+| `status` | `GraphVersionStatus!` | Draft, published, or archived lifecycle state. |
+| `publishedAt` | `DateTime` | Publication timestamp when published. |
+| `graphUri` | `String` | Optional stored graph document URI. |
+| `graphSha256` | `String` | Optional graph integrity hash. |
+| `choices` | `[ChoiceModel!]!` | Choices and nested values used to render selection controls. |
+| `constraints` | `[ConstraintModel!]!` | Authored incompatible combinations. |
+| `rules` | `[ConfigurationRuleModel!]!` | Configuration rules with JSON condition/effect data. |
+| `models` | `[ProductModelAssetModel!]!` | Root models, linked assets, and scene targets. |
+| `visualEffects` | `[VisualEffectModel!]!` | Choice-value-to-scene bindings. |
+| `commerceMappingSets` | `[CommerceMappingSetModel!]!` | Provider mapping definitions. |
+| `variants` | `[ProductVariantModel!]!` | Revision variants and their selected values. |
+
+Use this object to render authored choices and initialize storefront defaults. Use `resolveConfiguration` to evaluate a shopper selection; do not reimplement constraints or visual projection in the browser.
+
+---
+
+## `SavedConfigurationModel`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `ID!` | Saved configuration identifier. |
+| `organizationId` | `String!` | Owning organization. |
+| `projectId` | `String!` | Owning project. |
+| `productId` | `String!` | Owning product. |
+| `productRevisionId` | `String!` | Revision required to interpret the state. |
+| `stateUri` | `String!` | Storage URI for persisted state. |
+| `stateSha256` | `String!` | Integrity hash of persisted state. |
+| `createdAt` | `DateTime!` | Creation timestamp. |
+| `expiresAt` | `DateTime` | Optional expiry timestamp. |

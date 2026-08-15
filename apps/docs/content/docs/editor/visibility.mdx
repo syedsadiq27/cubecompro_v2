@@ -1,0 +1,25 @@
+---
+title: Show or hide a part
+description: Toggle an existing scene object for a product option value.
+---
+
+Use visibility when the geometry already exists in the root model and an option determines whether it should be shown—for example, With Arms versus No Arms.
+
+## Before you edit
+
+The revision must already contain a visibility binding whose target resolves to the intended scene node. The current Editor edits existing visibility bindings; it does not create a new one from the mappings panel.
+
+## Edit visibility
+
+1. Open **Option → Scene Bindings**.
+2. Find the option value and target node.
+3. Set **Visible** on or off.
+4. Activate the option value in preview.
+5. Switch to the competing value and confirm the previous state is removed.
+6. Save the visual bindings.
+
+Use visibility for lightweight alternatives already present in the scene. For large mutually exclusive assemblies, a replacement action avoids loading all geometry in the root model.
+
+## Verify
+
+Check shadows, collision/picking behavior, and child nodes as well as pixels. Reload after save, then confirm the published runtime response targets the expected key.

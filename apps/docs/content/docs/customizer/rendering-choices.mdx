@@ -1,0 +1,41 @@
+---
+title: Render choices and values
+description: Build accessible option controls from the active product revision.
+---
+
+Load choices and values from the same product revision you resolve. Display names explain the option to shoppers; stable keys form the selection sent to the API.
+
+## Choose a control by decision shape
+
+| Pattern | Works well for | Watch for |
+| --- | --- | --- |
+| Swatches | Color, fabric, finish | Always include a text label; color alone is not enough |
+| Radio cards | Small visual sets and parts | Keep one tab stop per radio group and expose selected state |
+| Buttons | A short, mutually exclusive set | Use radio semantics when the controls represent one choice |
+| Select | Long or text-heavy sets | Keep unavailable options disabled and explain why |
+
+`metadataJson` is application-owned data. The public API does not define standard `hex` or `image` properties. Establish and validate your storefront's metadata schema before using it to render swatches.
+
+## Ordering and labels
+
+Sort choices and their values by `sortOrder`. Use `name` as the shopper-facing label and `key` in selection JSON. Do not expose internal IDs as labels.
+
+For required choices, show that a decision is required and block cart until it has a selected value. Optional choices need an explicit “None” or “Not selected” presentation; absence is represented by omitting the choice key.
+
+## Interaction sequence
+
+1. Update the local selection when a value is chosen.
+2. Mark the affected controls as resolving without hiding the current selection.
+3. Call `resolveConfiguration` with the full selection.
+4. Apply validity and availability together from the newest response.
+5. Update 3D and commerce state from that same response snapshot.
+
+Do not infer availability from commerce mappings. A choice can be allowed by product rules but not mapped to a sellable variant.
+
+## Verify
+
+1. Navigate and select every control with a keyboard.
+2. Confirm screen readers announce choice label, value label, selected state, and unavailable state.
+3. Confirm display-label edits do not change the selection keys sent to resolution.
+4. Confirm values render in authored order at mobile and desktop widths.
+5. Confirm unknown metadata falls back to a readable text control.

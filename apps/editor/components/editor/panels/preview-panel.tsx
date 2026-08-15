@@ -6,7 +6,34 @@ import { useEditorStore } from '@/lib/editor-store';
 import {
   evaluateConfiguratorPreview,
   isChoiceValueAvailable,
+  type CommerceResolutionLabel,
+  type KernelCompletenessLabel,
+  type KernelValidityLabel,
+  type PurchasePreviewLabel,
+  type VisualStatusLabel,
 } from '@/lib/visual/configurator-preview';
+
+function validityRole(label: KernelValidityLabel) {
+  return label === 'VALID' ? ('published' as const) : ('danger' as const);
+}
+
+function completenessRole(label: KernelCompletenessLabel) {
+  return label === 'COMPLETE' ? ('published' as const) : ('warning' as const);
+}
+
+function commerceRole(label: CommerceResolutionLabel) {
+  return label === 'RESOLVED' ? ('published' as const) : ('warning' as const);
+}
+
+function purchaseRole(label: PurchasePreviewLabel) {
+  return label === 'UNAVAILABLE' ? ('warning' as const) : ('draft' as const);
+}
+
+function visualRole(label: VisualStatusLabel) {
+  if (label === 'BOUND') return 'published' as const;
+  if (label === 'NO MODEL') return 'warning' as const;
+  return 'draft' as const;
+}
 
 export function PreviewPanel() {
   const graphDetail = useEditorStore((state) => state.graphDetail);
@@ -21,8 +48,12 @@ export function PreviewPanel() {
 
   const preview = useMemo(() => {
     if (!graphDetail) return null;
-    return evaluateConfiguratorPreview(graphDetail, visualSelection);
-  }, [graphDetail, visualSelection]);
+    return evaluateConfiguratorPreview(
+      graphDetail,
+      visualSelection,
+      visualDocument
+    );
+  }, [graphDetail, visualSelection, visualDocument]);
 
   if (!graphDetail || !preview) {
     return (
@@ -43,40 +74,64 @@ export function PreviewPanel() {
   const choices = [...graphDetail.choices].sort(
     (a, b) => a.sortOrder - b.sortOrder
   );
+  const { layers } = preview;
 
   return (
     <div className="flex h-full flex-col select-none">
       <div className="min-h-0 flex-1 overflow-y-auto p-3 space-y-3 text-[12px]">
-        <div className="flex items-center justify-between gap-2">
+        <div>
           <p className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
             Configurator Preview
           </p>
-          <StatusBadge
-            role={
-              preview.validation.issues.some(
-                (issue) => issue.code === 'violated_constraint'
-              )
-                ? 'danger'
-                : preview.validation.valid
-                  ? 'published'
-                  : 'warning'
-            }
-            label={
-              preview.validation.issues.some(
-                (issue) => issue.code === 'violated_constraint'
-              )
-                ? 'BLOCKED'
-                : preview.validation.valid
-                  ? 'VALID'
-                  : 'INCOMPLETE'
-            }
-          />
+          <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+            UNMAPPED blocks purchase only — configuration stays selectable.
+          </p>
         </div>
 
-        <p className="text-[11px] text-[var(--text-muted)]">
-          Selection → validate + availability → visual projection. Same 3D
-          preview — not a separate storefront.
-        </p>
+        <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)]/50 p-2.5 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-medium text-[var(--text-secondary)]">
+              Configuration
+            </span>
+            <div className="flex items-center gap-1.5">
+              <StatusBadge
+                role={validityRole(layers.validity)}
+                label={layers.validity}
+              />
+              <StatusBadge
+                role={completenessRole(layers.completeness)}
+                label={layers.completeness}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-medium text-[var(--text-secondary)]">
+              Commerce
+            </span>
+            <StatusBadge
+              role={commerceRole(layers.commerce)}
+              label={layers.commerce}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-medium text-[var(--text-secondary)]">
+              Purchase
+            </span>
+            <StatusBadge
+              role={purchaseRole(layers.purchase)}
+              label={layers.purchase}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-medium text-[var(--text-secondary)]">
+              Visual
+            </span>
+            <StatusBadge
+              role={visualRole(layers.visual)}
+              label={layers.visual}
+            />
+          </div>
+        </div>
 
         {(graphDetail.constraints?.length ?? 0) > 0 ? (
           <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)]/50 p-2 font-mono text-[10px] text-[var(--text-muted)] space-y-0.5">

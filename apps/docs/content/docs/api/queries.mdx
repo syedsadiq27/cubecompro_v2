@@ -1,0 +1,86 @@
+---
+title: GraphQL Queries
+description: Partial field reference for selected queries in the CubeCom Pro schema.
+---
+
+Selected queries from the `Query` type. See [schema coverage](/api/schema-coverage) for the generated operation inventory.
+
+## `resolveConfiguration`
+Resolves a shopper selection against a product configuration graph.
+
+- **Signature**: `resolveConfiguration(input: ConfigurationStateInput!): ResolvedConfigurationModel!`
+- **Arguments**:
+  - `input`: [`ConfigurationStateInput!`](/api/inputs#configurationstateinput)
+- **Returns**: [`ResolvedConfigurationModel!`](/api/objects#resolvedconfigurationmodel)
+
+### Example
+```graphql
+query Resolve($input: ConfigurationStateInput!) {
+  resolveConfiguration(input: $input) {
+    valid
+    violations
+    availabilityJson
+    threeD {
+      rootObjectAssetRevisionId
+      activeObjectAssetRevisionIds
+    }
+    commerce {
+      sku
+      variantReference
+    }
+  }
+}
+```
+
+---
+
+## `resolveCommerce`
+Directly resolves commerce identity from selection JSON.
+
+- **Signature**: `resolveCommerce(input: ResolveCommerceInput!): CommerceResolutionModel!`
+- **Arguments**: `input`: [`ResolveCommerceInput!`](/api/inputs#resolvecommerceinput)
+- **Returns**: [`CommerceResolutionModel!`](/api/objects#commerceresolutionmodel)
+
+---
+
+## `product`
+Fetches a single Product by unique ID.
+
+- **Signature**: `product(id: String!): ProductModel!`
+- **Returns**: [`ProductModel!`](/api/objects#productmodel)
+
+---
+
+## `productRevisionDetail`
+Fetches complete graph details (choices, rules, models, mappings) for a revision.
+
+- **Signature**: `productRevisionDetail(id: String!): ProductRevisionDetailModel!`
+- **Returns**: [`ProductRevisionDetailModel!`](/api/objects#productrevisiondetailmodel)
+
+---
+
+## `productsByProject`
+Lists all products belonging to a project.
+
+- **Signature**: `productsByProject(projectId: String!): [ProductModel!]!`
+
+---
+
+## `shopifyCatalogProducts`
+Browses live products from a connected Shopify store.
+
+- **Signature**: `shopifyCatalogProducts(integrationConnectionId: String, organizationId: String!, query: String): [ShopifyCatalogProductModel!]!`
+
+---
+
+## `previewShopifyProductImport`
+Previews option mappings before importing a Shopify product.
+
+- **Signature**: `previewShopifyProductImport(input: PreviewShopifyImportInput!): ShopifyImportPreviewModel!`
+
+---
+
+## `savedConfiguration`
+Retrieves a previously persisted configuration state.
+
+- **Signature**: `savedConfiguration(id: String!): SavedConfigurationModel!`

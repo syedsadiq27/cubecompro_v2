@@ -23,6 +23,11 @@ import { VariantsTab } from '@/components/products/workspace/variants-tab';
 import { PublishValidationModal } from '@/components/products/workspace/publish-validation-modal';
 import { VersionHistoryDialog } from '@/components/products/workspace/version-history-dialog';
 import {
+  ProductDraftSaveProvider,
+  useProductDraftSave,
+} from '@/components/products/workspace/product-draft-save';
+import type { ShopifyCommerceView } from '@/actions/shopify';
+import {
   BackofficePageHeader,
   IncompleteConfigBanner,
   ListChrome,
@@ -47,7 +52,43 @@ const TABS: Array<{ id: WorkspaceTab; label: string }> = [
   { id: 'activity', label: 'Activity' },
 ];
 
-export function ProductWorkspace({
+export function ProductWorkspace(props: {
+  projectId: string;
+  productId: string;
+  product: {
+    name: string;
+    key: string;
+    description?: string | null;
+    status: string;
+  };
+  detail: GraphDetail | null;
+  objectAssets: ObjectAssetOption[];
+  materialAssets: MaterialAssetOption[];
+  publishedVersions: Array<{
+    id: string;
+    versionNumber: number;
+    publishedAt: string;
+  }>;
+  initialTab?: WorkspaceTab;
+  shopifyCommerce?: ShopifyCommerceView | null;
+}) {
+  const editable = Boolean(
+    props.detail &&
+      props.detail.status !== 'PUBLISHED' &&
+      !props.detail.publishedAt
+  );
+  return (
+    <ProductDraftSaveProvider
+      projectId={props.projectId}
+      productId={props.productId}
+      enabled={editable}
+    >
+      <ProductWorkspaceInner {...props} />
+    </ProductDraftSaveProvider>
+  );
+}
+
+function ProductWorkspaceInner({
   projectId,
   productId,
   product,
@@ -56,6 +97,7 @@ export function ProductWorkspace({
   materialAssets,
   publishedVersions,
   initialTab,
+  shopifyCommerce,
 }: {
   projectId: string;
   productId: string;
@@ -74,8 +116,10 @@ export function ProductWorkspace({
     publishedAt: string;
   }>;
   initialTab?: WorkspaceTab;
+  shopifyCommerce?: ShopifyCommerceView | null;
 }) {
   const router = useRouter();
+  const draftSave = useProductDraftSave();
   const [tab, setTab] = useState<WorkspaceTab>(initialTab || 'product');
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -136,6 +180,12 @@ export function ProductWorkspace({
     }
     createDraft(fromId);
   }
+
+  const saveDraft = () => {
+    startTransition(async () => {
+      await draftSave.save();
+    });
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--surface-pure)]">
@@ -244,6 +294,23 @@ export function ProductWorkspace({
                 Create draft
               </Button>
             )}
+
+            {editable ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={pending || draftSave.saving}
+                onClick={saveDraft}
+                className="ui:h-8 ui:text-[12px]"
+              >
+                {draftSave.saving
+                  ? 'Saving…'
+                  : draftSave.dirty
+                    ? `Save (${draftSave.pendingCount})`
+                    : 'Save'}
+              </Button>
+            ) : null}
 
             <Button
               type="button"
@@ -359,9 +426,33 @@ export function ProductWorkspace({
                 <Button
                   type="button"
                   size="sm"
-                  disabled={pending}
+                  variant="secondary"
+                  disabled={pending || draftSave.saving}
+                  onClick={saveDraft}
+                >
+                  {draftSave.saving
+                    ? 'Saving…'
+                    : draftSave.dirty
+                      ? `Save (${draftSave.pendingCount})`
+                      : 'Save'}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={pending || draftSave.dirty}
                   className="ui:bg-[var(--ink)] ui:text-white ui:hover:bg-black"
-                  onClick={() => setPublishModalOpen(true)}
+                  onClick={() => {
+                    if (draftSave.dirty) {
+                      setMessage('Save pending changes before publishing.');
+                      return;
+                    }
+                    setPublishModalOpen(true);
+                  }}
+                  title={
+                    draftSave.dirty
+                      ? 'Save pending changes before publishing'
+                      : undefined
+                  }
                 >
                   Publish
                 </Button>
@@ -487,6 +578,25 @@ export function ProductWorkspace({
             </div>
           ) : null}
 
+          {editable && draftSave.dirty ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-[13px] text-amber-950">
+              <p>
+                {draftSave.pendingCount} unsaved change
+                {draftSave.pendingCount === 1 ? '' : 's'} — Save before
+                publishing.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                disabled={draftSave.saving}
+                onClick={saveDraft}
+                className="ui:bg-[var(--ink)] ui:text-white ui:hover:bg-black"
+              >
+                {draftSave.saving ? 'Saving…' : 'Save now'}
+              </Button>
+            </div>
+          ) : null}
+
           {tab === 'product' ? (
             <ProductOverview
               projectId={projectId}
@@ -494,6 +604,7 @@ export function ProductWorkspace({
               detail={detail}
               modelCount={modelCount}
               mappingCount={mappingCount}
+              shopifyCommerce={shopifyCommerce}
               onEditDetails={() => setEditOpen(true)}
               onConfigureOptions={() => selectTab('options')}
               onOpenVariants={() => selectTab('variants')}
@@ -510,6 +621,7 @@ export function ProductWorkspace({
               detail={detail}
               editable={editable}
               materialAssets={materialAssets}
+              shopifyCommerce={shopifyCommerce}
             />
           ) : null}
 
@@ -519,6 +631,7 @@ export function ProductWorkspace({
               productId={productId}
               detail={detail}
               editable={editable}
+              shopifyCommerce={shopifyCommerce}
               onOpenCommerce={() => selectTab('commerce')}
               onOpen3d={() => selectTab('3d')}
             />
@@ -528,10 +641,13 @@ export function ProductWorkspace({
             <ThreeDTab
               projectId={projectId}
               productId={productId}
+              productName={product.name}
+              productKey={product.key}
               detail={detail}
               objectAssets={objectAssets}
               materialAssets={materialAssets}
               editable={editable}
+              shopifyCommerce={shopifyCommerce}
             />
           ) : null}
 
@@ -541,6 +657,7 @@ export function ProductWorkspace({
               productId={productId}
               detail={detail}
               editable={editable}
+              shopifyCommerce={shopifyCommerce}
             />
           ) : null}
 
@@ -550,6 +667,7 @@ export function ProductWorkspace({
               productId={productId}
               detail={detail}
               editable={editable}
+              shopifyCommerce={shopifyCommerce}
             />
           ) : null}
 
@@ -557,6 +675,8 @@ export function ProductWorkspace({
             <ActivityTab
               projectId={projectId}
               productId={productId}
+              detail={detail}
+              shopifyCommerce={shopifyCommerce}
             />
           ) : null}
         </div>
@@ -576,6 +696,10 @@ export function ProductWorkspace({
         productName={product.name}
         versionNumber={versionNum}
         isPublishing={pending}
+        detail={detail}
+        objectAssets={objectAssets}
+        materialAssets={materialAssets}
+        hasUnsavedChanges={draftSave.dirty}
         onConfirmPublish={() => {
           if (!detail) return;
           startTransition(async () => {

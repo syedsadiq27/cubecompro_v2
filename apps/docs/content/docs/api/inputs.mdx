@@ -1,0 +1,141 @@
+---
+title: GraphQL Inputs
+description: Field reference for selected GraphQL input objects in the CubeCom Pro schema.
+---
+
+Partial reference for commonly used `input` types. See [schema coverage](/api/schema-coverage) for missing declarations.
+
+## `ConfigurationStateInput`
+Input passed to `resolveConfiguration`.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productId` | `String!` | Yes | ID of the target product. |
+| `productRevisionId` | `String` | No | Explicit revision ID for draft preview. If omitted, resolves against `Product.activeRevisionId`. |
+| `selectionsJson` | `String!` | Yes | JSON-encoded selection dictionary (e.g. `"{\"frame\":\"walnut\"}"`). |
+
+---
+
+## `ResolveCommerceInput`
+
+Input passed to `resolveCommerce` when only external commerce identity is needed.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productRevisionId` | `String!` | Yes | Revision whose commerce mapping set is resolved. |
+| `provider` | `String!` | Yes | Mapping provider key, such as `shopify`. |
+| `selectionJson` | `String!` | Yes | JSON-encoded dictionary from choice key to value key. Note the singular field name. |
+| `integrationConnectionId` | `String` | No | Restricts resolution to a specific provider connection when supplied. |
+
+Example parsed `selectionJson`:
+
+```json
+{
+  "frame": "walnut",
+  "fabric": "beige"
+}
+```
+
+Constraints: send an object, use keys from the specified revision, and JSON-encode it exactly once.
+
+---
+
+## `SaveConfigurationInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productId` | `String!` | Yes | Product that owns the saved state. |
+| `productRevisionId` | `String!` | Yes | Exact revision used to interpret the selection. |
+| `selectionsJson` | `String!` | Yes | JSON-encoded selection dictionary. |
+| `metadataJson` | `String` | No | Optional application-owned JSON metadata. No public nested schema is enforced beyond valid JSON. |
+
+---
+
+## `CreateProductInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `String!` | Yes | Display name of the product. |
+| `key` | `String!` | Yes | Unique alphanumeric slug/key. |
+| `organizationId` | `String!` | Yes | ID of the parent organization. |
+| `projectId` | `String!` | Yes | ID of the parent project. |
+| `description` | `String` | No | Optional product description. |
+
+---
+
+## `CreateChoiceInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productRevisionId` | `String!` | Yes | ID of target draft revision. |
+| `name` | `String!` | Yes | Display name of choice (e.g. `Fabric`). |
+| `key` | `String!` | Yes | Stable key (e.g. `fabric`). |
+| `type` | `AttributeType` | No | Attribute type (`SELECT`, `MULTI_SELECT`, `NUMBER`, `TEXT`, `BOOLEAN`). Defaults to `SELECT`. |
+| `required` | `Boolean` | No | Whether choice is mandatory. Defaults to `false`. |
+| `sortOrder` | `Float` | No | Display sorting index. |
+
+---
+
+## `CreateChoiceValueInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `choiceId` | `String!` | Yes | ID of parent choice. |
+| `name` | `String!` | Yes | Display name of value (e.g. `Walnut`). |
+| `key` | `String!` | Yes | Stable key (e.g. `walnut`). |
+| `sortOrder` | `Float` | No | Display sorting index. |
+| `metadataJson` | `String` | No | Custom JSON payload for color hex, image thumbnails, etc. |
+
+---
+
+## `CreateConstraintInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productRevisionId` | `String!` | Yes | ID of target draft revision. |
+| `choiceValueIds` | `[String!]!` | Yes | List of ChoiceValue IDs that cannot be selected together. |
+
+---
+
+## `CreateProductModelInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productRevisionId` | `String!` | Yes | ID of target draft revision. |
+| `key` | `String!` | Yes | Unique model key (e.g. `main`). |
+| `name` | `String!` | Yes | Display name of model. |
+| `objectAssetRevisionId` | `String` | No | ID of root ObjectAssetRevision to pin. |
+
+---
+
+## `CreateProductModelLinkedAssetInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productModelId` | `String!` | Yes | ID of parent ProductModel. |
+| `key` | `String!` | Yes | Unique linked asset key (e.g. `brass-legs`). |
+| `role` | `ProductModelAssetRole!` | Yes | Asset role (`OBJECT`, `MATERIAL`, `TEXTURE`, `ANIMATION`, `ENVIRONMENT`, `SHADER`). |
+| `assetRevisionId` | `String!` | Yes | Target asset revision ID. |
+
+---
+
+## `CreateVisualEffectInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `choiceValueId` | `String!` | Yes | Triggering choice value ID. |
+| `modelTargetId` | `String!` | Yes | Target ModelTarget ID. |
+| `operation` | `VisualOperation!` | Yes | Operation (`SET_MATERIAL`, `SET_VISIBILITY`, `REPLACE_COMPONENT`, `SET_MODEL`). |
+| `valueJson` | `String!` | Yes | Operation payload JSON. |
+
+---
+
+## `ReplaceCommerceMappingSetInput`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `productRevisionId` | `String!` | Yes | Target draft revision ID. |
+| `provider` | `String!` | Yes | Provider string (e.g. `shopify`, `commercetools`). |
+| `identityChoiceIds` | `[String!]!` | Yes | Choice IDs defining the mapping matrix. |
+| `mappings` | `[ReplaceCommerceMappingInput!]!` | Yes | List of mapping rows. |
+| `integrationConnectionId` | `String` | No | Optional ID of integration connection. |

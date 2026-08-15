@@ -1,0 +1,24 @@
+---
+title: Troubleshooting
+description: Troubleshooting index — product authoring issues and developer integration issues.
+---
+
+## Product authoring
+
+Start at **[Backoffice troubleshooting](/backoffice/troubleshooting)** for authoring issues such as publish state, missing mappings, and constraint behavior.
+
+## Developer integration
+
+| Symptom | Check |
+| --- | --- |
+| 401 on GraphQL | Bearer token / project scope — [Authentication](/developers/authentication) |
+| `violations` on resolve | Required choices, keys, and constraints — [Invalid selections](/customizer/invalid-selections) |
+| Empty `threeD` | ProductModel root pin + published/active revision |
+| Commerce fields empty | Mapping set for that Selection — valid ≠ mapped |
+| GLB won't load | Document URL from ObjectAssetRevision — [REST explorer](/api/rest) |
+| Illegal combo reaches cart | Storefront bypassed or ignored resolution — [Cart handoff](/customizer/cart-handoff) |
+
+## Related
+
+- [API errors](/api/errors)
+- [Customizer runtime](/customizer)

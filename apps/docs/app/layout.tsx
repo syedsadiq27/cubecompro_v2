@@ -1,32 +1,13 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Inter_Tight, Geist_Mono } from 'next/font/google';
-import { DocsShell } from '@/components/docs-shell';
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import { instrumentSans } from '@/lib/fonts';
 import {
   DOCS_DESCRIPTION,
   DOCS_NAME,
   DOCS_URL,
   MARKETING_URL,
 } from '@/lib/site';
-import '@repo/ui/styles.css';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const interTight = Inter_Tight({
-  subsets: ['latin'],
-  variable: '--font-inter-tight',
-  display: 'swap',
-});
-
-const geistMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-geist-mono',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(DOCS_URL),
@@ -39,9 +20,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'CubeCom Pro', url: MARKETING_URL }],
   creator: 'CubeCom Pro',
   publisher: 'CubeCom Pro',
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     type: 'website',
     url: DOCS_URL,
@@ -57,12 +35,6 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
   },
 };
 
@@ -79,10 +51,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${geistMono.variable}`}
+      className={instrumentSans.variable}
+      suppressHydrationWarning
     >
-      <body className={inter.className}>
-        <DocsShell>{children}</DocsShell>
+      <body
+        className={`${instrumentSans.className} flex min-h-screen flex-col`}
+      >
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
   );

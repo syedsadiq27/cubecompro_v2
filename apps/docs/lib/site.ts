@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { NAV, isNavGroup } from './nav';
 
 export const DOCS_URL =
   process.env.NEXT_PUBLIC_DOCS_URL?.replace(/\/$/, '') ??
@@ -10,7 +9,7 @@ export const MARKETING_URL = 'https://cubecompro.com';
 export const DOCS_NAME = 'CubeCom Pro Docs';
 
 export const DOCS_DESCRIPTION =
-  'Developer documentation for CubeCom Pro — product graph, configuration, resolve, GraphQL, commerce integrations, and SDKs.';
+  'Developer documentation for CubeCom Pro — products, selections, assets, resolve, GraphQL, and OpenAPI.';
 
 export function docsPath(path: string) {
   if (!path || path === '/') return DOCS_URL;
@@ -41,29 +40,4 @@ export function docsMeta(
     },
     robots: { index: true, follow: true },
   };
-}
-
-export function docsRoutes() {
-  const paths = new Set<string>(['/']);
-  for (const group of NAV) {
-    for (const item of group.items) {
-      if (isNavGroup(item)) {
-        for (const child of item.children) paths.add(child.href);
-      } else {
-        paths.add(item.href);
-      }
-    }
-  }
-  for (const extra of [
-    '/quickstart',
-    '/architecture',
-    '/model',
-    '/backoffice',
-    '/components',
-    '/guides/embed',
-    '/developers/events',
-  ]) {
-    paths.add(extra);
-  }
-  return [...paths].sort((a, b) => a.localeCompare(b));
 }

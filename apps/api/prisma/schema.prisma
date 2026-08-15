@@ -16,6 +16,7 @@ enum GraphVersionStatus {
 enum ProductStatus {
   DRAFT
   ACTIVE
+  UNPUBLISHED
   ARCHIVED
 }
 
@@ -31,6 +32,16 @@ enum VisualOperation {
   SET_MATERIAL
   SET_VISIBILITY
   SET_MODEL
+  REPLACE_COMPONENT
+}
+
+enum ProductModelAssetRole {
+  OBJECT
+  MATERIAL
+  TEXTURE
+  ENVIRONMENT
+  SHADER
+  ANIMATION
 }
 
 enum OrganizationStatus {
@@ -155,6 +166,7 @@ model Organization {
   textureAssets       TextureAsset[]
   objectAssets        ObjectAsset[]
   savedConfigurations SavedConfiguration[]
+  integrationConnections IntegrationConnection[]
 }
 
 model OrganizationEntitlement {
@@ -269,6 +281,7 @@ model Product {
   activeRevision      ProductRevision?  @relation("ActiveRevision", fields: [activeRevisionId], references: [id], onDelete: SetNull)
   revisions           ProductRevision[] @relation("ProductRevisions")
   savedConfigurations SavedConfiguration[]
+  providerImports     ProductProviderImport[]
 
   @@unique([projectId, key])
   @@index([organizationId])
@@ -294,6 +307,7 @@ model ProductRevision {
   constraints         Constraint[]
   models              ProductModel[]
   variants            ProductVariant[]
+  commerceMappingSets CommerceMappingSet[]
   savedConfigurations SavedConfiguration[]
 
   @@unique([productId, version])
@@ -314,8 +328,9 @@ model Choice {
 
   productRevision   ProductRevision    @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
   defaultValue      ChoiceValue?       @relation("ChoiceDefault", fields: [defaultValueId], references: [id], onDelete: SetNull)
-  values            ChoiceValue[]      @relation("ChoiceValues")
-  variantSelections VariantSelection[]
+  values                   ChoiceValue[]             @relation("ChoiceValues")
+  variantSelections        VariantSelection[]
+  commerceIdentityChoices  CommerceIdentityChoice[]
 
   @@unique([productRevisionId, key])
   @@index([productRevisionId])
@@ -335,6 +350,7 @@ model ChoiceValue {
   visualEffects     VisualEffect[]
   variantSelections VariantSelection[]
   constraintTerms   ConstraintTerm[]
+  commerceTerms     CommerceMappingTerm[]
 
   @@unique([choiceId, key])
   @@index([choiceId])
@@ -374,19 +390,34 @@ model ConstraintTerm {
 }
 
 model ProductModel {
-  id                String @id @default(cuid())
-  productRevisionId String @map("graphVersionId")
-  assetId           String
-  key               String
-  name              String
+  id                    String @id @default(cuid())
+  productRevisionId     String @map("graphVersionId")
+  objectAssetRevisionId String
+  key                   String
+  name                  String
 
-  productRevision ProductRevision @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
-  asset           ObjectAsset     @relation(fields: [assetId], references: [id], onDelete: Restrict)
-  targets         ModelTarget[]
+  productRevision     ProductRevision     @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  objectAssetRevision ObjectAssetRevision @relation(fields: [objectAssetRevisionId], references: [id], onDelete: Restrict)
+  targets             ModelTarget[]
+  linkedAssets        ProductModelAsset[]
 
   @@unique([productRevisionId, key])
   @@index([productRevisionId])
-  @@index([assetId])
+  @@index([objectAssetRevisionId])
+}
+
+model ProductModelAsset {
+  id              String                @id @default(cuid())
+  productModelId  String
+  role            ProductModelAssetRole
+  key             String
+  assetRevisionId String
+
+  productModel ProductModel @relation(fields: [productModelId], references: [id], onDelete: Cascade)
+
+  @@unique([productModelId, role, key])
+  @@index([productModelId])
+  @@index([assetRevisionId])
 }
 
 model ModelTarget {
@@ -446,6 +477,93 @@ model VariantSelection {
   @@unique([variantId, choiceId])
   @@index([variantId])
   @@index([choiceValueId])
+}
+
+model CommerceMappingSet {
+  id                      String  @id @default(cuid())
+  productRevisionId       String
+  provider                String
+  integrationConnectionId String?
+
+  productRevision       ProductRevision        @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  integrationConnection IntegrationConnection? @relation(fields: [integrationConnectionId], references: [id], onDelete: SetNull)
+  identityChoices       CommerceIdentityChoice[]
+  mappings              CommerceMapping[]
+
+  @@unique([productRevisionId, provider, integrationConnectionId])
+  @@index([productRevisionId])
+  @@index([integrationConnectionId])
+}
+
+model CommerceIdentityChoice {
+  mappingSetId String
+  choiceId     String
+  sortOrder    Int    @default(0)
+
+  mappingSet CommerceMappingSet @relation(fields: [mappingSetId], references: [id], onDelete: Cascade)
+  choice     Choice             @relation(fields: [choiceId], references: [id], onDelete: Restrict)
+
+  @@id([mappingSetId, choiceId])
+  @@index([choiceId])
+}
+
+model CommerceMapping {
+  id                String @id @default(cuid())
+  mappingSetId      String
+  identitySignature String
+  externalType      String @default("VARIANT")
+  externalId        String
+  sku               String?
+
+  mappingSet CommerceMappingSet    @relation(fields: [mappingSetId], references: [id], onDelete: Cascade)
+  terms      CommerceMappingTerm[]
+
+  @@unique([mappingSetId, identitySignature])
+  @@index([mappingSetId])
+}
+
+model CommerceMappingTerm {
+  mappingId     String
+  choiceValueId String
+
+  mapping     CommerceMapping @relation(fields: [mappingId], references: [id], onDelete: Cascade)
+  choiceValue ChoiceValue     @relation(fields: [choiceValueId], references: [id], onDelete: Restrict)
+
+  @@id([mappingId, choiceValueId])
+  @@index([choiceValueId])
+}
+
+model IntegrationConnection {
+  id                String   @id @default(cuid())
+  organizationId    String
+  provider          String
+  externalAccountId String
+  displayName       String?
+  accessToken       String
+  apiVersion        String   @default("2026-07")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mappingSets    CommerceMappingSet[]
+  productImports ProductProviderImport[]
+
+  @@unique([organizationId, provider, externalAccountId])
+  @@index([organizationId])
+}
+
+model ProductProviderImport {
+  id                      String   @id @default(cuid())
+  productId               String   @unique
+  integrationConnectionId String
+  externalProductId       String
+  createdAt               DateTime @default(now())
+
+  product               Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  integrationConnection IntegrationConnection @relation(fields: [integrationConnectionId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationConnectionId, externalProductId])
+  @@index([integrationConnectionId])
 }
 
 model LibraryFolder {
@@ -540,6 +658,7 @@ enum ObjectAssetStatus {
   PROCESSING
   READY
   FAILED
+  ARCHIVED
 }
 
 model ObjectAsset {
@@ -565,13 +684,34 @@ model ObjectAsset {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  folder       LibraryFolder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  productModels ProductModel[]
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  revisions    ObjectAssetRevision[]
 
   @@index([organizationId, projectId])
   @@index([folderId])
+}
+
+model ObjectAssetRevision {
+  id                   String   @id @default(cuid())
+  objectAssetId        String
+  version              Int
+  runtimeArtifactUri   String
+  contentHash          String
+  frozenAt             DateTime @default(now())
+  format               String?
+  sizeBytes            Int?
+  parsedMetadataUri    String?
+  parsedMetadataSha256 String?
+  metadataVersion      Int?
+
+  objectAsset   ObjectAsset    @relation(fields: [objectAssetId], references: [id], onDelete: Cascade)
+  productModels ProductModel[]
+
+  @@unique([objectAssetId, version])
+  @@index([objectAssetId])
+  @@index([contentHash])
 }
 
 model PlatformSetting {

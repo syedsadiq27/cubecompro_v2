@@ -1,23 +1,30 @@
 import type { MetadataRoute } from 'next';
-import { DOCS_URL, docsRoutes } from '@/lib/site';
-
-function priorityFor(path: string) {
-  if (path === '/') return 1;
-  if (
-    path.startsWith('/guides') ||
-    path.startsWith('/integrations') ||
-    path.startsWith('/developers')
-  ) {
-    return 0.9;
-  }
-  return 0.7;
-}
+import { DOCS_URL } from '@/lib/site';
+import { source } from '@/lib/source';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return docsRoutes().map((path) => ({
-    url: path === '/' ? DOCS_URL : `${DOCS_URL}${path}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: priorityFor(path),
-  }));
+  const pages = source.getPages();
+  return [
+    ...pages.map((page) => {
+      const path = page.url;
+      return {
+        url: path === '/' ? DOCS_URL : `${DOCS_URL}${path}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: path === '/' ? 1 : 0.8,
+      };
+    }),
+    {
+      url: `${DOCS_URL}/api/rest`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${DOCS_URL}/api/graphql`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+  ];
 }

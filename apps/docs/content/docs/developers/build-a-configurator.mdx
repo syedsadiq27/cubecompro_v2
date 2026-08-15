@@ -1,0 +1,79 @@
+---
+title: Build a configurator
+description: Step-by-step tutorial building a custom configurator UI from the GraphQL API.
+---
+
+Learn how to build a custom configurator UI using React and the CubeCom Pro GraphQL API.
+
+## Step 1: Query Product and Initial State
+
+```typescript
+const GET_PRODUCT_QUERY = `
+  query GetProductDetail($productId: String!) {
+    product(id: $productId) {
+      id
+      name
+      key
+    }
+    productRevisionDetail(id: $productId) {
+      id
+      choices {
+        id
+        key
+        name
+        required
+        values {
+          id
+          key
+          name
+          metadataJson
+        }
+      }
+    }
+  }
+`;
+```
+
+---
+
+## Step 2: Resolve on Selection Change
+
+```typescript
+async function resolveSelection(productId: string, selections: Record<string, string>) {
+  const query = `
+    query Resolve($input: ConfigurationStateInput!) {
+      resolveConfiguration(input: $input) {
+        valid
+        violations
+        availabilityJson
+        threeD {
+          rootObjectAssetRevisionId
+          activeObjectAssetRevisionIds
+          effects {
+            operation
+            targetKey
+            materialAssetId
+            linkedAssetKey
+          }
+        }
+        commerce {
+          sku
+          variantReference
+          provider
+        }
+      }
+    }
+  `;
+
+  const response = await fetch('/api/cubecom/resolve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      productId,
+      selectionsJson: JSON.stringify(selections)
+    })
+  });
+
+  return response.json();
+}
+```

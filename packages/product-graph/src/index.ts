@@ -1,6 +1,7 @@
 export { graphRequest } from './client.js';
 export {
   materialDocumentUrl,
+  objectAssetRevisionDocumentUrl,
   objectDocumentUrl,
   objectMetadataUrl,
 } from './documents.js';
@@ -28,10 +29,14 @@ export type {
   GraphAttributeValue,
   GraphChoice,
   GraphChoiceValue,
+  GraphCommerceMapping,
+  GraphCommerceMappingSet,
+  GraphCommerceMappingTerm,
   GraphConstraint,
   GraphConstraintTerm,
   GraphDetail,
   GraphModel,
+  GraphModelLinkedAsset,
   GraphObjectAsset,
   GraphRule,
   GraphSessionAuth,
@@ -66,10 +71,12 @@ export type {
 } from './kernel.js';
 export {
   deriveAvailability,
+  evaluateConfiguration,
   formatValidationIssues,
   validateSelection,
 } from './kernel-validate.js';
 export type {
+  ConfigurationEvaluationResult,
   KernelChoice,
   KernelChoiceValue,
   KernelConstraint,
@@ -78,3 +85,72 @@ export type {
   ValidationIssue,
   ValidationIssueCode,
 } from './kernel-validate.js';
+export {
+  CommerceNormalizeError,
+  canonicalizeCommerceIdentity,
+  normalizeCommerceMappingSet,
+  projectCommerceIdentity,
+  resolveCommerce,
+} from './commerce.js';
+export type {
+  CommerceExternalReference,
+  CommerceIdentity,
+  CommerceMapping,
+  CommerceMappingSet,
+  CommerceResolution,
+  CommerceRevisionChoice,
+  NormalizeCommerceMappingInput,
+  NormalizeCommerceMappingSetInput,
+  NormalizeCommerceMappingTermInput,
+} from './commerce.js';
+export {
+  canPurchase,
+  toResolvedCommerce,
+} from './commerce-live.js';
+export type {
+  CommerceSellability,
+  CommerceState,
+  CommerceUnsellableReason,
+  ConfigurationEvaluation,
+  FetchCommerceState,
+  InventoryState,
+  Money,
+  ResolvedCommerce,
+} from './commerce-live.js';
+export {
+  ShopifyImportError,
+  buildShopifyImportReview,
+  planShopifyProductImport,
+  sameShopifyResourceId,
+  shopifyDisplayId,
+  shopifyLabelToSemanticKey,
+  shopifyResourceKey,
+} from './shopify-import.js';
+export type {
+  ShopifyImportChoicePlan,
+  ShopifyImportMappingPlan,
+  ShopifyImportPlan,
+  ShopifyImportReview,
+  ShopifyImportReviewRow,
+  ShopifyProductDto,
+  ShopifyProductOptionDto,
+  ShopifyProductVariantDto,
+} from './shopify-import.js';
+export {
+  PRODUCT_MODEL_ROOT_ASSET_KEY,
+  deriveVisualState,
+} from './visual-state.js';
+export type {
+  ActiveObjectReplacement,
+  DeriveVisualStateInput,
+  DerivedVisualState,
+  ProductModelAssetRole,
+  ProductModelLinkedAsset,
+  VisualAssetBinding,
+} from './visual-state.js';
+export {
+  isReplaceComponentValue,
+  parseReplaceComponentValue,
+  replaceComponentValueJson,
+} from './replace-component.js';
+export type { ReplaceComponentValue } from './replace-component.js';

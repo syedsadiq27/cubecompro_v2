@@ -5,18 +5,23 @@ import { useEditorStore } from '@/lib/editor-store';
 
 export function ObjectInspector() {
   const selected = useEditorStore((state) => state.selected);
+  const editorDocument = useEditorStore((state) => state.document);
+  const parentLabel =
+    editorDocument?.modelName?.trim() ||
+    editorDocument?.productName?.trim() ||
+    'No model';
 
   return (
     <div className="space-y-4">
       <div>
         <div className="flex items-center justify-between pb-1">
           <h3 className="text-[13px] font-semibold text-[var(--ink)]">
-            {selected?.name || 'Chair_Frame'}
+            {selected?.name || 'Mesh'}
           </h3>
           <StatusBadge role="published" label="MESH" />
         </div>
         <p className="text-[11px] font-mono text-[var(--text-muted)]">
-          4,820 Triangles &middot; Parent: Studio Chair
+          Parent: {parentLabel}
         </p>
       </div>
 

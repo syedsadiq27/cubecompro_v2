@@ -143,10 +143,17 @@ input CreateProductInput {
 }
 
 input CreateProductModelInput {
-  assetId: String!
+  assetId: String
   productRevisionId: String!
   key: String!
   name: String!
+  objectAssetRevisionId: String
+}
+
+input UpdateProductModelRevisionInput {
+  productModelId: String!
+  assetId: String
+  objectAssetRevisionId: String
 }
 
 input CreateProductVariantInput {
@@ -188,6 +195,190 @@ input UpdateVisualEffectInput {
   id: String!
   operation: VisualOperation
   valueJson: String
+}
+
+input ReplaceCommerceMappingInput {
+  choiceValueIds: [String!]!
+  externalId: String!
+  sku: String
+}
+
+input ReplaceCommerceMappingSetInput {
+  identityChoiceIds: [String!]!
+  integrationConnectionId: String
+  mappings: [ReplaceCommerceMappingInput!]!
+  productRevisionId: String!
+  provider: String!
+}
+
+input ShopifyOAuthStartInput {
+  organizationId: String!
+  projectId: String!
+  shop: String!
+}
+
+type ShopifyOAuthStartModel {
+  authorizeUrl: String!
+}
+
+input DisconnectShopifyInput {
+  integrationConnectionId: String!
+  organizationId: String!
+}
+
+input ImportShopifyProductInput {
+  integrationConnectionId: String!
+  productJson: String
+  projectId: String!
+  shopifyProductId: String!
+}
+
+input PreviewShopifyImportInput {
+  integrationConnectionId: String
+  organizationId: String!
+  shopifyProductId: String!
+}
+
+type IntegrationConnectionModel {
+  apiVersion: String!
+  displayName: String
+  externalAccountId: String!
+  hasAccessToken: Boolean!
+  id: ID!
+  organizationId: String!
+  provider: String!
+}
+
+type ShopifyCatalogProductModel {
+  handle: String!
+  id: String!
+  options: [String!]!
+  status: String!
+  title: String!
+  variantCount: Float!
+}
+
+type ShopifyImportPreviewModel {
+  connectionId: String!
+  identityChoiceKeys: [String!]!
+  identityChoiceNames: [String!]!
+  mappedCount: Float!
+  productName: String!
+  reviewJson: String!
+  shop: String!
+  unmappedCount: Float!
+}
+
+type ShopifyProductCommerceRowModel {
+  externalId: String
+  label: String!
+  sku: String
+  status: String!
+}
+
+type ShopifyProductCommerceModel {
+  displayName: String
+  externalProductId: String!
+  identityChoiceKeys: [String!]!
+  identityChoiceNames: [String!]!
+  mappedCount: Float!
+  rows: [ShopifyProductCommerceRowModel!]!
+  shop: String!
+  unmappedCount: Float!
+}
+
+type ShopifyImportProofChoiceValueModel {
+  key: String!
+  name: String!
+}
+
+type ShopifyImportProofChoiceModel {
+  key: String!
+  name: String!
+  values: [ShopifyImportProofChoiceValueModel!]!
+}
+
+type ShopifyImportProofResolutionModel {
+  externalId: String
+  label: String!
+  sku: String
+  status: String!
+}
+
+type ShopifyImportProofModel {
+  choices: [ShopifyImportProofChoiceModel!]!
+  constraintCount: Float!
+  identityChoiceNames: [String!]!
+  mappingCount: Float!
+  productId: String!
+  productName: String!
+  productRevisionId: String!
+  resolutions: [ShopifyImportProofResolutionModel!]!
+}
+
+type ImportShopifyProductResultModel {
+  commerceMappingSetId: String!
+  externalProductId: String!
+  identityChoiceKeys: [String!]!
+  integrationConnectionId: String!
+  mappingCount: Float!
+  productId: String!
+  productRevisionId: String!
+}
+
+input ResolveCommerceInput {
+  integrationConnectionId: String
+  productRevisionId: String!
+  provider: String!
+  selectionJson: String!
+}
+
+type CommerceExternalReferenceModel {
+  id: String!
+  sku: String
+  type: String!
+}
+
+type CommerceResolutionModel {
+  externalReference: CommerceExternalReferenceModel
+  identityJson: String!
+  identitySignature: String!
+  provider: String
+  status: String!
+}
+
+type CommerceIdentityChoiceModel {
+  choiceId: String!
+  choiceKey: String!
+  mappingSetId: String!
+  sortOrder: Float!
+}
+
+type CommerceMappingTermModel {
+  choiceKey: String!
+  choiceValueId: String!
+  choiceValueKey: String!
+  mappingId: String!
+}
+
+type CommerceMappingModel {
+  externalId: String!
+  externalType: String!
+  id: ID!
+  identitySignature: String!
+  mappingSetId: String!
+  sku: String
+  terms: [CommerceMappingTermModel!]!
+}
+
+type CommerceMappingSetModel {
+  domainJson: String!
+  id: ID!
+  identityChoices: [CommerceIdentityChoiceModel!]!
+  integrationConnectionId: String
+  mappings: [CommerceMappingModel!]!
+  productRevisionId: String!
+  provider: String!
 }
 
 """
@@ -245,28 +436,39 @@ type Mutation {
   createMaterialAsset(input: CreateMaterialAssetInput!): MaterialAssetModel!
   createModelTarget(input: CreateModelTargetInput!): ModelTargetModel!
   createObjectAsset(input: CreateObjectAssetInput!): ObjectAssetModel!
+  createObjectAssetRevision(input: CreateObjectAssetRevisionInput!): ObjectAssetRevisionModel!
+  updateObjectAssetStatus(input: UpdateObjectAssetStatusInput!): ObjectAssetModel!
   createOrganization(input: CreateOrganizationInput!): OrganizationModel!
   createProduct(input: CreateProductInput!): ProductModel!
   createChoice(input: CreateChoiceInput!): ChoiceModel!
   createProductModel(input: CreateProductModelInput!): ProductModelAssetModel!
+  createProductModelLinkedAsset(input: CreateProductModelLinkedAssetInput!): ProductModelLinkedAssetModel!
   createProductVariant(input: CreateProductVariantInput!): ProductVariantModel!
   createProject(input: CreateProjectInput!): ProjectModel!
   createTextureAsset(input: CreateTextureAssetInput!): TextureAssetModel!
   createVariantSelection(input: CreateVariantSelectionInput!): VariantSelectionModel!
   createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!
   deleteChoiceValue(id: String!): Boolean!
+  deleteCommerceMappingSet(id: String!): Boolean!
   deleteConstraint(id: String!): Boolean!
   deleteObjectAsset(id: String!): Boolean!
   deleteProduct(id: String!): Boolean!
+  deleteProductModelLinkedAsset(id: String!): Boolean!
   deleteTextureAsset(id: String!): Boolean!
   deleteVisualEffect(id: String!): Boolean!
   discardDraftProductRevision(productId: String!): Boolean!
+  disconnectShopify(input: DisconnectShopifyInput!): Boolean!
+  importShopifyProduct(input: ImportShopifyProductInput!): ImportShopifyProductResultModel!
   login(input: LoginInput!): AuthPayloadModel!
   publishProductRevision(id: String!): ProductRevisionModel!
+  replaceCommerceMappingSet(input: ReplaceCommerceMappingSetInput!): CommerceMappingSetModel!
   saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!
   setChoiceDefault(input: SetChoiceDefaultInput!): ChoiceModel!
+  startShopifyOAuth(input: ShopifyOAuthStartInput!): ShopifyOAuthStartModel!
   updateMaterialAsset(input: UpdateMaterialAssetInput!): MaterialAssetModel!
   updateProduct(input: UpdateProductInput!): ProductModel!
+  updateProductModelLinkedAsset(input: UpdateProductModelLinkedAssetInput!): ProductModelLinkedAssetModel!
+  updateProductModelRevision(input: UpdateProductModelRevisionInput!): ProductModelAssetModel!
   updateProfile(input: UpdateProfileInput!): AuthUserModel!
   updateVisualEffect(input: UpdateVisualEffectInput!): VisualEffectModel!
 }
@@ -282,6 +484,7 @@ type MyProjectModel {
 type ObjectAssetModel {
   animationCount: Float
   code: String
+  currentRevisionId: String
   fileSha256: String!
   fileUri: String!
   fileUrl: String
@@ -303,6 +506,29 @@ type ObjectAssetModel {
   status: ObjectAssetStatus!
 }
 
+type ObjectAssetRevisionModel {
+  contentHash: String!
+  documentUrl: String
+  format: String
+  frozenAt: DateTime!
+  id: ID!
+  objectAssetId: String!
+  runtimeArtifactUri: String!
+  sizeBytes: Float
+  version: Float!
+}
+
+input CreateObjectAssetRevisionInput {
+  fileBase64: String!
+  fileName: String
+  objectAssetId: String!
+}
+
+input UpdateObjectAssetStatusInput {
+  id: String!
+  status: ObjectAssetStatus!
+}
+
 enum ObjectAssetPurpose {
   COMPONENT
   MODEL
@@ -312,6 +538,7 @@ enum ObjectAssetStatus {
   FAILED
   PROCESSING
   READY
+  ARCHIVED
 }
 
 type OrganizationEntitlementModel {
@@ -349,6 +576,7 @@ type ChoiceModel {
 
 type ProductRevisionDetailModel {
   choices: [ChoiceModel!]!
+  commerceMappingSets: [CommerceMappingSetModel!]!
   constraints: [ConstraintModel!]!
   graphSha256: String
   graphUri: String
@@ -391,8 +619,40 @@ type ProductModelAssetModel {
   productRevisionId: String!
   id: ID!
   key: String!
+  linkedAssets: [ProductModelLinkedAssetModel!]
   name: String!
+  objectAssetRevisionId: String!
   targets: [ModelTargetModel!]
+}
+
+type ProductModelLinkedAssetModel {
+  assetRevisionId: String!
+  id: ID!
+  key: String!
+  productModelId: String!
+  role: ProductModelAssetRole!
+}
+
+enum ProductModelAssetRole {
+  ANIMATION
+  ENVIRONMENT
+  MATERIAL
+  OBJECT
+  SHADER
+  TEXTURE
+}
+
+input CreateProductModelLinkedAssetInput {
+  assetRevisionId: String!
+  key: String!
+  productModelId: String!
+  role: ProductModelAssetRole!
+}
+
+input UpdateProductModelLinkedAssetInput {
+  assetRevisionId: String
+  id: String!
+  key: String
 }
 
 enum ProductStatus {
@@ -424,6 +684,7 @@ type Query {
   me: AuthUserModel!
   myProjects: [MyProjectModel!]!
   objectAsset(id: String!): ObjectAssetModel!
+  objectAssetRevisions(objectAssetId: String!): [ObjectAssetRevisionModel!]!
   objectAssets(projectId: String!): [ObjectAssetModel!]!
   organization(id: String!): OrganizationModel!
   organizationEntitlements(organizationId: String!): [OrganizationEntitlementModel!]!
@@ -434,17 +695,27 @@ type Query {
   productRevisionDetail(id: String!): ProductRevisionDetailModel!
   productRevisions(productId: String!): [ProductRevisionModel!]!
   productsByProject(projectId: String!): [ProductModel!]!
+  commerceMappingSet(productRevisionId: String!, provider: String!): CommerceMappingSetModel!
+  commerceMappingSetsByRevision(productRevisionId: String!): [CommerceMappingSetModel!]!
   constraintsByRevision(productRevisionId: String!): [ConstraintModel!]!
+  resolveCommerce(input: ResolveCommerceInput!): CommerceResolutionModel!
   project(id: String!): ProjectModel!
   projectsByOrganization(organizationId: String!): [ProjectModel!]!
   resolveConfiguration(input: ConfigurationStateInput!): ResolvedConfigurationModel!
   savedConfiguration(id: String!): SavedConfigurationModel!
+  previewShopifyProductImport(input: PreviewShopifyImportInput!): ShopifyImportPreviewModel!
+  productShopifyCommerce(organizationId: String!, productId: String!): ShopifyProductCommerceModel
+  shopifyCatalogProducts(integrationConnectionId: String, organizationId: String!, query: String): [ShopifyCatalogProductModel!]!
+  shopifyConnections(organizationId: String!): [IntegrationConnectionModel!]!
+  shopifyImportProof(organizationId: String!, productId: String!): ShopifyImportProofModel!
   textureAssets(projectId: String!): [TextureAssetModel!]!
 }
 
 type Resolved3DStateModel {
+  activeObjectAssetRevisionIds: [String!]!
   effects: [ResolvedVisualEffectModel!]!
   modelId: String
+  rootObjectAssetRevisionId: String
 }
 
 type ResolvedCommerceStateModel {
@@ -468,8 +739,10 @@ type ResolvedConfigurationModel {
 
 type ResolvedVisualEffectModel {
   documentUrl: String
+  linkedAssetKey: String
   materialAssetId: String
   nodePath: String
+  objectAssetRevisionId: String
   operation: VisualOperation!
   targetKey: String!
   targetType: String!
@@ -547,6 +820,7 @@ type VisualEffectModel {
 }
 
 enum VisualOperation {
+  REPLACE_COMPONENT
   SET_MATERIAL
   SET_MODEL
   SET_VISIBILITY

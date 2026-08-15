@@ -1,7 +1,12 @@
 import { ProductWorkspace } from '@/components/products/workspace/product-workspace';
 import { EmptyState } from '@/components/bo';
 import {
+  getProductShopifyCommerceAction,
+  type ShopifyCommerceView,
+} from '@/actions/shopify';
+import {
   MATERIAL_ASSETS_QUERY,
+  ME_QUERY,
   OBJECT_ASSETS_QUERY,
   PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
   PRODUCT_GRAPH_VERSIONS_QUERY,
@@ -13,7 +18,10 @@ import {
   parseWorkspaceTab,
   type GraphDetail,
 } from '@/lib/product-workspace';
-import { getProjectSession } from '@/lib/session-server';
+import {
+  getProjectSession,
+  getSessionUser,
+} from '@/lib/session-server';
 
 export default async function ProductDetailPage({
   params,
@@ -24,7 +32,10 @@ export default async function ProductDetailPage({
 }) {
   const { projectId, id } = await params;
   const { tab } = await searchParams;
-  const project = await getProjectSession();
+  const [project, user] = await Promise.all([
+    getProjectSession(),
+    getSessionUser(),
+  ]);
   if (!project) return null;
 
   try {
@@ -58,6 +69,7 @@ export default async function ProductDetailPage({
           code?: string | null;
           fileUrl?: string | null;
           status?: string | null;
+          currentRevisionId?: string | null;
           meshCount?: number | null;
           format?: string | null;
         }>;
@@ -101,6 +113,24 @@ export default async function ProductDetailPage({
       detail = detailData.productRevisionDetail;
     }
 
+    let shopifyCommerce: ShopifyCommerceView | null = null;
+    if (user) {
+      try {
+        const me = await graphRequest<{
+          me: { organizationId?: string | null };
+        }>(ME_QUERY, {}, user.token);
+        if (me.me.organizationId) {
+          const commerce = await getProductShopifyCommerceAction(
+            projectId,
+            id
+          );
+          shopifyCommerce = commerce.view;
+        }
+      } catch {
+        shopifyCommerce = null;
+      }
+    }
+
     return (
       <ProductWorkspace
         projectId={projectId}
@@ -111,6 +141,7 @@ export default async function ProductDetailPage({
         materialAssets={materialsData.materialAssets}
         publishedVersions={publishedVersions}
         initialTab={parseWorkspaceTab(tab)}
+        shopifyCommerce={shopifyCommerce}
       />
     );
   } catch (error) {

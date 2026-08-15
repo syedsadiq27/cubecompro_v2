@@ -9,11 +9,16 @@ export function PreviewInspector() {
   const visualSelection = useEditorStore((state) => state.visualSelection);
   const visualDocument = useEditorStore((state) => state.visualDocument);
   const graphDetail = useEditorStore((state) => state.graphDetail);
+  const editorDocument = useEditorStore((state) => state.document);
 
   const preview = useMemo(() => {
     if (!graphDetail) return null;
-    return evaluateConfiguratorPreview(graphDetail, visualSelection);
-  }, [graphDetail, visualSelection]);
+    return evaluateConfiguratorPreview(
+      graphDetail,
+      visualSelection,
+      visualDocument
+    );
+  }, [graphDetail, visualSelection, visualDocument]);
 
   const activeBindings =
     visualDocument?.bindings.filter(
@@ -29,28 +34,66 @@ export function PreviewInspector() {
           </h3>
           <StatusBadge
             role={
-              preview?.validation.issues.some(
-                (issue) => issue.code === 'violated_constraint'
-              )
-                ? 'danger'
-                : preview?.validation.valid
-                  ? 'published'
-                  : 'warning'
+              preview?.layers.validity === 'VALID' ? 'published' : 'danger'
             }
-            label={
-              preview?.validation.issues.some(
-                (issue) => issue.code === 'violated_constraint'
-              )
-                ? 'BLOCKED'
-                : preview?.validation.valid
-                  ? 'VALID'
-                  : 'INCOMPLETE'
-            }
+            label={preview?.layers.validity ?? '—'}
           />
         </div>
         <p className="text-[11px] text-[var(--text-muted)]">
-          Kernel validate + availability in front of visual projection
+          UNMAPPED blocks purchase only — not selection or render.
         </p>
+      </div>
+
+      <div>
+        <InspectorSection title="Product affinity" />
+        <div className="space-y-1.5 text-[11px]">
+          <DetailRow
+            label="Product"
+            value={editorDocument?.productName ?? '—'}
+          />
+          <DetailRow
+            label="Model"
+            value={editorDocument?.modelName ?? 'No model'}
+          />
+        </div>
+      </div>
+
+      <div>
+        <InspectorSection title="Runtime status" />
+        <div className="space-y-1.5 text-[11px]">
+          <DetailRow
+            label="Configuration"
+            value={
+              <span className="font-mono">
+                {preview
+                  ? `${preview.layers.validity} · ${preview.layers.completeness}`
+                  : '—'}
+              </span>
+            }
+          />
+          <DetailRow
+            label="Commerce"
+            value={
+              <span className="font-mono">
+                {preview?.layers.commerce ?? '—'}
+              </span>
+            }
+          />
+          <DetailRow
+            label="Purchase"
+            value={
+              <span className="font-mono">
+                {preview?.layers.purchase ?? '—'}
+              </span>
+            }
+          />
+          <DetailRow
+            label="Visual"
+            value={
+              <span className="font-mono">{preview?.layers.visual ?? '—'}</span>
+            }
+          />
+        </div>
       </div>
 
       <div>

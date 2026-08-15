@@ -1,0 +1,15 @@
+{
+  "title": "API reference",
+  "pages": [
+    "index",
+    "schema-coverage",
+    "queries",
+    "mutations",
+    "inputs",
+    "objects",
+    "enums",
+    "errors",
+    "webhooks",
+    "versioning"
+  ]
+}

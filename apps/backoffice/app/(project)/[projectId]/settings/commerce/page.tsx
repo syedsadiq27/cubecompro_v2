@@ -1,4 +1,4 @@
-import { FeaturePlaceholder } from '@/components/ui/feature-placeholder';
+import { redirect } from 'next/navigation';
 
 export default async function CommerceSettingsPage({
   params,
@@ -6,13 +6,5 @@ export default async function CommerceSettingsPage({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
-  return (
-    <FeaturePlaceholder
-      title="Commerce channels"
-      description="Provider adapters and channel mapping."
-      detail="Commerce adapters are deferred. Resolve configuration works without a live channel today."
-      href={`/${projectId}/products`}
-      linkLabel="Back to products"
-    />
-  );
+  redirect(`/${projectId}/integrations/shopify`);
 }

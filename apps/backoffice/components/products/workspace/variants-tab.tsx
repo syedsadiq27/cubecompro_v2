@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   DataTable,
@@ -18,7 +18,11 @@ import {
   TagIcon,
 } from '@/components/bo/icons';
 import { RowActionMenu } from '@/components/bo';
-import type { GraphDetail } from '@/lib/product-workspace';
+import type { ShopifyCommerceView } from '@/actions/shopify';
+import {
+  type GraphDetail,
+  useLiveProductData,
+} from '@/lib/product-workspace';
 
 export type VariantCombination = {
   id: string;
@@ -136,6 +140,50 @@ const DEFAULT_VARIANTS: VariantCombination[] = [
   },
 ];
 
+function variantsFromShopify(
+  shopifyCommerce: ShopifyCommerceView
+): VariantCombination[] {
+  return shopifyCommerce.rows.map((row, index) => ({
+    id: `shopify_${index}_${row.label}`,
+    combination: row.label,
+    options: {
+      color: row.label,
+      size: '',
+      frame: '',
+      material: '',
+    },
+    valid: true,
+    sku: row.sku ?? undefined,
+    commerceStatus: row.status === 'mapped' ? 'Mapped' : 'Unmapped',
+    materials: { fabric: '', frame: '' },
+  }));
+}
+
+function cartesianLabels(detail: GraphDetail): string[] {
+  const lists = detail.choices.map((choice) =>
+    choice.values.map((value) => value.name)
+  );
+  if (lists.length === 0) return [];
+  return lists.reduce<string[]>(
+    (acc, list) =>
+      acc.length === 0
+        ? list
+        : acc.flatMap((prefix) => list.map((item) => `${prefix} + ${item}`)),
+    []
+  );
+}
+
+function variantsFromChoices(detail: GraphDetail): VariantCombination[] {
+  return cartesianLabels(detail).map((label, index) => ({
+    id: `choice_${index}_${label}`,
+    combination: label,
+    options: { color: label, size: '', frame: '', material: '' },
+    valid: true,
+    commerceStatus: 'Unmapped' as const,
+    materials: { fabric: '', frame: '' },
+  }));
+}
+
 export function VariantsTab({
   projectId,
   productId,
@@ -143,6 +191,7 @@ export function VariantsTab({
   editable,
   onOpenCommerce,
   onOpen3d,
+  shopifyCommerce,
 }: {
   projectId: string;
   productId: string;
@@ -150,12 +199,35 @@ export function VariantsTab({
   editable: boolean;
   onOpenCommerce: () => void;
   onOpen3d: () => void;
+  shopifyCommerce?: ShopifyCommerceView | null;
 }) {
   const toast = useToast();
-  const [variants, setVariants] = useState<VariantCombination[]>(DEFAULT_VARIANTS);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(DEFAULT_VARIANTS[0]?.id ?? null);
+  const live = useLiveProductData(detail, shopifyCommerce);
+
+  function resolveSeed(): VariantCombination[] {
+    if (!live) return DEFAULT_VARIANTS;
+    if (shopifyCommerce) return variantsFromShopify(shopifyCommerce);
+    if (detail?.choices.length) return variantsFromChoices(detail);
+    return [];
+  }
+
+  const seed = resolveSeed();
+  const [variants, setVariants] = useState<VariantCombination[]>(seed);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    seed[0]?.id ?? null
+  );
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'All' | 'Valid' | 'Blocked' | 'Mapped' | 'Unmapped'>('All');
+
+  useEffect(() => {
+    const next = resolveSeed();
+    setVariants(next);
+    setSelectedVariantId((current) =>
+      next.some((variant) => variant.id === current)
+        ? current
+        : (next[0]?.id ?? null)
+    );
+  }, [live, shopifyCommerce, detail?.id, detail?.choices.length]);
 
   // Mapping modal
   const [mappingTarget, setMappingTarget] = useState<VariantCombination | null>(null);

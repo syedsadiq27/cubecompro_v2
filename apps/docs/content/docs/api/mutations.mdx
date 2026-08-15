@@ -1,0 +1,96 @@
+---
+title: GraphQL Mutations
+description: Partial field reference for selected mutations in the CubeCom Pro schema.
+---
+
+Selected mutations from the `Mutation` type. See [schema coverage](/api/schema-coverage) for the generated operation inventory.
+
+## `createProduct`
+Creates a new catalog Product.
+
+- **Signature**: `createProduct(input: CreateProductInput!): ProductModel!`
+- **Arguments**: `input`: [`CreateProductInput!`](/api/inputs#createproductinput)
+
+---
+
+## `createDraftProductRevision`
+Initializes a new draft revision for authoring.
+
+- **Signature**: `createDraftProductRevision(productId: String!, sourceProductRevisionId: String): ProductRevisionModel!`
+
+---
+
+## `publishProductRevision`
+Freezes a draft revision and marks it immutable.
+
+- **Signature**: `publishProductRevision(id: String!): ProductRevisionModel!`
+
+---
+
+## `createChoice`
+Adds a Choice dimension to a draft revision.
+
+- **Signature**: `createChoice(input: CreateChoiceInput!): ChoiceModel!`
+
+---
+
+## `createChoiceValue`
+Adds a ChoiceValue option to a Choice.
+
+- **Signature**: `createChoiceValue(input: CreateChoiceValueInput!): ChoiceValueModel!`
+
+---
+
+## `createConstraint`
+Creates an incompatibility constraint between choice values.
+
+- **Signature**: `createConstraint(input: CreateConstraintInput!): ConstraintModel!`
+
+---
+
+## `createProductModel`
+Initializes the 3D model binding on a revision.
+
+- **Signature**: `createProductModel(input: CreateProductModelInput!): ProductModelAssetModel!`
+
+---
+
+## `createProductModelLinkedAsset`
+Registers a swappable component asset in the ProductModel registry.
+
+- **Signature**: `createProductModelLinkedAsset(input: CreateProductModelLinkedAssetInput!): ProductModelLinkedAssetModel!`
+
+---
+
+## `createVisualEffect`
+Creates a visual operation binding.
+
+- **Signature**: `createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!`
+
+---
+
+## `replaceCommerceMappingSet`
+Replaces the commerce mapping matrix for a revision.
+
+- **Signature**: `replaceCommerceMappingSet(input: ReplaceCommerceMappingSetInput!): CommerceMappingSetModel!`
+
+---
+
+## `startShopifyOAuth`
+Starts the OAuth authorization flow with Shopify.
+
+- **Signature**: `startShopifyOAuth(input: ShopifyOAuthStartInput!): ShopifyOAuthStartModel!`
+
+---
+
+## `importShopifyProduct`
+Executes product import from Shopify into Backoffice.
+
+- **Signature**: `importShopifyProduct(input: ImportShopifyProductInput!): ImportShopifyProductResultModel!`
+
+---
+
+## `saveConfiguration`
+Persists a customer configuration state for sharing or cart restoration.
+
+- **Signature**: `saveConfiguration(input: SaveConfigurationInput!): SavedConfigurationModel!`

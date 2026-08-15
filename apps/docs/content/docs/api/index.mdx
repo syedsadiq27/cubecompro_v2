@@ -1,0 +1,23 @@
+---
+title: API reference
+description: Partial GraphQL and REST reference, with measurable coverage against the current schema.
+---
+
+This reference is **partial**. The canonical contract remains `apps/api/src/schema.gql`; use the generated [schema coverage inventory](/api/schema-coverage) to see exactly which declarations have dedicated field reference sections.
+
+## Schema navigation
+
+| Category | Description |
+| --- | --- |
+| **[Schema coverage](/api/schema-coverage)** | Generated declaration count, coverage percentage, and missing-reference inventory |
+| **[Queries](/api/queries)** | Read queries (`resolveConfiguration`, `product`, `productRevisionDetail`, `shopifyCatalogProducts`, etc.) |
+| **[Mutations](/api/mutations)** | State mutation operations (`createProduct`, `publishProductRevision`, `createChoice`, `startShopifyOAuth`, etc.) |
+| **[Inputs](/api/inputs)** | Field reference for selected GraphQL input objects (`ConfigurationStateInput`, `CreateChoiceInput`, etc.) |
+| **[Objects](/api/objects)** | Selected output and domain type definitions (`ResolvedConfigurationModel`, `ProductRevisionDetailModel`, etc.) |
+| **[Enums](/api/enums)** | Selected enumerated types (`VisualOperation`, `ProductModelAssetRole`, `GraphVersionStatus`, etc.) |
+| **[Errors](/api/errors)** | Transport error structures and status codes |
+
+## Interactive explorers
+
+- **[GraphQL Explorer (GraphiQL)](/api/graphql)**: Interactive query IDE.
+- **[REST Reference (Scalar)](/api/rest)**: OpenAPI interactive documentation.

@@ -1,0 +1,28 @@
+---
+title: Commerce mapping
+description: The projection from a valid product selection to an external sellable item.
+---
+
+A **commerce mapping** connects one valid combination of product values to an external item, such as a Shopify variant and SKU. The shopper's selection describes configuration; the mapping supplies selling identity.
+
+## How matching works
+
+A mapping set declares which choices form commerce identity. Each row then associates one combination of values with an external ID, external type, and optional SKU.
+
+```text
+frame = walnut + fabric = beige + legs = brass
+                         ↓
+Shopify variant GID + SKU CHAIR-WAL-BEI-BRS
+```
+
+During resolution, a valid selection is compared with the revision's mappings. A match populates the commerce response. No match leaves commerce fields null.
+
+## Important distinction
+
+`valid: true` means the product rules accept the selection. It does not mean the selection is sellable. A valid but unmapped selection is a commerce setup gap, not a constraint violation.
+
+Provider identifiers belong in mappings, not choice keys. This keeps product authoring independent from one commerce platform.
+
+## API names
+
+The schema uses `CommerceMappingSetModel`, `CommerceMappingModel`, and `CommerceMappingTermModel`. See [Resolved commerce state](/customizer/resolved-commerce-state) and [Commerce mappings](/backoffice/commerce-mappings).

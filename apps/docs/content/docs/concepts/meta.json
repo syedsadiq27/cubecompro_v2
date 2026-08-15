@@ -1,0 +1,17 @@
+{
+  "title": "Concepts",
+  "pages": [
+    "index",
+    "product",
+    "product-revision",
+    "assets",
+    "choice",
+    "choice-value",
+    "constraint",
+    "selection",
+    "product-model",
+    "visual-effect",
+    "resolution",
+    "commerce-mapping"
+  ]
+}

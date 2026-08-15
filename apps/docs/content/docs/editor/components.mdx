@@ -1,0 +1,33 @@
+---
+title: Component assets
+description: API-level component registration and the current absence of an Editor registration workflow.
+---
+
+Component replacement uses an immutable object revision registered as a linked asset on a product model. Registration and activation are separate: a `REPLACE_COMPONENT` visual effect activates the registered asset for a selected choice value.
+
+```text
+ProductModel
+├── root OBJECT link
+└── component OBJECT link with stable key
+        ↑
+        └── REPLACE_COMPONENT value references this key
+```
+
+## Current capability
+
+The API supports `createProductModelLinkedAsset` with `role: OBJECT`, a stable key, and an object asset revision ID. The service validates that the revision exists and that component replacement references a registered link on the same model.
+
+No component-registration control has been verified in the current Backoffice product workspace, and the current Editor has no registration UI. Do not follow instructions that mention an Editor **Components panel** or **Register linked asset** button.
+
+## Authoring boundary
+
+- Use the API to register the linked object revision.
+- Use the API/runtime contract to author `REPLACE_COMPONENT` where required.
+- Expect the current Editor mappings panel to preserve/report the operation as unsupported, not edit it.
+
+## Verify
+
+1. Query the product revision and confirm the linked asset has `role: OBJECT`, the intended key, and immutable revision ID.
+2. Confirm the replacement effect's `linkedAssetKey` matches that registered key exactly.
+3. Resolve the triggering selection and confirm the component revision appears in `activeObjectAssetRevisionIds`.
+4. Switch away and confirm the renderer removes the component when it is absent from the next complete resolved state.

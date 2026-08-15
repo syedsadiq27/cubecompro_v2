@@ -1,0 +1,37 @@
+---
+title: Integration patterns
+description: Headless storefronts, backend proxies, and hybrid commerce architectures.
+---
+
+Use the GraphQL API as the verified integration boundary. The storefront owns rendering and cart submission; CubeCom Pro owns revisioned product data and resolution.
+
+## Pattern 1: Headless Commerce (Next.js / Remix / Nuxt)
+
+In a headless architecture, your storefront backend proxies GraphQL calls to CubeCom Pro and passes resolved cart payloads directly to your commerce engine (e.g. Shopify Storefront API, commercetools).
+
+```text
+Shopper Browser
+      │ (1) User picks options
+      ▼
+Storefront Server (Next.js API Route)
+      │ (2) POST /graphql (with server Bearer token)
+      ▼
+CubeCom Pro API
+      │ (3) Returns { valid, threeD, commerce }
+      ▼
+Storefront Server
+      │ (4) Returns allowlisted data to the browser
+```
+
+---
+
+## Pattern 2: Application-owned embed
+
+CubeCom Pro does not currently publish a hosted Customizer iframe or browser message protocol. If a traditional storefront needs an iframe, host your own configurator route and own the versioned contract between that route and the parent page.
+
+- Validate `event.origin` on both sides.
+- Use explicit message names and validate every payload.
+- Send resolved commerce identity to a host-owned cart adapter.
+- Never pass bearer tokens through browser messages.
+
+See [Storefront integration](/customizer/embedding) for the current capability boundary.

@@ -6,6 +6,12 @@ import {
   CloseIcon,
   SearchIcon,
 } from '@/components/bo/icons';
+import { EmptyState } from '@/components/bo';
+import type { ShopifyCommerceView } from '@/actions/shopify';
+import {
+  type GraphDetail,
+  useLiveProductData,
+} from '@/lib/product-workspace';
 
 type AuditEvent = {
   id: string;
@@ -140,22 +146,48 @@ const AUDIT_EVENTS: AuditEvent[] = [
   },
 ];
 
+const SHOPIFY_IMPORT_EVENT: AuditEvent = {
+  id: 'evt_shopify_import',
+  dateGroup: 'Today',
+  type: 'mapping',
+  title: 'Imported from Shopify',
+  target: 'ProductRevision + CommerceMappingSet',
+  description:
+    'Choices and commerce mappings were created from the Shopify catalog. No compatibility rules or 3D bindings were invented.',
+  actor: 'System',
+  actorRole: 'Import',
+  time: 'Just now',
+  fullTimestamp: new Date().toISOString(),
+};
+
 export function ActivityTab({
   projectId,
   productId,
+  detail,
+  shopifyCommerce,
 }: {
   projectId: string;
   productId: string;
+  detail?: GraphDetail | null;
+  shopifyCommerce?: ShopifyCommerceView | null;
 }) {
   const toast = useToast();
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(AUDIT_EVENTS[0]?.id ?? null);
+  const live = useLiveProductData(detail ?? null, shopifyCommerce);
+  const events = live
+    ? shopifyCommerce
+      ? [SHOPIFY_IMPORT_EVENT]
+      : []
+    : AUDIT_EVENTS;
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(
+    events[0]?.id ?? null
+  );
   const [typeFilter, setTypeFilter] = useState('all');
   const [actorFilter, setActorFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [query, setQuery] = useState('');
 
   const filteredEvents = useMemo(() => {
-    return AUDIT_EVENTS.filter((evt) => {
+    return events.filter((evt) => {
       if (typeFilter !== 'all' && evt.type !== typeFilter) return false;
       if (actorFilter !== 'all' && evt.actor !== actorFilter) return false;
       if (dateFilter === 'today' && evt.dateGroup !== 'Today') return false;
@@ -170,7 +202,7 @@ export function ActivityTab({
         evt.id.toLowerCase().includes(q)
       );
     });
-  }, [typeFilter, actorFilter, dateFilter, query]);
+  }, [events, typeFilter, actorFilter, dateFilter, query]);
 
   // Group events by dateGroup
   const groupedEvents = useMemo(() => {
@@ -184,7 +216,24 @@ export function ActivityTab({
     return groups;
   }, [filteredEvents]);
 
-  const selectedEvent = AUDIT_EVENTS.find((e) => e.id === selectedEventId) ?? null;
+  const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;
+
+  if (live && events.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-[15px] font-semibold text-[var(--ink)]">Activity</h2>
+          <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">
+            Immutable event timeline and change audit for this product graph.
+          </p>
+        </div>
+        <EmptyState
+          title="No activity yet"
+          description="Publish, option edits, and commerce sync events will appear here when the audit stream is wired."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">

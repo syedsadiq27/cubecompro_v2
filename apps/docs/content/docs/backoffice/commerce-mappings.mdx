@@ -1,0 +1,46 @@
+---
+title: Commerce mappings
+description: Mapping configuration combinations to external SKUs, variant GIDs, and commerce identities.
+---
+
+A **CommerceMappingSet** maps valid combinations of ChoiceValues to external commerce products, variants, or SKUs (e.g. Shopify variant GIDs).
+
+## Why commerce mappings exist
+
+CubeCom Pro resolves constraints and 3D state, while the connected commerce system owns inventory, pricing, cart, and payment.
+
+Commerce mappings form the bridge: when a shopper finishes configuring a chair, CubeCom Pro looks up the exact variant GID to add to the cart.
+
+---
+
+## Managing mappings in Backoffice
+
+Navigate to the **Commerce** tab in the product workspace.
+
+### 1. Select Identity Choices
+Identity choices are the configuration dimensions that determine the external SKU.
+- For example, if `Frame` and `Fabric` determine the SKU, but `Legs` is an unpriced aesthetic accessory, select `Frame` and `Fabric` as identity choices.
+
+### 2. Configure Mapping Matrix
+Backoffice generates a mapping table based on the Cartesian product of your identity choices:
+
+| Identity selection | Provider | External Variant GID / SKU | Status |
+| --- | --- | --- | --- |
+| `frame=walnut` + `fabric=beige` | Shopify | `gid://shopify/ProductVariant/44912019` | Mapped |
+| `frame=walnut` + `fabric=green` | Shopify | `gid://shopify/ProductVariant/44912020` | Mapped |
+| `frame=oak` + `fabric=beige` | Shopify | `gid://shopify/ProductVariant/44912021` | Mapped |
+| `frame=oak` + `fabric=green` | Shopify | *(empty)* | **Unmapped** |
+
+### 3. Resolving unmapped states
+If a valid combination has no mapping, resolution will succeed (`valid: true`) but return an empty `commerce` payload. The storefront cannot checkout until a mapping is provided.
+
+The current publish dependency modal reports the number of commerce mapping sets but does **not** prove that every valid combination is mapped. Mapping completeness is an operator verification step.
+
+## Verify
+
+1. Resolve each representative sellable combination against the draft revision.
+2. Confirm `valid` is `true` and `commerce.provider`, `sku`, and `variantReference` identify the intended external item.
+3. Resolve one intentionally unmapped but otherwise valid combination and confirm the commerce fields are empty.
+4. Confirm the storefront blocks cart for valid-but-unmapped selections.
+5. Test any choice omitted from `identityChoiceIds` and confirm it does not incorrectly change the matched commerce identity.
+6. Repeat the representative checks after publishing against the active revision.

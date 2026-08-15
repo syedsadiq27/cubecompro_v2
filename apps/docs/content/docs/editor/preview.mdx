@@ -1,0 +1,33 @@
+---
+title: Preview and test
+description: Test draft selections, constraints, commerce readiness, and supported visual bindings in Editor.
+---
+
+The current **Configurator Preview** loads the draft graph, renders choice controls, evaluates completeness and constraints, reports commerce and purchase status, and applies hydrated material and visibility bindings.
+
+## What the preview proves
+
+- the loaded choices and values can drive local preview selection;
+- constrained values become unavailable;
+- completeness, validity, commerce, purchase, and visual status are visible;
+- active `SET_MATERIAL` and `SET_VISIBILITY` bindings can be reconciled on the loaded model.
+
+It does not prove that unsupported operations such as `REPLACE_COMPONENT` or `SET_MODEL` render in Editor. It also does not replace an API/storefront integration test.
+
+## Test a draft
+
+1. Open **Preview** after loading a product revision.
+2. Select every value at least once.
+3. Check the status layers and any validation messages.
+4. Confirm unavailable values are disabled by the authored constraints.
+5. Inspect **Fired visual bindings** and the viewport for supported effects.
+6. Clear or change selections repeatedly to verify that the visual baseline is restored.
+
+## Verify before publishing
+
+1. Test a complete valid and commerce-mapped selection.
+2. Test an incomplete selection.
+3. Test each constraint boundary.
+4. Test a valid but unmapped selection and confirm it remains selectable while purchase is blocked.
+5. Resolve the same selections through the API and compare revision, validity, availability, visual effects, and commerce state.
+6. Test unsupported visual operations in the actual storefront renderer.

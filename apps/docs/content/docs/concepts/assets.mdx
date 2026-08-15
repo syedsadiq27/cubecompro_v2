@@ -1,0 +1,58 @@
+---
+title: Assets & revisions
+description: ObjectAsset is the library identity. ObjectAssetRevision is the immutable pin used by ProductModel.
+---
+
+An **ObjectAsset** is a 3D object in the library — a named entity that contains revisions.
+
+An **ObjectAssetRevision** is an immutable snapshot of a specific upload. Published [ProductModels](/concepts/product-model) pin exact ObjectAssetRevisions so that history does not drift.
+
+## ObjectAsset status
+
+| Status | Meaning |
+| --- | --- |
+| `PROCESSING` | Upload is being processed |
+| `READY` | Available for use |
+| `FAILED` | Processing failed |
+| `ARCHIVED` | Retained but not available for new use |
+
+## ObjectAsset purpose
+
+| Purpose | Meaning |
+| --- | --- |
+| `MODEL` | Primary 3D model |
+| `COMPONENT` | Swappable component for REPLACE_COMPONENT |
+
+## Schema
+
+```graphql
+type ObjectAssetModel {
+  id: ID!
+  name: String!
+  currentRevisionId: String
+  status: ObjectAssetStatus!
+  purpose: ObjectAssetPurpose!
+  # ... additional fields
+}
+
+type ObjectAssetRevisionModel {
+  id: ID!
+  objectAssetId: String!
+  contentHash: String!
+  frozenAt: DateTime!
+  version: Float!
+  # ... additional fields
+}
+```
+
+## Invariants
+
+- Uploading a new revision to an ObjectAsset does not change published ProductModels. They pin specific ObjectAssetRevisions by ID.
+- The library `currentRevisionId` is separate from what published products pin.
+- Archiving an ObjectAsset is blocked while non-archived products pin any of its revisions. The error names the blocking products.
+- Archiving a product may cascade-archive unused pinned objects.
+
+## Next
+
+- [Product model](/concepts/product-model)
+- [Visual actions](/concepts/visual-effect)

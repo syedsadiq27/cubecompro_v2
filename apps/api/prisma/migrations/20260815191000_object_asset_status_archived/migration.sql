@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ObjectAssetStatus" ADD VALUE IF NOT EXISTS 'ARCHIVED';

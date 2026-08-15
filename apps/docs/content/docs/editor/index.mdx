@@ -1,0 +1,35 @@
+---
+title: 3D Editor
+description: Current Editor authoring scope and the boundaries between Editor, Backoffice, and API capabilities.
+---
+
+The **3D Editor** is a canvas-first workspace for technical artists and 3D specialists. Today it inspects an attached glTF model and edits existing `SET_MATERIAL` and `SET_VISIBILITY` bindings. Do not infer Editor UI support merely because a capability exists in the domain model or GraphQL schema.
+
+## Capability matrix
+
+| Capability | Domain / API | Backoffice | Editor UI today |
+| --- | --- | --- | --- |
+| Set material | Supported and validated | Create in 3D Studio | Edit hydrated bindings |
+| Set visibility | Supported and validated on update | Create in 3D Studio | Edit hydrated bindings |
+| Replace component | Supported; linked `OBJECT` revision required | Contract is callable; no verified product-workspace control | Shown as unsupported; not editable |
+| Set model | Enum and generic value contract exist; production value semantics are not established | No verified control | Shown as unsupported; not editable |
+| Create target | Supported | Create in 3D Studio | Not available |
+| Register component | Supported for linked `OBJECT` revisions | No verified product-workspace control | Not available |
+
+“Supported” in the API column means the current schema and service expose the operation. It does not promise a complete operator workflow or a renderer implementation.
+
+## Topics
+
+| Guide | What you accomplish |
+| --- | --- |
+| **[Models](/editor/models)** | Understand model assignment and inspect the attached model |
+| **[Scene objects](/editor/scene-objects)** | Navigate the glTF node tree and understand `ModelTarget` anchors |
+| **[Materials](/editor/materials)** | Configure PBR metallic-roughness materials and texture maps |
+| **[Components](/editor/components)** | Understand API-level component registration and Editor limitations |
+| **[Visibility](/editor/visibility)** | Edit hydrated `SET_VISIBILITY` bindings to show or hide scene parts |
+| **[Visual bindings](/editor/visual-bindings)** | Understand how choice values trigger visual operations |
+| **[Replace component](/editor/replace-component)** | Use the API/runtime contract and understand the missing Editor control |
+| **[Set material](/editor/set-material)** | Edit `SET_MATERIAL` operations to swap surface finishes |
+| **[Set model](/editor/set-model)** | Understand the schema-only operation and current authoring limit |
+| **[Preview & test](/editor/preview)** | Interactively test option switching inside the Studio before publishing |
+| **[Troubleshooting](/editor/troubleshooting)** | Diagnose missing node paths, unresponsive bindings, and transform offsets |

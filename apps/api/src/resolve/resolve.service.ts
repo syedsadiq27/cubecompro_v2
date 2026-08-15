@@ -7,6 +7,11 @@ import {
   type Choice,
 } from '@prisma/client';
 import {
+  deriveVisualState,
+  isReplaceComponentValue,
+  type VisualAssetBinding,
+} from '@repo/product-graph';
+import {
   deriveAvailability,
   formatValidationIssues,
   validateSelection,
@@ -29,6 +34,8 @@ export type ResolvedConfiguration = {
   availability?: Record<string, Record<string, boolean>>;
   threeD: {
     modelId: string | null;
+    rootObjectAssetRevisionId: string | null;
+    activeObjectAssetRevisionIds: string[];
     effects: Array<{
       targetKey: string;
       targetType: string;
@@ -36,6 +43,8 @@ export type ResolvedConfiguration = {
       operation: VisualOperation;
       value: unknown;
       materialAssetId?: string | null;
+      objectAssetRevisionId?: string | null;
+      linkedAssetKey?: string | null;
       documentUrl?: string | null;
     }>;
   };
@@ -86,8 +95,76 @@ export class ResolveService {
     const availability = deriveAvailability(selection, choices, constraints);
     const valid = violations.length === 0;
 
+    const primaryModel = detail.models[0] ?? null;
+    const selectionRecord: Record<string, string> = {};
+    for (const [key, value] of Object.entries(selection)) {
+      if (typeof value === 'string') selectionRecord[key] = value;
+    }
+
+    const bindings: VisualAssetBinding[] = [];
+    const choiceValueById = new Map(
+      choicesData.flatMap((choice) =>
+        choice.values.map(
+          (value) =>
+            [
+              value.id,
+              { choiceKey: choice.key, choiceValueKey: value.key },
+            ] as const
+        )
+      )
+    );
+    const targetById = new Map(
+      detail.models.flatMap((model) =>
+        model.targets.map((target) => [target.id, target] as const)
+      )
+    );
+
+    for (const effect of detail.visualEffects) {
+      if (effect.operation !== VisualOperation.REPLACE_COMPONENT) continue;
+      if (!isReplaceComponentValue(effect.value)) continue;
+      const replaceValue = effect.value;
+      const target = targetById.get(effect.modelTargetId);
+      const choiceValue = choiceValueById.get(effect.choiceValueId);
+      if (!target || !choiceValue) continue;
+      bindings.push({
+        choiceKey: choiceValue.choiceKey,
+        choiceValueKey: choiceValue.choiceValueKey,
+        targetKey: target.key,
+        operation: 'REPLACE_COMPONENT',
+        linkedAssetKey: replaceValue.linkedAssetKey,
+        expectedRole: 'OBJECT',
+      });
+    }
+
+    const visualState = primaryModel
+      ? deriveVisualState({
+          rootObjectAssetRevisionId: primaryModel.objectAssetRevisionId,
+          linkedAssets: primaryModel.linkedAssets.map((link) => ({
+            id: link.id,
+            role: link.role as
+              | 'OBJECT'
+              | 'MATERIAL'
+              | 'TEXTURE'
+              | 'ENVIRONMENT'
+              | 'SHADER'
+              | 'ANIMATION',
+            key: link.key,
+            assetRevisionId: link.assetRevisionId,
+          })),
+          selection: selectionRecord,
+          bindings,
+        })
+      : null;
+
     const threeD = {
-      modelId: detail.models[0]?.id ?? null,
+      modelId: primaryModel?.id ?? null,
+      rootObjectAssetRevisionId:
+        visualState?.rootObjectAssetRevisionId ??
+        primaryModel?.objectAssetRevisionId ??
+        null,
+      activeObjectAssetRevisionIds:
+        visualState?.activeAssets.objectAssetRevisionIds ??
+        (primaryModel ? [primaryModel.objectAssetRevisionId] : []),
       effects: [] as ResolvedConfiguration['threeD']['effects'],
     };
 
@@ -112,12 +189,6 @@ export class ResolveService {
         }
       }
 
-      const targetById = new Map(
-        detail.models.flatMap((model) =>
-          model.targets.map((target) => [target.id, target] as const)
-        )
-      );
-
       for (const effect of detail.visualEffects) {
         if (!selectedValueIds.has(effect.choiceValueId)) continue;
         const target = targetById.get(effect.modelTargetId);
@@ -133,7 +204,35 @@ export class ResolveService {
             operation: effect.operation,
             value: { materialAssetId },
             materialAssetId,
+            objectAssetRevisionId: null,
+            linkedAssetKey: null,
             documentUrl: publicMaterialUrl(materialAssetId),
+          });
+          continue;
+        }
+
+        if (effect.operation === VisualOperation.REPLACE_COMPONENT) {
+          if (!isReplaceComponentValue(effect.value)) continue;
+          const replaceValue = effect.value;
+          const link = primaryModel?.linkedAssets.find(
+            (entry) =>
+              entry.role === 'OBJECT' &&
+              entry.key === replaceValue.linkedAssetKey
+          );
+          if (!link) continue;
+          threeD.effects.push({
+            targetKey: target.key,
+            targetType: target.targetType,
+            nodePath: target.nodePath ?? null,
+            operation: effect.operation,
+            value: {
+              linkedAssetKey: replaceValue.linkedAssetKey,
+              role: 'OBJECT',
+            },
+            materialAssetId: null,
+            objectAssetRevisionId: link.assetRevisionId,
+            linkedAssetKey: replaceValue.linkedAssetKey,
+            documentUrl: publicObjectRevisionUrl(link.assetRevisionId),
           });
           continue;
         }
@@ -145,6 +244,8 @@ export class ResolveService {
           operation: effect.operation,
           value: effect.value,
           materialAssetId: null,
+          objectAssetRevisionId: null,
+          linkedAssetKey: null,
           documentUrl: null,
         });
       }
@@ -273,6 +374,8 @@ function emptyUnresolved(
     selections,
     threeD: {
       modelId: null,
+      rootObjectAssetRevisionId: null,
+      activeObjectAssetRevisionIds: [],
       effects: [],
     },
     commerce: {
@@ -301,4 +404,8 @@ function readMaterialAssetId(value: unknown): string | null {
 
 function publicMaterialUrl(materialAssetId: string): string {
   return `/documents/materials/${materialAssetId}`;
+}
+
+function publicObjectRevisionUrl(objectAssetRevisionId: string): string {
+  return `/documents/object-revisions/${objectAssetRevisionId}`;
 }

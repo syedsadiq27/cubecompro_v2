@@ -1,0 +1,38 @@
+---
+title: Change a material
+description: Apply an authored material when a shopper selects an option value.
+---
+
+Use a material change when the geometry stays the same but its surface changes—for example, Beige Fabric versus Green Fabric, or Walnut versus Oak.
+
+## Before you edit
+
+- The product revision already contains a material binding for the choice value.
+- Its target points to the intended material slot in the root scene.
+- The replacement material exists in the project library.
+
+The current Editor edits hydrated material bindings; it does not create a new binding from this panel.
+
+## Edit the material
+
+1. Open **Option → Scene Bindings**.
+2. Find the product option value and scene target.
+3. Choose the material asset.
+4. Activate the value in preview.
+5. Check color, scale, orientation, roughness, and normal detail under representative lighting.
+6. Select **Save visual bindings**.
+
+## Runtime result
+
+For a valid selection, the visual response includes a `SET_MATERIAL` action with `targetKey`, `materialAssetId`, `documentUrl`, and JSON value data. The renderer loads that immutable material and applies it to the target slot.
+
+## Common mistakes
+
+- Choosing a material prepared for a different UV layout.
+- Targeting a mesh node instead of its material slot.
+- Leaving another slot on the same part unchanged.
+- Previewing an invalid overall selection; active choice effects are emitted only when valid.
+
+## Verify
+
+Switch to another value and back, reload after saving, then test the published revision through `resolveConfiguration`. Confirm only the intended surface changes.

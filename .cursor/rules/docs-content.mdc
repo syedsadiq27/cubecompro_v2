@@ -1,0 +1,135 @@
+---
+description: CubeCom Pro documentation content architecture, truthfulness, terminology, and operator depth
+globs: apps/docs/content/docs/**/*.{mdx,json}
+alwaysApply: false
+---
+
+# CubeCom Pro Documentation Content Rules
+
+This rule governs documentation content only. It does not govern Docs app chrome, Stage usage, violet, typography, layout styling, or the visual design of other product surfaces.
+
+## Precedence
+
+```text
+Product/domain truth (`CUBECOMPRO_CONTEXT.md`)
+  ↓
+Implemented product behavior
+  ↓
+Documentation information architecture
+  ↓
+Documentation content and style
+```
+
+Repository implementation is required evidence for current capabilities. Product context explains intent and terminology but does not make an unimplemented capability current.
+
+## Canonical information architecture
+
+```text
+Get started   → platform orientation and cross-surface workflows
+Backoffice    → product operator tasks and publishing
+3D Editor    → visual authoring tasks and preview
+Customizer   → shopper/runtime behavior
+Developers   → architecture, authentication, and integration guidance
+Concepts     → authoritative public domain semantics
+API          → exact contracts, names, fields, nullability, and transport
+Integrations → provider-specific current behavior and maturity
+Resources    → changelog, limits, and operational troubleshooting
+```
+
+Do not recreate legacy `/use`, `/build`, or `/guides` trees. Do not create a second page for a concept already owned by a canonical page; deepen or correct the canonical page.
+
+## Truthfulness and capability status
+
+Before claiming a capability:
+
+```text
+claim
+  → trace export / schema / resolver / service / runtime / UI as needed
+  → identify what is intentionally public
+  → document observed behavior and limits
+```
+
+Use explicit labels when needed:
+
+- **Current**: implemented and verified.
+- **Planned**: intended direction without a complete public implementation.
+- **Open question**: behavior or product decision is unresolved.
+
+Never infer a public SDK, event, embed mode, workflow, or operation from a package name, enum, mock, TODO, or brainstorm.
+
+## Public vocabulary
+
+Operator pages use product language:
+
+```text
+Product
+Revision
+Active revision
+Choice and value
+Constraint
+Selection
+Asset revision
+Scene target
+Visual action
+Resolved visual state
+Resolved commerce state
+```
+
+Exact implementation names such as `GraphVersionStatus`, `activeRevisionId`, `ModelTargetModel`, and `Resolved3DStateModel` belong in API reference or exact developer examples. When both names matter, lead with the public term and identify the API name second.
+
+## Operator depth
+
+Backoffice, Editor, and Customizer pages should answer the questions an experienced operator encounters:
+
+```text
+What does this do?
+When should I use it?
+What must exist first?
+What decision am I making?
+What changes now?
+What changes at runtime?
+What downstream product, visual, or commerce behavior depends on it?
+What remains unchanged?
+How do I verify it?
+What commonly goes wrong?
+```
+
+Do not make pages longer merely to appear comprehensive. Add decision depth, operational consequences, and observable outcomes.
+
+## Surface coverage
+
+- **Backoffice**: products, choices/values, defaults, constraints/rules, commerce mappings, revisions, publishing versus activation, Shopify import, troubleshooting.
+- **3D Editor**: root model, scene objects/targets, materials, visibility, components, visual actions, current authoring support, preview, publish boundary, troubleshooting.
+- **Customizer**: initialization, incomplete/invalid/unavailable/unmapped states, resolution timing, visual state, commerce state, cart readiness, persistence, and only verified integration modes.
+- **Developers/API**: architecture and exact contracts without forcing readers to reverse-engineer schema names.
+
+## API visibility
+
+Public API reference must be self-contained. For every public field, expose where applicable:
+
+```text
+name
+type
+required/nullability
+meaning
+example
+accepted values or constraints
+default
+related concept
+```
+
+Fields ending in `Json` are hidden schemas. Document the parsed shape, null behavior, missing keys, constraints, and whether the payload can be sent directly to another system. Prefer generation from canonical schemas when available; do not let hand-written reference silently drift.
+
+## Operational writing
+
+- End meaningful tasks with **Verify** and observable results.
+- Distinguish valid, available, resolved, renderable, commerce-mapped, and cart-ready.
+- Explain behavior, not private implementation details.
+- Use small examples to clarify a concept; do not build the entire documentation set around one narrative product.
+- Keep cross-surface workflows linked to the owning pages.
+- Repair inbound links before deleting or renaming a page.
+- Keep navigation metadata and content routes consistent.
+
+## Visual-system boundary
+
+MDX content rules must not prescribe app chrome, Stage compositions, violet usage, typography scales, or product UI component styling. If a task explicitly concerns the Docs UI, inspect the Docs app and its own UI stack separately from this content rule.

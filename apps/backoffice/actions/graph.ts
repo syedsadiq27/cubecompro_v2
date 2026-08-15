@@ -5,6 +5,7 @@ import { graphRequest } from '@repo/product-graph';
 import {
   CREATE_ATTRIBUTE_VALUE_MUTATION,
   CREATE_CONFIGURATION_RULE_MUTATION,
+  CREATE_CONSTRAINT_MUTATION,
   CREATE_DRAFT_GRAPH_VERSION_MUTATION,
   CREATE_MODEL_TARGET_MUTATION,
   CREATE_PRODUCT_ATTRIBUTE_MUTATION,
@@ -12,8 +13,10 @@ import {
   CREATE_PRODUCT_VARIANT_MUTATION,
   CREATE_VARIANT_SELECTION_MUTATION,
   CREATE_VISUAL_EFFECT_MUTATION,
+  DELETE_CONSTRAINT_MUTATION,
   DISCARD_DRAFT_GRAPH_VERSION_MUTATION,
   PUBLISH_GRAPH_VERSION_MUTATION,
+  UPDATE_PRODUCT_MODEL_REVISION_MUTATION,
 } from '@repo/product-graph';
 import { getProjectSession } from '@/lib/session-server';
 
@@ -224,6 +227,45 @@ export async function createRuleAction(
   });
 }
 
+export async function createConstraintAction(
+  projectId: string,
+  productId: string,
+  input: { productRevisionId: string; choiceValueIds: string[] }
+): Promise<GraphMutationResult> {
+  return withProject(projectId, async (token) => {
+    const data = await graphRequest<{
+      createConstraint: { id: string };
+    }>(
+      CREATE_CONSTRAINT_MUTATION,
+      {
+        input: {
+          productRevisionId: input.productRevisionId,
+          choiceValueIds: input.choiceValueIds,
+        },
+      },
+      token
+    );
+    revalidateProduct(projectId, productId);
+    return { ok: true, id: data.createConstraint.id };
+  });
+}
+
+export async function deleteConstraintAction(
+  projectId: string,
+  productId: string,
+  constraintId: string
+): Promise<GraphMutationResult> {
+  return withProject(projectId, async (token) => {
+    await graphRequest<{ deleteConstraint: boolean }>(
+      DELETE_CONSTRAINT_MUTATION,
+      { id: constraintId },
+      token
+    );
+    revalidateProduct(projectId, productId);
+    return { ok: true };
+  });
+}
+
 export async function createProductModelAction(
   projectId: string,
   productId: string,
@@ -250,6 +292,36 @@ export async function createProductModelAction(
     );
     revalidateProduct(projectId, productId);
     return { ok: true, id: data.createProductModel.id };
+  });
+}
+
+export async function updateProductModelRevisionAction(
+  projectId: string,
+  productId: string,
+  formData: FormData
+): Promise<GraphMutationResult> {
+  return withProject(projectId, async (token) => {
+    const assetId = String(formData.get('assetId') ?? '').trim();
+    const objectAssetRevisionId = String(
+      formData.get('objectAssetRevisionId') ?? ''
+    ).trim();
+    const data = await graphRequest<{
+      updateProductModelRevision: { id: string };
+    }>(
+      UPDATE_PRODUCT_MODEL_REVISION_MUTATION,
+      {
+        input: {
+          productModelId: String(formData.get('productModelId') ?? ''),
+          ...(objectAssetRevisionId
+            ? { objectAssetRevisionId }
+            : { assetId }),
+        },
+      },
+      token
+    );
+    revalidateProduct(projectId, productId);
+    revalidatePath(`/${projectId}/products/${productId}/studio`);
+    return { ok: true, id: data.updateProductModelRevision.id };
   });
 }
 

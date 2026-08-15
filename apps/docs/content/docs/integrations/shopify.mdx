@@ -1,0 +1,112 @@
+---
+title: Shopify
+description: Connect Shopify via OAuth, import products, and map Selections to Shopify variant GIDs.
+---
+
+CubeCom Pro integrates with Shopify for product import and commerce mapping. CubeCom Pro owns configuration validity and 3D appearance. Shopify owns cart, payment, and fulfillment.
+
+## Ownership split
+
+| CubeCom Pro | Shopify |
+| --- | --- |
+| Choices, constraints, configuration validity | Product catalog, variant inventory |
+| 3D appearance and visual bindings | Cart, checkout, payment |
+| Selection → resolved commerce identity | Order fulfillment |
+
+## Capabilities (schema-verified)
+
+### OAuth connection
+
+Connect a Shopify store via OAuth:
+
+```graphql
+mutation {
+  startShopifyOAuth(input: {
+    organizationId: "ORG_ID"
+    projectId: "PROJECT_ID"
+    shop: "your-store.myshopify.com"
+  }) { authorizeUrl }
+}
+```
+
+The returned `authorizeUrl` initiates the Shopify OAuth flow.
+
+### Disconnect
+
+```graphql
+mutation {
+  disconnectShopify(input: {
+    integrationConnectionId: "CONNECTION_ID"
+    organizationId: "ORG_ID"
+  })
+}
+```
+
+### Browse Shopify catalog
+
+```graphql
+query {
+  shopifyCatalogProducts(
+    organizationId: "ORG_ID"
+    integrationConnectionId: "CONNECTION_ID"
+    query: "chair"
+  ) { id title handle status variantCount options }
+}
+```
+
+### Preview import
+
+Before importing, preview what CubeCom Pro will create:
+
+```graphql
+query {
+  previewShopifyProductImport(input: {
+    organizationId: "ORG_ID"
+    shopifyProductId: "gid://shopify/Product/..."
+  }) {
+    productName
+    identityChoiceNames
+    mappedCount
+    unmappedCount
+    reviewJson
+  }
+}
+```
+
+### Import a Shopify product
+
+```graphql
+mutation {
+  importShopifyProduct(input: {
+    integrationConnectionId: "CONNECTION_ID"
+    projectId: "PROJECT_ID"
+    shopifyProductId: "gid://shopify/Product/..."
+  }) {
+    productId
+    productRevisionId
+    commerceMappingSetId
+    mappingCount
+  }
+}
+```
+
+This creates a CubeCom Pro Product with Choices derived from Shopify options and a CommerceMappingSet mapping value combinations to Shopify variant GIDs.
+
+### Commerce mapping
+
+After import, commerce mappings project valid Selections to Shopify variant GIDs via `resolveConfiguration.commerce.variantReference`.
+
+You can also manage mappings directly with `replaceCommerceMappingSet`.
+
+## Queries for integration status
+
+| Query | Returns |
+| --- | --- |
+| `shopifyConnections(organizationId)` | Active Shopify OAuth connections |
+| `productShopifyCommerce(organizationId, productId)` | Commerce mapping status for a product |
+| `shopifyImportProof(organizationId, productId)` | Import audit: choices, constraints, and resolution status |
+
+## Next
+
+- [Commerce mapping](/concepts/commerce-mapping)
+- [Custom commerce](/integrations/custom)

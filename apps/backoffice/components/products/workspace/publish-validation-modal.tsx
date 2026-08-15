@@ -1,17 +1,75 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@repo/ui';
 import { StatusBadge } from '@/components/bo/states/operational-states';
+import type { StatusGrammarRole } from '@/lib/status-vocabulary';
+import {
+  buildPublishDependencyGraph,
+  publishDependencyActionLabel,
+  type PublishDependencyAction,
+  type PublishDependencyNode,
+} from '@/lib/publish-dependency-graph';
+import type {
+  GraphDetail,
+  MaterialAssetOption,
+  ObjectAssetOption,
+} from '@/lib/product-workspace';
 
-type ValidationGate = {
-  id: string;
-  name: string;
-  category: 'Rules' | 'Commerce' | '3D Studio' | 'Assets';
-  passed: boolean;
-  summary: string;
-  remediationTab?: string;
-};
+function actionRole(action: PublishDependencyAction): StatusGrammarRole {
+  switch (action) {
+    case 'publish':
+    case 'freeze':
+    case 'include':
+      return 'published';
+    case 'advance_tip':
+      return 'needs_attention';
+    case 'missing':
+    case 'blocked':
+      return 'error';
+    default:
+      return 'neutral';
+  }
+}
+
+function DependencyRow({
+  node,
+  depth = 0,
+}: {
+  node: PublishDependencyNode;
+  depth?: number;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div
+        className="flex items-start justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--canvas)]/50 px-3 py-2"
+        style={{ marginLeft: depth * 12 }}
+      >
+        <div className="min-w-0 space-y-0.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[12px] font-semibold text-[var(--ink)]">
+              {node.label}
+            </span>
+            <span className="rounded border border-[var(--line)] bg-white px-1.5 py-0.5 font-mono text-[9px] uppercase text-[var(--text-muted)]">
+              {node.kind.replace('_', ' ')}
+            </span>
+          </div>
+          {node.detail ? (
+            <p className="text-[11px] text-[var(--text-secondary)]">
+              {node.detail}
+            </p>
+          ) : null}
+        </div>
+        <StatusBadge
+          role={actionRole(node.action)}
+          label={publishDependencyActionLabel(node.action)}
+        />
+      </div>
+      {node.children?.map((child) => (
+        <DependencyRow key={child.id} node={child} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
 
 export function PublishValidationModal({
   isOpen,
@@ -20,6 +78,10 @@ export function PublishValidationModal({
   productName,
   versionNumber,
   isPublishing,
+  detail,
+  objectAssets = [],
+  materialAssets = [],
+  hasUnsavedChanges = false,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -27,100 +89,110 @@ export function PublishValidationModal({
   productName: string;
   versionNumber: number;
   isPublishing: boolean;
+  detail: GraphDetail | null;
+  objectAssets?: ObjectAssetOption[];
+  materialAssets?: MaterialAssetOption[];
+  hasUnsavedChanges?: boolean;
 }) {
   if (!isOpen) return null;
 
-  const gates: ValidationGate[] = [
-    {
-      id: 'gate-rules',
-      name: 'Rule Graph Integrity',
-      category: 'Rules',
-      passed: true,
-      summary: '0 circular conflicts · All 8 variant combinations resolvable',
-      remediationTab: 'rules',
-    },
-    {
-      id: 'gate-commerce',
-      name: 'Commerce & Variant SKU Completeness',
-      category: 'Commerce',
-      passed: true,
-      summary: '6 valid sellable variants have assigned SKUs and pricing',
-      remediationTab: 'variants',
-    },
-    {
-      id: 'gate-3d',
-      name: '3D Visual Effect Coverage',
-      category: '3D Studio',
-      passed: true,
-      summary: '4 / 4 option values mapped to active Three.js mesh & material targets',
-      remediationTab: '3d',
-    },
-    {
-      id: 'gate-assets',
-      name: 'Asset & Geometry Integrity',
-      category: 'Assets',
-      passed: true,
-      summary: 'GLB geometry verified (9,640 triangles) · PBR textures loaded',
-      remediationTab: '3d',
-    },
-  ];
+  if (!detail) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-lg rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] p-6 shadow-2xl space-y-4">
+          <h3 className="text-[16px] font-bold text-[var(--ink)]">
+            Nothing to publish
+          </h3>
+          <p className="text-[13px] text-[var(--text-secondary)]">
+            Start a draft configuration before publishing.
+          </p>
+          <div className="flex justify-end">
+            <Button type="button" size="sm" variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const allPassed = gates.every((g) => g.passed);
+  const graph = buildPublishDependencyGraph({
+    productName,
+    detail,
+    objectAssets,
+    materialAssets,
+  });
+
+  const blockers = [
+    ...(hasUnsavedChanges
+      ? ['Save pending draft changes before publishing']
+      : []),
+    ...graph.blockers,
+  ];
+  const canPublish = blockers.length === 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-150 select-none">
-      <div className="w-full max-w-lg rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] p-6 shadow-2xl space-y-5">
-        <div className="flex items-start justify-between border-b border-[var(--line)] pb-3">
+      <div className="flex max-h-[90vh] w-full max-w-xl flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] shadow-2xl">
+        <div className="flex shrink-0 items-start justify-between border-b border-[var(--line)] px-6 py-4">
           <div>
-            <h3 className="text-[16px] font-bold text-[var(--ink)]">Pre-Flight Publish Validation</h3>
-            <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-              Validating <strong>{productName}</strong> (Draft v{versionNumber}) for Storefront Deployment
+            <h3 className="text-[16px] font-bold text-[var(--ink)]">
+              Publish dependency resolver
+            </h3>
+            <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">
+              What becomes live when you publish{' '}
+              <strong>{productName}</strong> (Draft v{versionNumber})
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--ink)] cursor-pointer text-lg font-bold"
+            className="cursor-pointer text-lg font-bold text-[var(--text-muted)] hover:text-[var(--ink)]"
           >
             ✕
           </button>
         </div>
 
-        {/* Gates Checklist */}
-        <div className="space-y-2.5">
-          {gates.map((gate) => (
-            <div
-              key={gate.id}
-              className="flex items-start justify-between p-3 rounded-xl border border-[var(--line)] bg-[var(--canvas)]/40"
-            >
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">
-                    ✓
-                  </span>
-                  <span className="font-semibold text-[13px] text-[var(--ink)]">{gate.name}</span>
-                  <span className="rounded bg-[var(--canvas)] border border-[var(--line)] px-1.5 py-0.2 font-mono text-[9px] text-[var(--text-muted)] uppercase">
-                    {gate.category}
-                  </span>
-                </div>
-                <p className="text-[11px] text-[var(--text-muted)] pl-7">{gate.summary}</p>
-              </div>
-              <StatusBadge role="published" label="PASSED" />
-            </div>
-          ))}
-        </div>
-
-        {/* Readiness Outcome Summary */}
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 flex items-center justify-between text-[12px] text-emerald-900">
-          <div className="flex items-center gap-2">
-            <span className="font-bold">● Ready for Release:</span>
-            <span>All pre-flight readiness checks passed.</span>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+          <div className="rounded-xl border border-[var(--line)] bg-[var(--canvas)]/30 p-3 space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              Dependency graph
+            </p>
+            <DependencyRow node={graph.root} />
           </div>
-          <span className="font-mono text-[11px] font-semibold text-emerald-800">100% Score</span>
+
+          {graph.tipAdvances > 0 ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-[12px] text-amber-950">
+              <p className="font-semibold">
+                {graph.tipAdvances} object pin
+                {graph.tipAdvances === 1 ? '' : 's'} will advance to library tip
+              </p>
+              <p className="mt-0.5 text-[11px] text-amber-900/90">
+                Publishing freezes the tip revision on this product. Older pins
+                on this draft are updated first.
+              </p>
+            </div>
+          ) : null}
+
+          {blockers.length > 0 ? (
+            <div className="rounded-xl border border-red-200 bg-red-50/70 px-3 py-2.5 text-[12px] text-red-950">
+              <p className="font-semibold">Cannot publish yet</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px]">
+                {blockers.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 text-[12px] text-emerald-900">
+              <span className="font-bold">Ready to publish.</span> Product
+              revision, option graph, rules, variants, mappings, and pinned
+              object revisions will go live together.
+            </div>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[var(--line)]">
+        <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[var(--line)] px-6 py-4">
           <Button
             type="button"
             variant="secondary"
@@ -134,11 +206,13 @@ export function PublishValidationModal({
           <Button
             type="button"
             size="sm"
-            disabled={!allPassed || isPublishing}
+            disabled={!canPublish || isPublishing}
             onClick={onConfirmPublish}
             className="ui:bg-[var(--ink)] ui:text-white ui:hover:bg-black ui:text-[12px] ui:font-semibold"
           >
-            {isPublishing ? 'Publishing Revision…' : `Confirm & Publish Revision (v${versionNumber})`}
+            {isPublishing
+              ? 'Publishing…'
+              : `Publish Draft v${versionNumber}`}
           </Button>
         </div>
       </div>

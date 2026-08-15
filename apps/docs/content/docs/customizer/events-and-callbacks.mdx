@@ -1,0 +1,40 @@
+---
+title: Application events
+description: Define storefront lifecycle and analytics events around the resolution API.
+---
+
+The repository does not currently expose a public Customizer event SDK or canonical callbacks such as `onResolveSuccess` and `onSceneReady`. Treat events as part of your storefront application contract.
+
+## Recommended lifecycle
+
+| Application event | Emit when | Include |
+| --- | --- | --- |
+| Selection changed | Local selection changes | Product ID, revision ID, choice key, previous value, next value |
+| Resolution requested | A request starts | Request ID and full selection snapshot |
+| Resolution completed | The newest request succeeds | Request ID, validity, revision/version, mapped status |
+| Resolution failed | Transport or GraphQL execution fails | Request ID, error category, correlation ID if available |
+| Visual state applied | The viewer finishes applying the newest state | Request ID and resolved visual asset IDs |
+| Cart requested | Shopper activates Add to Cart | Revision ID and mapped provider identity |
+| Cart completed | Provider accepts or rejects the line | Provider result without secrets or personal data |
+
+These names are recommendations, not CubeCom Pro wire-level event names.
+
+## Ordering and stale responses
+
+Assign each resolution request an ID. Emit completion and update UI only if it is still the newest request for the current selection. A slow response for Fabric = Beige must not overwrite a later response for Fabric = Green.
+
+Keep local selection events distinct from confirmed resolution events. Analytics that need valid combinations or SKU identity should use the confirmed response, not the click alone.
+
+## Payload safety
+
+- Do not include access tokens, raw authorization headers, or customer data.
+- Prefer stable choice keys and revision IDs over display labels.
+- Avoid sending `cartPayloadJson` wholesale to analytics; allowlist the fields you need.
+- If an iframe is application-defined, validate sender and receiver origins.
+
+## Verify
+
+1. Change options rapidly and confirm event order follows the final selection.
+2. Force a resolution error and confirm no success or cart-ready event fires.
+3. Confirm analytics distinguish invalid, valid-unmapped, and mapped responses.
+4. Inspect event payloads for tokens and customer data before production.

@@ -1,0 +1,161 @@
+---
+title: Schema coverage
+description: Generated inventory of GraphQL declarations with dedicated API reference sections.
+---
+
+This page is generated from `apps/api/src/schema.gql` by `yarn workspace docs api:coverage`. Schema fingerprint: `c1ccbe0d9417`.
+
+| Measure | Count |
+| --- | ---: |
+| Schema declarations | 94 |
+| Documented with a dedicated section | 23 |
+| Undocumented | 71 |
+| Coverage | 24.5% |
+
+Coverage counts named `type`, `input`, and `enum` declarations. A declaration is documented only when Inputs, Objects, or Enums contains a matching level-two code heading. Mentions in prose and operation pages do not count.
+
+## Operation coverage
+
+| Root type | Fields | Documented | Undocumented | Coverage |
+| --- | ---: | ---: | ---: | ---: |
+| Query | 31 | 8 | 23 | 25.8% |
+| Mutation | 43 | 13 | 30 | 30.2% |
+
+### Undocumented queries
+
+- `health`
+- `libraryFolders`
+- `materialAssets`
+- `me`
+- `myProjects`
+- `objectAsset`
+- `objectAssetRevisions`
+- `objectAssets`
+- `organization`
+- `organizationEntitlements`
+- `organizationMembers`
+- `organizationRoles`
+- `productRevision`
+- `productRevisions`
+- `commerceMappingSet`
+- `commerceMappingSetsByRevision`
+- `constraintsByRevision`
+- `project`
+- `projectsByOrganization`
+- `productShopifyCommerce`
+- `shopifyConnections`
+- `shopifyImportProof`
+- `textureAssets`
+
+### Undocumented mutations
+
+- `createConfigurationRule`
+- `createLibraryFolder`
+- `createMaterialAsset`
+- `createModelTarget`
+- `createObjectAsset`
+- `createObjectAssetRevision`
+- `updateObjectAssetStatus`
+- `createOrganization`
+- `createProductVariant`
+- `createProject`
+- `createTextureAsset`
+- `createVariantSelection`
+- `deleteChoiceValue`
+- `deleteCommerceMappingSet`
+- `deleteConstraint`
+- `deleteObjectAsset`
+- `deleteProduct`
+- `deleteProductModelLinkedAsset`
+- `deleteTextureAsset`
+- `deleteVisualEffect`
+- `discardDraftProductRevision`
+- `disconnectShopify`
+- `login`
+- `setChoiceDefault`
+- `updateMaterialAsset`
+- `updateProduct`
+- `updateProductModelLinkedAsset`
+- `updateProductModelRevision`
+- `updateProfile`
+- `updateVisualEffect`
+
+## Undocumented types
+
+- `ChoiceValueModel`
+- `AuthPayloadModel`
+- `AuthUserModel`
+- `ConfigurationRuleModel`
+- `ConstraintTermModel`
+- `ConstraintModel`
+- `ShopifyOAuthStartModel`
+- `IntegrationConnectionModel`
+- `ShopifyCatalogProductModel`
+- `ShopifyImportPreviewModel`
+- `ShopifyProductCommerceRowModel`
+- `ShopifyProductCommerceModel`
+- `ShopifyImportProofChoiceValueModel`
+- `ShopifyImportProofChoiceModel`
+- `ShopifyImportProofResolutionModel`
+- `ShopifyImportProofModel`
+- `ImportShopifyProductResultModel`
+- `CommerceExternalReferenceModel`
+- `CommerceIdentityChoiceModel`
+- `CommerceMappingTermModel`
+- `CommerceMappingModel`
+- `CommerceMappingSetModel`
+- `LibraryFolderModel`
+- `MaterialAssetModel`
+- `ModelTargetModel`
+- `Mutation`
+- `MyProjectModel`
+- `ObjectAssetModel`
+- `ObjectAssetRevisionModel`
+- `OrganizationEntitlementModel`
+- `OrganizationMemberModel`
+- `OrganizationModel`
+- `ChoiceModel`
+- `ProductRevisionModel`
+- `ProductModel`
+- `ProductModelAssetModel`
+- `ProductModelLinkedAssetModel`
+- `ProductVariantModel`
+- `ProjectModel`
+- `Query`
+- `RoleModel`
+- `TextureAssetModel`
+- `VariantSelectionModel`
+- `VisualEffectModel`
+
+## Undocumented inputs
+
+- `CreateConfigurationRuleInput`
+- `CreateLibraryFolderInput`
+- `CreateMaterialAssetInput`
+- `CreateModelTargetInput`
+- `CreateObjectAssetInput`
+- `CreateOrganizationInput`
+- `SetChoiceDefaultInput`
+- `UpdateProductModelRevisionInput`
+- `CreateProductVariantInput`
+- `CreateProjectInput`
+- `CreateTextureAssetInput`
+- `CreateVariantSelectionInput`
+- `UpdateVisualEffectInput`
+- `ReplaceCommerceMappingInput`
+- `ShopifyOAuthStartInput`
+- `DisconnectShopifyInput`
+- `ImportShopifyProductInput`
+- `PreviewShopifyImportInput`
+- `LoginInput`
+- `CreateObjectAssetRevisionInput`
+- `UpdateObjectAssetStatusInput`
+- `UpdateProductModelLinkedAssetInput`
+- `UpdateMaterialAssetInput`
+- `UpdateProductInput`
+- `UpdateProfileInput`
+
+## Undocumented enums
+
+- `AttributeType`
+- `ObjectAssetStatus`

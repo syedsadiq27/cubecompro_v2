@@ -1,0 +1,38 @@
+---
+title: Errors & status codes
+description: Transport error taxonomy, GraphQL error payloads, and status codes.
+---
+
+CubeCom Pro distinguishes between **Transport/Request Errors** and **Domain Incompatibilities**.
+
+## Error taxonomy
+
+| Category | HTTP Status | Format | Example Cause |
+| --- | --- | --- | --- |
+| **Authentication** | `401 Unauthorized` | JSON / GraphQL | Missing or invalid Bearer token |
+| **Validation** | `400 Bad Request` | GraphQL Errors | Malformed JSON in `selectionsJson`, unknown field |
+| **Server Error** | `500 Internal Error` | JSON | Database or infrastructure failure |
+| **Domain Incompatibility** | `200 OK` | `valid: false` | Selection violates authoring constraints |
+
+## Handling domain violations vs HTTP errors
+
+```typescript
+const res = await fetch('/api/graphql', { ... });
+
+if (!res.ok) {
+  // HTTP Transport Error
+  throw new Error(`HTTP Error ${res.status}`);
+}
+
+const data = await res.json();
+if (data.errors) {
+  // GraphQL Protocol Error
+  throw new Error(data.errors[0].message);
+}
+
+const resolved = data.data.resolveConfiguration;
+if (!resolved.valid) {
+  // Domain Incompatibility - Valid 200 response with constraint violations
+  console.warn("Invalid Selection:", resolved.violations);
+}
+```

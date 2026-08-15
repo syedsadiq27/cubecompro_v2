@@ -1,0 +1,3 @@
+-- Phase 4C: REPLACE_COMPONENT visual operation
+
+ALTER TYPE "VisualOperation" ADD VALUE IF NOT EXISTS 'REPLACE_COMPONENT';

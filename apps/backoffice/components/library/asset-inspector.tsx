@@ -15,10 +15,16 @@ import { useMaterialDocument } from './material-preview';
 import { MaterialSwatch } from './material-swatch';
 import { ModelGlbPreview } from './model-preview';
 import { EditMaterialDialog } from './edit-material-dialog';
+import { ObjectRevisionsPanel } from './object-revisions-panel';
+import { UploadObjectRevisionDialog } from './upload-object-revision-dialog';
 import {
   assetTypeLabel,
   type LibraryAssetItem,
 } from './types';
+import {
+  libraryAssetStatusLabel,
+  libraryAssetStatusRole,
+} from './asset-status';
 
 export function AssetInspector({
   asset,
@@ -32,6 +38,8 @@ export function AssetInspector({
   const toast = useToast();
   const [copied, setCopied] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [revisionUploadOpen, setRevisionUploadOpen] = useState(false);
+  const [revisionRefreshKey, setRevisionRefreshKey] = useState(0);
 
   const { document } = useMaterialDocument(
     asset.type === 'material' ? asset.id : null,
@@ -45,20 +53,14 @@ export function AssetInspector({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const statusRole =
-    asset.status?.toUpperCase() === 'ACTIVE'
-      ? 'published'
-      : asset.status?.toUpperCase() === 'ARCHIVED'
-        ? 'archived'
-        : 'draft';
+  const statusLabel = libraryAssetStatusLabel(asset.status);
+  const statusRole = libraryAssetStatusRole(asset.status);
 
   return (
     <>
       <aside className="flex h-full w-[min(340px,92vw)] flex-col border-l border-[var(--line)] bg-[var(--surface-pure)] shadow-[-8px_0_24px_rgba(0,0,0,0.06)] lg:static lg:shadow-none">
-        {/* Header with Preview Thumbnail */}
         <div className="shrink-0 border-b border-[var(--line)] p-4">
           <div className="flex items-start gap-3.5">
-            {/* Thumbnail Preview */}
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--canvas)] shadow-xs">
               {asset.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -107,24 +109,49 @@ export function AssetInspector({
               </p>
 
               <div className="mt-2">
-                <StatusBadge role={statusRole} label={asset.status || 'ACTIVE'} />
+                <StatusBadge role={statusRole} label={statusLabel} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center gap-2 border-b border-[var(--line)] p-4">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            className="flex-1 ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-8 ui:text-[12px]"
-            onClick={() => setEditOpen(true)}
-          >
-            <PencilIcon size={14} />
-            <span>Edit</span>
-          </Button>
+          {asset.type === 'material' ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="flex-1 ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-8 ui:text-[12px]"
+              onClick={() => setEditOpen(true)}
+            >
+              <PencilIcon size={14} />
+              <span>Edit</span>
+            </Button>
+          ) : asset.type === 'model' ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="flex-1 ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-8 ui:text-[12px]"
+              onClick={() => setRevisionUploadOpen(true)}
+            >
+              <PencilIcon size={14} />
+              <span>New revision</span>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="flex-1 ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-8 ui:text-[12px]"
+              onClick={() =>
+                toast.info('Edit is not available for this asset type')
+              }
+            >
+              <PencilIcon size={14} />
+              <span>Edit</span>
+            </Button>
+          )}
 
           <Button
             type="button"
@@ -147,9 +174,7 @@ export function AssetInspector({
           </button>
         </div>
 
-        {/* Inspector Body */}
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 text-[13px]">
-          {/* Summary Section */}
           <section className="space-y-2">
             <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
               Summary
@@ -158,11 +183,19 @@ export function AssetInspector({
               <InspectorRow label="Type" value={assetTypeLabel(asset.type)} />
               <InspectorRow
                 label="Created"
-                value={asset.createdDate ? `${asset.createdDate} by ${asset.creator || 'Demo Owner'}` : 'Apr 28, 2025 by Demo Owner'}
+                value={
+                  asset.createdDate
+                    ? `${asset.createdDate} by ${asset.creator || 'Demo Owner'}`
+                    : 'Apr 28, 2025 by Demo Owner'
+                }
               />
               <InspectorRow
                 label="Updated"
-                value={asset.updatedDate ? `${asset.updatedDate} by ${asset.creator || 'Demo Owner'}` : 'May 14, 2025 by Demo Owner'}
+                value={
+                  asset.updatedDate
+                    ? `${asset.updatedDate} by ${asset.creator || 'Demo Owner'}`
+                    : 'May 14, 2025 by Demo Owner'
+                }
               />
               <InspectorRow
                 label="Usage"
@@ -171,14 +204,24 @@ export function AssetInspector({
             </div>
           </section>
 
-          {/* Details Section */}
+          {asset.type === 'model' ? (
+            <ObjectRevisionsPanel
+              projectId={projectId}
+              objectAssetId={asset.id}
+              refreshKey={revisionRefreshKey}
+              onUpload={() => setRevisionUploadOpen(true)}
+            />
+          ) : null}
+
           <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
             <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
               Details
             </h3>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-2 py-1">
-                <span className="text-[12px] text-[var(--text-secondary)]">Asset ID</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  Asset ID
+                </span>
                 <button
                   type="button"
                   onClick={handleCopyId}
@@ -190,10 +233,13 @@ export function AssetInspector({
               </div>
 
               <div className="flex items-start justify-between gap-2 py-1">
-                <span className="text-[12px] text-[var(--text-secondary)]">File</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  File
+                </span>
                 <div className="text-right">
                   <p className="font-mono text-[12px] text-[var(--ink)]">
-                    {asset.fileName || `${asset.code?.toLowerCase() || 'asset'}.${asset.format?.toLowerCase() || 'sbsar'}`}
+                    {asset.fileName ||
+                      `${asset.code?.toLowerCase() || 'asset'}.${asset.format?.toLowerCase() || 'sbsar'}`}
                   </p>
                   <p className="text-[11px] text-[var(--text-muted)]">
                     {asset.fileSize || '2.4 MB'}
@@ -201,43 +247,62 @@ export function AssetInspector({
                 </div>
               </div>
 
-              <InspectorRow label="Format" value={asset.format || (asset.type === 'material' ? 'SBSAR' : 'GLB')} isMono />
-              <InspectorRow label="Resolution" value={asset.resolution || '2048 x 2048'} />
-              <InspectorRow label="Color space" value={asset.colorSpace || 'sRGB'} />
+              <InspectorRow
+                label="Format"
+                value={
+                  asset.format ||
+                  (asset.type === 'material' ? 'SBSAR' : 'GLB')
+                }
+                isMono
+              />
+              <InspectorRow
+                label="Resolution"
+                value={asset.resolution || '2048 x 2048'}
+              />
+              <InspectorRow
+                label="Color space"
+                value={asset.colorSpace || 'sRGB'}
+              />
 
-              {/* Tags */}
               <div className="flex items-center justify-between gap-2 py-1">
-                <span className="text-[12px] text-[var(--text-secondary)]">Tags</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  Tags
+                </span>
                 <div className="flex flex-wrap items-center justify-end gap-1">
-                  {(asset.tags || ['fabric', 'beige', 'textile']).slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-secondary)] font-mono"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+                  {(asset.tags || ['fabric', 'beige', 'textile'])
+                    .slice(0, 3)
+                    .map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-secondary)] font-mono"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   <span className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)] font-mono">
                     +2
                   </span>
                 </div>
               </div>
 
-              {/* Folder */}
               <Link
                 href={`/${projectId}/library?folder=${asset.folderId || 'fabrics'}`}
                 className="flex items-center justify-between gap-2 py-1 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
               >
-                <span className="text-[12px] text-[var(--text-secondary)]">Folder</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  Folder
+                </span>
                 <span className="flex items-center gap-1 text-[12px] font-medium group-hover:underline">
                   {asset.folderName || 'Materials / Fabrics'}
-                  <ChevronRightIcon size={12} className="text-[var(--text-muted)]" />
+                  <ChevronRightIcon
+                    size={12}
+                    className="text-[var(--text-muted)]"
+                  />
                 </span>
               </Link>
             </div>
           </section>
 
-          {/* Usage Section */}
           <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
             <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
               Usage
@@ -247,26 +312,35 @@ export function AssetInspector({
                 href={`/${projectId}/products`}
                 className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
               >
-                <span className="text-[12px] text-[var(--text-secondary)]">Products</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  Products
+                </span>
                 <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
                   {asset.productUsage ?? 12}
-                  <ChevronRightIcon size={12} className="text-[var(--text-muted)]" />
+                  <ChevronRightIcon
+                    size={12}
+                    className="text-[var(--text-muted)]"
+                  />
                 </span>
               </Link>
               <Link
                 href={`/${projectId}/experience/rules`}
                 className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
               >
-                <span className="text-[12px] text-[var(--text-secondary)]">Configurations</span>
+                <span className="text-[12px] text-[var(--text-secondary)]">
+                  Configurations
+                </span>
                 <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
                   {asset.configUsage ?? 3}
-                  <ChevronRightIcon size={12} className="text-[var(--text-muted)]" />
+                  <ChevronRightIcon
+                    size={12}
+                    className="text-[var(--text-muted)]"
+                  />
                 </span>
               </Link>
             </div>
           </section>
 
-          {/* Activity Section */}
           <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
             <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
               Activity
@@ -294,7 +368,7 @@ export function AssetInspector({
 
               <button
                 type="button"
-                className="text-[11px] font-medium text-[#665CFF] hover:underline pt-1"
+                className="pt-1 text-[11px] font-medium text-[#665CFF] hover:underline"
                 onClick={() => toast.info('Viewing full activity audit log')}
               >
                 View all activity
@@ -313,6 +387,19 @@ export function AssetInspector({
           document={null}
           open={editOpen}
           onClose={() => setEditOpen(false)}
+        />
+      ) : null}
+
+      {asset.type === 'model' ? (
+        <UploadObjectRevisionDialog
+          projectId={projectId}
+          objectAssetId={asset.id}
+          assetName={asset.name}
+          open={revisionUploadOpen}
+          onClose={() => {
+            setRevisionUploadOpen(false);
+            setRevisionRefreshKey((key) => key + 1);
+          }}
         />
       ) : null}
     </>

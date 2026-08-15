@@ -1,0 +1,64 @@
+---
+title: Backoffice troubleshooting
+description: Operator troubleshooting guide for common authoring issues, disabled options, and publish blockers.
+---
+
+Practical troubleshooting guide for merchant and product operations teams.
+
+## 1. "Why is an option disabled or grayed out in the storefront?"
+
+**Cause:** An incompatibility constraint on the active revision is blocking that value based on the current selection.
+
+**Diagnostic steps:**
+1. Open the product in Backoffice and go to the **Rules** tab.
+2. Review the list of constraints. Find the constraint containing the active option and the disabled option.
+3. To allow the combination:
+   - Create a new draft revision.
+   - Delete or edit the constraint in the **Rules** tab.
+   - Publish the revision.
+
+---
+
+## 2. "I edited options or rules, but the live storefront didn't change."
+
+**Cause:** You edited a **Draft** revision. Changes in draft revisions are never visible to live shoppers until published.
+
+**Fix:**
+1. Check the version badge in the product workspace header. If it says `DRAFT`, click **Publish**.
+2. After publishing succeeds, confirm that the new published revision is also the product's active revision. There is no separate activation action.
+
+---
+
+## 3. "The 3D model looks correct, but add-to-cart fails or has no SKU."
+
+**Cause:** Missing commerce mapping for that specific combination.
+
+**Fix:**
+1. Open the product workspace and click the **Commerce** tab.
+2. Search the matrix for the exact combination the shopper selected.
+3. Check if the **External Variant ID / SKU** column is empty.
+4. Enter the correct variant GID / SKU and save.
+5. Publish a new revision.
+
+---
+
+## 4. "Publishing is blocked by a validation error."
+
+**Common validation blockers:**
+- **"Root model missing"**: Open the **3D** tab and assign a root 3D Object Asset before publishing.
+- **"No options defined"**: A configurable product must have at least one Choice.
+- **Library object missing, failed, or processing**: Repair or finish the object in the Library, then reopen the publish dependency resolver.
+- **Material reference missing**: Replace the visual mapping's material with one available in the project.
+
+The current publish dependency resolver does not report dangling constraints or incomplete commerce coverage as blockers. Verify those separately before publishing.
+
+---
+
+## 5. "Cannot archive a 3D asset in the library."
+
+**Cause:** One or more active products are currently pinning that asset revision in their ProductModel.
+
+**Fix:**
+1. The error message lists the product names currently pinning the asset.
+2. Open each listed product. Either reassign the 3D model to a different asset, or archive the products first.
+3. Once no active products reference the asset, it can be safely archived.

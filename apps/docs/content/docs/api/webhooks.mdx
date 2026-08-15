@@ -1,0 +1,18 @@
+---
+title: Webhooks
+description: Outbound event hooks for product and commerce lifecycle.
+---
+
+Webhook delivery is expanding. No documented webhook events are available yet.
+
+For publish status and configuration state, use GraphQL polling:
+
+- `productRevision(id)` — check `status` and `publishedAt`
+- `resolveConfiguration(input)` — check current resolution state
+
+> Open question: Specific webhook events, delivery format, retry behavior, and registration mechanism are not yet documented.
+
+## Related
+
+- [API overview](/api)
+- [Versioning](/api/versioning)

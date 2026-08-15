@@ -1,0 +1,35 @@
+---
+title: Replace a component
+description: Swap one part of the model when a shopper selects an option.
+---
+
+Use component replacement when an option swaps a substantial piece of geometry, such as a four-leg base for a five-star base. The root model provides a stable placement target; each alternative is a linked object asset.
+
+## Current Editor status
+
+`REPLACE_COMPONENT` is supported by the API schema and runtime resolver. The current Editor mappings panel does not edit this operation; it lists hydrated replacement bindings as unsupported. Do not expect an **Add replacement** control in that panel.
+
+Where your authoring workflow creates the binding through another supported surface or the GraphQL API, it must identify:
+
+- the triggering choice value;
+- the scene target where the part attaches;
+- the linked asset key for the replacement;
+- an object asset revision registered on the same product model.
+
+## Runtime behavior
+
+For a valid matching selection, resolution adds the replacement object revision to `activeObjectAssetRevisionIds` and returns a replacement action with its linked asset key and document URL. The renderer reconciles that full list and removes the previously active part.
+
+## Common mistakes
+
+- The linked asset key does not match a registered object asset.
+- Alternatives use different origins, scale, or orientation.
+- The renderer adds the new part without removing the old one.
+- Authors assume registration alone activates the component.
+
+## Verify
+
+1. Resolve every replacement value against the draft revision.
+2. Confirm the expected object revision ID and linked key are returned.
+3. Check alignment, shadows, and rapid switching in the consuming renderer.
+4. Publish only after the same checks pass against the published revision.

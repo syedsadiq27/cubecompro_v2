@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Button,
   cn,
@@ -14,6 +15,7 @@ import {
   SearchField,
   useToast,
 } from '@repo/ui';
+import { setObjectAssetStatusAction } from '@/actions/assets';
 import {
   BackofficePageHeader,
   BulkActionBar,
@@ -34,6 +36,11 @@ import {
 } from '@/components/bo';
 import { BoxIcon, LayersIcon, LinkIcon } from '@/components/bo/icons';
 import { AssetInspector } from './asset-inspector';
+import {
+  libraryAssetStatusFilterKey,
+  libraryAssetStatusLabel,
+  libraryAssetStatusRole,
+} from './asset-status';
 import { CreateAssetDialog } from './create-asset-dialog';
 import {
   assetTypeLabel,
@@ -50,7 +57,7 @@ const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
     name: 'Beige Fabric',
     code: 'FABRIC-BEIGE',
     detail: 'FABRIC-BEIGE',
-    status: 'ACTIVE',
+    status: 'PUBLISHED',
     imageUrl:
       'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=120&auto=format&fit=crop&q=80',
     updatedDate: 'May 14, 2025',
@@ -73,7 +80,7 @@ const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
     name: 'Demo Chair',
     code: 'GLB · 6 meshes',
     detail: 'GLB-6MESHES',
-    status: 'ACTIVE',
+    status: 'PUBLISHED',
     imageUrl:
       'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=120&auto=format&fit=crop&q=80',
     updatedDate: 'May 14, 2025',
@@ -96,7 +103,7 @@ const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
     name: 'Fabric Black',
     code: 'FABRIC-BLACK',
     detail: 'FABRIC-BLACK',
-    status: 'ACTIVE',
+    status: 'PUBLISHED',
     imageUrl:
       'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=120&auto=format&fit=crop&q=80',
     updatedDate: 'May 13, 2025',
@@ -119,7 +126,7 @@ const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
     name: 'Walnut Wood',
     code: 'WOOD-WALNUT',
     detail: 'WOOD-WALNUT',
-    status: 'ACTIVE',
+    status: 'PUBLISHED',
     imageUrl:
       'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=120&auto=format&fit=crop&q=80',
     updatedDate: 'May 13, 2025',
@@ -165,7 +172,7 @@ const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
     name: 'Metal Matte Black',
     code: 'MATTE-BLACK',
     detail: 'MATTE-BLACK',
-    status: 'ACTIVE',
+    status: 'PUBLISHED',
     imageUrl:
       'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=120&auto=format&fit=crop&q=80',
     updatedDate: 'May 12, 2025',
@@ -188,7 +195,7 @@ const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
     name: 'Living Room Scene',
     code: 'GLB · 1.2MB',
     detail: 'GLB-SCENE',
-    status: 'ACTIVE',
+    status: 'PUBLISHED',
     imageUrl:
       'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=120&auto=format&fit=crop&q=80',
     updatedDate: 'May 11, 2025',
@@ -241,15 +248,16 @@ export function AssetLibrary({
   initialScope?: LibraryScope;
 }) {
   const toast = useToast();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const [catalog, setCatalog] = useState<LibraryAssetItem[]>(() => {
     if (serverAssets.length > 0) {
-      // Merge with demo asset fields if missing
       return serverAssets.map((sa, i) => {
         const demo = DEMO_LIBRARY_ASSETS[i % DEMO_LIBRARY_ASSETS.length]!;
         return {
           ...demo,
           ...sa,
-          status: sa.status || demo.status,
+          status: libraryAssetStatusLabel(sa.status || demo.status),
           detail: sa.code || demo.detail,
           updatedDate: demo.updatedDate,
           updatedTime: demo.updatedTime,
@@ -259,10 +267,29 @@ export function AssetLibrary({
     return DEMO_LIBRARY_ASSETS;
   });
 
+  useEffect(() => {
+    if (serverAssets.length === 0) return;
+    setCatalog(
+      serverAssets.map((sa, i) => {
+        const demo = DEMO_LIBRARY_ASSETS[i % DEMO_LIBRARY_ASSETS.length]!;
+        return {
+          ...demo,
+          ...sa,
+          status: libraryAssetStatusLabel(sa.status || demo.status),
+          detail: sa.code || demo.detail,
+          updatedDate: demo.updatedDate,
+          updatedTime: demo.updatedTime,
+        };
+      })
+    );
+  }, [serverAssets]);
+
   const [typeTab, setTypeTab] = useState<LibraryAssetType | 'all' | 'folders'>(
     initialScope?.kind === 'type' ? initialScope.type : 'all'
   );
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'archived'>('all');
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'published' | 'draft' | 'archived'
+  >('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'material' | 'model' | 'texture' | 'image'>('all');
   const [query, setQuery] = useState('');
   const [inspectId, setInspectId] = useState<string | null>(DEMO_LIBRARY_ASSETS[0]?.id ?? null);
@@ -275,8 +302,16 @@ export function AssetLibrary({
     open: boolean;
     title: string;
     body: string;
+    confirmLabel: string;
+    danger?: boolean;
     onConfirm: () => void;
-  }>({ open: false, title: '', body: '', onConfirm: () => {} });
+  }>({
+    open: false,
+    title: '',
+    body: '',
+    confirmLabel: 'Confirm',
+    onConfirm: () => {},
+  });
 
   const [sortKey, setSortKey] = useState<'name' | 'type' | 'status' | 'updated'>('updated');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -305,10 +340,10 @@ export function AssetLibrary({
       if (typeFilter !== 'all' && asset.type !== typeFilter) return false;
 
       if (statusFilter !== 'all') {
-        const assetStatus = (asset.status || 'ACTIVE').toLowerCase();
-        if (statusFilter === 'active' && assetStatus !== 'active') return false;
-        if (statusFilter === 'draft' && assetStatus !== 'draft') return false;
-        if (statusFilter === 'archived' && assetStatus !== 'archived') return false;
+        const bucket = libraryAssetStatusFilterKey(asset.status);
+        if (statusFilter === 'published' && bucket !== 'published') return false;
+        if (statusFilter === 'draft' && bucket !== 'draft') return false;
+        if (statusFilter === 'archived' && bucket !== 'archived') return false;
       }
 
       if (!q) return true;
@@ -373,13 +408,64 @@ export function AssetLibrary({
     }
   };
 
+  const archiveModelAssets = (
+    assets: LibraryAssetItem[],
+    nextStatus: 'ARCHIVED' | 'READY',
+    successLabel: string
+  ) => {
+    const models = assets.filter((asset) => asset.type === 'model');
+    const skipped = assets.length - models.length;
+    if (models.length === 0) {
+      toast.error(
+        skipped > 0
+          ? 'Only 3D models can be archived right now.'
+          : 'No assets selected.'
+      );
+      return;
+    }
+    startTransition(async () => {
+      const results = await Promise.all(
+        models.map((asset) =>
+          setObjectAssetStatusAction(projectId, asset.id, nextStatus)
+        )
+      );
+      const failed = results.find((result) => !result.ok);
+      if (failed) {
+        toast.error(failed.error || 'Archive failed.');
+        return;
+      }
+      setConfirmDialog((d) => ({ ...d, open: false }));
+      if (nextStatus === 'ARCHIVED') {
+        setSelectedIds(new Set());
+      }
+      if (skipped > 0) {
+        toast.info(
+          `${skipped} non-model asset${skipped === 1 ? '' : 's'} skipped`
+        );
+      }
+      toast.success(successLabel);
+      router.refresh();
+    });
+  };
+
   const handleBulkArchive = () => {
-    const count = selectedIds.size;
-    setCatalog((prev) =>
-      prev.map((a) => (selectedIds.has(a.id) ? { ...a, status: 'ARCHIVED' } : a))
-    );
-    setSelectedIds(new Set());
-    toast.success(`${count} asset${count === 1 ? '' : 's'} archived`);
+    const selected = catalog.filter((asset) => selectedIds.has(asset.id));
+    const count = selected.length;
+    if (count === 0) return;
+    setConfirmDialog({
+      open: true,
+      title: `Archive ${count} asset${count === 1 ? '' : 's'}?`,
+      body: 'Archived models leave the attachable library only if no active product still pins them. Materials/textures are skipped for now.',
+      confirmLabel: 'Archive',
+      danger: false,
+      onConfirm: () => {
+        archiveModelAssets(
+          selected,
+          'ARCHIVED',
+          `${count} asset${count === 1 ? '' : 's'} archived`
+        );
+      },
+    });
   };
 
   const handleBulkDelete = () => {
@@ -388,12 +474,46 @@ export function AssetLibrary({
       open: true,
       title: `Delete ${count} asset${count === 1 ? '' : 's'}?`,
       body: 'This permanently removes the selected assets from the library. This action cannot be undone.',
+      confirmLabel: 'Delete',
+      danger: true,
       onConfirm: () => {
         setCatalog((prev) => prev.filter((a) => !selectedIds.has(a.id)));
         if (inspectId && selectedIds.has(inspectId)) setInspectId(null);
         setSelectedIds(new Set());
         setConfirmDialog((d) => ({ ...d, open: false }));
         toast.success(`Deleted ${count} asset${count === 1 ? '' : 's'}`);
+      },
+    });
+  };
+
+  const handleSingleArchive = (asset: LibraryAssetItem) => {
+    const isArchived =
+      libraryAssetStatusFilterKey(asset.status) === 'archived';
+    if (asset.type !== 'model') {
+      toast.error('Only 3D models can be archived right now.');
+      return;
+    }
+    if (isArchived) {
+      setConfirmDialog({
+        open: true,
+        title: `Restore “${asset.name}”?`,
+        body: 'This returns the model to the published library tip.',
+        confirmLabel: 'Restore',
+        danger: false,
+        onConfirm: () => {
+          archiveModelAssets([asset], 'READY', `${asset.name} restored`);
+        },
+      });
+      return;
+    }
+    setConfirmDialog({
+      open: true,
+      title: `Archive “${asset.name}”?`,
+      body: 'Archived models leave the attachable library only if no active product still pins them. You can restore them later from the Archived filter.',
+      confirmLabel: 'Archive',
+      danger: false,
+      onConfirm: () => {
+        archiveModelAssets([asset], 'ARCHIVED', `${asset.name} archived`);
       },
     });
   };
@@ -568,7 +688,7 @@ export function AssetLibrary({
               }}
             >
               <option value="all">Status: All</option>
-              <option value="active">Active</option>
+              <option value="published">Published</option>
               <option value="draft">Draft</option>
               <option value="archived">Archived</option>
             </FilterSelect>
@@ -588,6 +708,7 @@ export function AssetLibrary({
               size="sm"
               variant="secondary"
               onClick={handleBulkArchive}
+              disabled={pending}
             >
               Archive
             </Button>
@@ -643,14 +764,8 @@ export function AssetLibrary({
                       )}
                       <div className="absolute top-2 right-2">
                         <StatusBadge
-                          role={
-                            asset.status?.toUpperCase() === 'ACTIVE'
-                              ? 'published'
-                              : asset.status?.toUpperCase() === 'ARCHIVED'
-                                ? 'archived'
-                                : 'draft'
-                          }
-                          label={asset.status || 'ACTIVE'}
+                          role={libraryAssetStatusRole(asset.status)}
+                          label={libraryAssetStatusLabel(asset.status)}
                         />
                       </div>
                     </div>
@@ -742,12 +857,8 @@ export function AssetLibrary({
               {pageItems.map((asset) => {
                 const bulkSelected = selectedIds.has(asset.id);
                 const inspecting = inspectId === asset.id;
-                const statusRole =
-                  asset.status?.toUpperCase() === 'ACTIVE'
-                    ? 'published'
-                    : asset.status?.toUpperCase() === 'ARCHIVED'
-                      ? 'archived'
-                      : 'draft';
+                const statusRole = libraryAssetStatusRole(asset.status);
+                const statusLabel = libraryAssetStatusLabel(asset.status);
 
                 return (
                   <DataTable.Row
@@ -780,7 +891,7 @@ export function AssetLibrary({
                     </DataTable.Cell>
 
                     <DataTable.Cell>
-                      <StatusBadge role={statusRole} label={asset.status || 'ACTIVE'} />
+                      <StatusBadge role={statusRole} label={statusLabel} />
                     </DataTable.Cell>
 
                     <DataTable.DateCell
@@ -806,20 +917,11 @@ export function AssetLibrary({
                           {
                             id: 'archive',
                             label:
-                              asset.status === 'ARCHIVED' ? 'Restore asset' : 'Archive asset',
-                            onClick: () => {
-                              const isArch = asset.status === 'ARCHIVED';
-                              setCatalog((prev) =>
-                                prev.map((a) =>
-                                  a.id === asset.id
-                                    ? { ...a, status: isArch ? 'ACTIVE' : 'ARCHIVED' }
-                                    : a
-                                )
-                              );
-                              toast.success(
-                                isArch ? `${asset.name} restored` : `${asset.name} archived`
-                              );
-                            },
+                              libraryAssetStatusFilterKey(asset.status) ===
+                              'archived'
+                                ? 'Restore asset'
+                                : 'Archive asset',
+                            onClick: () => handleSingleArchive(asset),
                           },
                           {
                             id: 'delete',
@@ -831,10 +933,17 @@ export function AssetLibrary({
                                 open: true,
                                 title: `Delete “${asset.name}”?`,
                                 body: 'This permanently removes the asset from your library. This action cannot be undone.',
+                                confirmLabel: 'Delete',
+                                danger: true,
                                 onConfirm: () => {
-                                  setCatalog((prev) => prev.filter((a) => a.id !== asset.id));
+                                  setCatalog((prev) =>
+                                    prev.filter((a) => a.id !== asset.id)
+                                  );
                                   if (inspectId === asset.id) setInspectId(null);
-                                  setConfirmDialog((d) => ({ ...d, open: false }));
+                                  setConfirmDialog((d) => ({
+                                    ...d,
+                                    open: false,
+                                  }));
                                   toast.success(`Deleted ${asset.name}`);
                                 },
                               });
@@ -864,8 +973,9 @@ export function AssetLibrary({
         open={confirmDialog.open}
         title={confirmDialog.title}
         body={confirmDialog.body}
-        confirmLabel="Delete"
-        danger
+        confirmLabel={confirmDialog.confirmLabel}
+        danger={confirmDialog.danger}
+        pending={pending}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog((d) => ({ ...d, open: false }))}
       />

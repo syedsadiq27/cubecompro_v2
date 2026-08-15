@@ -1,5 +1,5 @@
 import { graphRequest } from './client.js';
-import { objectDocumentUrl } from './documents.js';
+import { objectAssetRevisionDocumentUrl } from './documents.js';
 import {
   PRODUCT_QUERY,
   PRODUCT_REVISION_DETAIL_QUERY,
@@ -46,6 +46,7 @@ export type ProductEditorBootstrap = {
   modelName: string;
   productModelId: string;
   assetId: string;
+  objectAssetRevisionId: string;
 };
 
 export async function bootstrapProductEditor({
@@ -73,18 +74,38 @@ export async function bootstrapProductEditor({
   ]);
 
   const detail = detailData.productRevisionDetail;
-  const productModel =
-    detail.models.find((model) => model.id === modelId) ?? detail.models[0];
-  if (!productModel) {
+  if (detail.models.length === 0) {
     throw new Error(
-      'No product model attached. Attach a library object from the product 3D tab first.'
+      'NOT_CONFIGURED: No ProductModel on this ProductRevision. Attach an ObjectAssetRevision from the product 3D tab.'
     );
   }
 
-  const modelUrl = objectDocumentUrl(auth.apiUrl, productModel.assetId);
+  let productModel = detail.models.find((model) => model.id === modelId);
+  if (modelId && !productModel) {
+    throw new Error(
+      `NOT_CONFIGURED: ProductModel ${modelId} is not on this ProductRevision.`
+    );
+  }
+  if (!productModel) {
+    if (detail.models.length !== 1) {
+      throw new Error(
+        'NOT_CONFIGURED: ProductModel id is required when multiple models exist.'
+      );
+    }
+    productModel = detail.models[0]!;
+  }
+
+  const revisionId = productModel.objectAssetRevisionId;
+  if (!revisionId) {
+    throw new Error(
+      'NOT_CONFIGURED: ProductModel is missing objectAssetRevisionId pin.'
+    );
+  }
+
+  const modelUrl = objectAssetRevisionDocumentUrl(auth.apiUrl, revisionId);
   const assets: GraphObjectAsset[] = [
     {
-      id: productModel.assetId,
+      id: revisionId,
       name: productModel.name,
       code: productModel.key,
       relativePath: modelUrl,
@@ -105,5 +126,6 @@ export async function bootstrapProductEditor({
     modelName: productModel.name,
     productModelId: productModel.id,
     assetId: productModel.assetId,
+    objectAssetRevisionId: revisionId,
   };
 }

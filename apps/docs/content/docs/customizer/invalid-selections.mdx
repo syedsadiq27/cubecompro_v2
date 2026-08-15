@@ -1,0 +1,47 @@
+---
+title: Invalid selections
+description: Distinguish incomplete, invalid, unavailable, and unmapped runtime states.
+---
+
+A selection is invalid when a required choice is missing, a selected value is unknown, or the combination violates an authored constraint. Invalid is not the same as unavailable or unmapped.
+
+## Handle `valid: false`
+
+```json
+{
+  "valid": false,
+  "violations": [
+    "Brass legs cannot be selected with Green Velvet upholstery."
+  ],
+  "commerce": {
+    "sku": null,
+    "variantReference": null,
+    "cartPayloadJson": null
+  }
+}
+```
+
+The exact violation text is authored or produced by validation and may differ from this example.
+
+### Storefront requirements
+
+1. Disable Add to Cart immediately when `valid === false`.
+2. Render all `violations` near affected controls or in a summary.
+3. Keep the shopper's choices visible unless your product defines a clear repair policy.
+4. Treat visuals cautiously. The response can still contain the root asset, but choice-triggered visual actions are currently emitted only for valid selections.
+
+## Distinguish the failure states
+
+- **Incomplete**: At least one required choice is missing. Prompt the shopper to continue.
+- **Invalid**: The selection contains an unknown value or violates a constraint. Explain what must change.
+- **Unavailable value**: The availability matrix says a value cannot be combined with the current context. Prevent selection before it creates a conflict.
+- **Unmapped**: The selection can be valid, yet `variantReference`, `sku`, and `cartPayloadJson` are null because no commerce row matched. Explain that the configuration is not currently purchasable.
+
+Do not derive completeness from `commerce.sku`: a complete product may intentionally have no commerce mapping. Derive it from the revision's required choices.
+
+## Verify
+
+1. Resolve with one required choice missing and confirm cart is blocked.
+2. Resolve a known incompatible combination and display every returned violation.
+3. Resolve an unknown choice value and confirm the UI does not crash or select a replacement.
+4. Resolve a valid but unmapped combination and show a sellability message distinct from a constraint error.

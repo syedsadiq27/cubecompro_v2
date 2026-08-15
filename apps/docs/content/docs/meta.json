@@ -1,0 +1,20 @@
+{
+  "title": "CubeCom Pro",
+  "root": true,
+  "pages": [
+    "index",
+    "---Getting started---",
+    "get-started",
+    "---Product surfaces---",
+    "backoffice",
+    "editor",
+    "customizer",
+    "---Developer documentation---",
+    "developers",
+    "concepts",
+    "api",
+    "integrations",
+    "---Resources---",
+    "resources"
+  ]
+}

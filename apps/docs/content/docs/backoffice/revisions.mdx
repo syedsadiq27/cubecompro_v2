@@ -1,0 +1,50 @@
+---
+title: Managing revisions
+description: Working with editable drafts, the current published revision, and archived history.
+---
+
+Choices, constraints, 3D behavior, and commerce mappings are versioned together in a product **revision**.
+
+## Current lifecycle
+
+```text
+DRAFT ── publish ──► PUBLISHED
+                       │
+                       │ next publication
+                       ▼
+                    ARCHIVED
+```
+
+| State | Editable? | Current behavior |
+| --- | --- | --- |
+| `DRAFT` | Yes | Authoring and explicit-revision preview. |
+| `PUBLISHED` | No | The one revision currently active for implicit storefront resolution. |
+| `ARCHIVED` | No | Historical snapshot available as a source for recovery. |
+
+Publishing and activation are not separate steps. Publishing a draft archives the former published revision and updates `Product.activeRevisionId` to the new one.
+
+## Create a draft
+
+Use **Create draft** to branch from a selected historical revision. The service copies the source graph into a new editable revision. Keep the live published revision unchanged while you author and preview the draft.
+
+If a draft already exists and you need a different source, use the Backoffice replacement workflow. It discards the existing draft and creates another from the selected revision, so review unsaved work before confirming.
+
+## Discard a draft
+
+Discard removes the editable draft and returns the workspace to published history. It does not change the active published revision.
+
+## Inspect history
+
+Use the product's revision history to compare version, lifecycle status, publication time, graph URI, and graph hash where available. A revision that was once live will normally be `ARCHIVED` after a later publication.
+
+## Recover an earlier configuration
+
+Do not look for **Set as active revision**. Create or replace a draft from the stable historical revision, verify it, then publish it. Recovery therefore produces a new published revision rather than mutating an old immutable snapshot.
+
+## Verify
+
+1. Confirm edits are made only on a `DRAFT` revision.
+2. Preview by passing that draft's revision ID explicitly.
+3. Publish and confirm the new revision becomes `PUBLISHED` and active.
+4. Confirm the previously published revision becomes `ARCHIVED`.
+5. Create a draft from an archived revision and confirm its choices, constraints, models, effects, and mappings were copied before making further changes.

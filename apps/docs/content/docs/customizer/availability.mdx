@@ -1,0 +1,52 @@
+---
+title: Availability
+description: Interpret the availability matrix and keep shoppers out of impossible combinations.
+---
+
+CubeCom Pro evaluates [constraints](/backoffice/constraints-and-rules) against the current selection and returns an availability matrix for choice values. Availability answers: “Can this value participate with the current context?” It is separate from the validity of the current selection.
+
+## The `availabilityJson` contract
+
+The GraphQL field is a nullable string containing a JSON object:
+
+```json
+{
+  "frame": { "walnut": true, "oak": true },
+  "fabric": { "beige": true, "green": true },
+  "legs": { "brass": false, "black": true }
+}
+```
+
+After parsing, the shape is `Record<choiceKey, Record<valueKey, boolean>>`. In this example, `legs.brass === false` means Brass must not be offered as the next Legs selection in the current context.
+
+- `false`: disable the value. Do not send it merely because the client can still construct that JSON.
+- `true`: the value is available under the evaluated constraints; it does not guarantee a commerce mapping.
+- Missing `availabilityJson`: no matrix was produced, such as when there is no published active revision. Treat this as unresolved, not “everything is available.”
+- Missing choice or value key: do not guess. Keep cart blocked and report a revision/data mismatch.
+
+## Render available values
+
+1. Parse `availabilityJson` once for the response.
+2. Look up `availability[choiceKey]?.[valueKey]`.
+3. Disable a value only when the entry is explicitly `false`.
+4. Preserve selected styling separately from disabled styling.
+5. Use `violations` to explain the current invalid selection. The matrix does not contain human-readable reasons.
+
+Disabled controls must remain unavailable to keyboard users and assistive technology. Prefer a native `disabled` control where possible and keep the label readable.
+
+## When a selected value becomes unavailable
+
+The resolver does not automatically replace the selected value. Your storefront must choose and document one policy:
+
+- Keep the invalid selection visible, explain the conflict, and ask the shopper to change it. This is the safest default.
+- Clear the affected choice and require a new selection.
+- Auto-select a replacement only when product owners have explicitly approved deterministic fallback behavior.
+
+Whichever policy you use, resolve again after changing or clearing the selection.
+
+## Verify
+
+1. Select each value and confirm incompatible values become disabled.
+2. Confirm a disabled value cannot be selected by pointer or keyboard.
+3. Create a conflict by changing an earlier choice and confirm the selected value is not silently replaced.
+4. Confirm an available but unmapped combination still keeps cart disabled.

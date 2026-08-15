@@ -1,0 +1,16 @@
+---
+title: Switch the root model
+description: Understand whole-model switching and its current authoring status.
+---
+
+Root-model switching is intended for an option that changes the entire visual foundation, not a single material or detachable part.
+
+## Current Editor status
+
+`SET_MODEL` exists in the GraphQL operation enum, but the current Editor mappings panel does not edit it and reports hydrated unsupported operations. Use the normal root-model assignment for one product model. Do not document or design a production workflow around an Editor **Set model** control until that control and its value contract are implemented.
+
+If whole-model switching is required today, verify the exact API authoring and renderer contract in your deployment. Consider separate products or revisions when they better express distinct catalog items.
+
+## Verify
+
+Before enabling a custom implementation, test camera framing, target compatibility, material bindings, component placement, asset loading, commerce mappings, and switching back to the previous model.

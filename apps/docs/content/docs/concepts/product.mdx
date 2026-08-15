@@ -1,0 +1,33 @@
+---
+title: Product
+description: The stable merchant catalog identity that owns versioned configuration revisions.
+---
+
+A **product** is the durable catalog identity for one configurable product family, such as Executive Task Chair. Its name and description can evolve, while its key provides a stable integration identity.
+
+The product does not directly contain the live choices, 3D behavior, or commerce mappings. Those belong to [revisions](/concepts/product-revision), allowing authors to prepare changes without changing what shoppers currently see.
+
+## Lifecycle
+
+| Status | Meaning |
+| --- | --- |
+| Draft | Initial setup; not yet intended for live use |
+| Active | Available in the catalog and backed by an active published revision |
+| Archived | Retained for history but no longer intended for configuration or sale |
+
+## Active revision
+
+A product points to one active revision. When `resolveConfiguration` omits `productRevisionId`, CubeCom Pro uses that active revision. Passing a revision explicitly is how preview and test tools evaluate a draft.
+
+## Invariants
+
+- A product belongs to one organization and project.
+- Keep the product key stable; storefronts and integrations can depend on it.
+- Publishing a new revision does not delete previous published revisions.
+- Historical selections must be interpreted with the revision that defined them.
+
+## API name
+
+The GraphQL type is `ProductModel`, with fields including `id`, `key`, `name`, `status`, and `activeRevisionId`. See [GraphQL objects](/api/objects) for field-level contracts.
+
+Next: [Product revision](/concepts/product-revision) · [Manage products](/backoffice/products)
