@@ -115,11 +115,55 @@ describe('configurator-preview kernel composition', () => {
     );
   });
 
-  it('keeps unbound choices in selection evaluation', () => {
-    const state = evaluateConfiguratorPreview(detailFixture(), {
-      frame: 'oak',
+  it('disables oak when size is xl (xl+oak forbid)', () => {
+    const detail = detailFixture();
+    detail.constraints.push({
+      id: 'forbid-xl-oak',
+      productRevisionId: 'rev-1',
+      terms: [
+        {
+          constraintId: 'forbid-xl-oak',
+          choiceValueId: 'v-xl',
+          choiceKey: 'size',
+          choiceValueKey: 'xl',
+        },
+        {
+          constraintId: 'forbid-xl-oak',
+          choiceValueId: 'v-oak',
+          choiceKey: 'frame',
+          choiceValueKey: 'oak',
+        },
+      ],
     });
-    expect(state.availability.frame?.oak).toBe(true);
-    expect(state.availability.material?.leather).toBeDefined();
+    detail.choices.find((c) => c.key === 'frame');
+    const withSize = {
+      ...detail,
+      choices: [
+        ...detail.choices.filter((c) => c.key !== 'size'),
+        {
+          id: 'c-size',
+          key: 'size',
+          name: 'Size',
+          type: 'SELECT',
+          required: false,
+          sortOrder: 3,
+          values: [
+            { id: 'v-l', key: 'l', name: 'L', sortOrder: 0 },
+            { id: 'v-xl', key: 'xl', name: 'XL', sortOrder: 1 },
+          ],
+        },
+      ],
+    };
+    const state = evaluateConfiguratorPreview(withSize, {
+      size: 'xl',
+      frame: 'walnut',
+      color: 'black',
+    });
+    expect(isChoiceValueAvailable(state.availability, 'frame', 'oak')).toBe(
+      false
+    );
+    expect(isChoiceValueAvailable(state.availability, 'frame', 'walnut')).toBe(
+      true
+    );
   });
 });

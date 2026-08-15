@@ -78,6 +78,24 @@ export function PreviewPanel() {
           preview — not a separate storefront.
         </p>
 
+        {(graphDetail.constraints?.length ?? 0) > 0 ? (
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)]/50 p-2 font-mono text-[10px] text-[var(--text-muted)] space-y-0.5">
+            <div className="font-sans text-[11px] font-semibold text-[var(--ink)]">
+              Constraints ({graphDetail.constraints.length})
+            </div>
+            {graphDetail.constraints.map((constraint) => {
+              const label = constraint.terms
+                .map((term) =>
+                  term.choiceKey && term.choiceValueKey
+                    ? `${term.choiceKey}=${term.choiceValueKey}`
+                    : '?'
+                )
+                .join(' ∧ ');
+              return <div key={constraint.id}>forbid {label}</div>;
+            })}
+          </div>
+        ) : null}
+
         {loadError ? (
           <div className="rounded-lg border border-red-500/40 bg-red-50/40 p-2 text-[10px] font-mono text-red-700">
             {loadError}

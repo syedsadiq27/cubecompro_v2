@@ -566,8 +566,38 @@ async function seed() {
       sortOrder: 0,
     },
   });
+  const materialFabric = await prisma.choiceValue.create({
+    data: {
+      choiceId: material.id,
+      key: 'fabric',
+      name: 'Fabric',
+      sortOrder: 1,
+    },
+  });
+
+  async function forbidCombo(
+    label: string,
+    choiceValueIds: string[]
+  ): Promise<void> {
+    if (choiceValueIds.length < 2) {
+      throw new Error(`Constraint ${label} needs ≥2 terms`);
+    }
+    const constraint = await prisma.constraint.create({
+      data: { productRevisionId: version.id },
+    });
+    for (const choiceValueId of choiceValueIds) {
+      await prisma.constraintTerm.create({
+        data: { constraintId: constraint.id, choiceValueId },
+      });
+    }
+  }
+
+  await forbidCombo('leather+white', [materialLeather.id, colorWhite.id]);
+  await forbidCombo('xl+oak', [sizeXl.id, frameOak.id]);
+  await forbidCombo('leather+oak', [materialLeather.id, frameOak.id]);
+  await forbidCombo('white+xl', [colorWhite.id, sizeXl.id]);
   void sizeL;
-  void materialLeather;
+  void materialFabric;
 
   await prisma.configurationRule.create({
     data: {
