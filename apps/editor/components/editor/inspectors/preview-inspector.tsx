@@ -18,15 +18,16 @@ export function PreviewInspector() {
       <div>
         <div className="flex items-center justify-between pb-1">
           <h3 className="text-[13px] font-bold text-[var(--ink)]">
-            Engine proof
+            Visual projection
           </h3>
           <StatusBadge
-            role="published"
-            label={visualDocument ? 'HYDRATED' : 'IDLE'}
+            role="draft"
+            label={visualDocument ? 'DEBUGGER' : 'IDLE'}
           />
         </div>
         <p className="text-[11px] text-[var(--text-muted)]">
-          Selection drives deriveVisualState → reconcileScene
+          Constraint-agnostic. Configurator Preview (validate + availability)
+          is a later composition.
         </p>
       </div>
 
@@ -42,7 +43,7 @@ export function PreviewInspector() {
             }
           />
           <DetailRow
-            label="Active bindings"
+            label="Fired bindings"
             value={
               <span className="font-mono">
                 {activeBindings.length} / {visualDocument?.bindings.length ?? 0}

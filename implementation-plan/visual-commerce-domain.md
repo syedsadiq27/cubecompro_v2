@@ -569,44 +569,65 @@ No Save until these are green.
 
 ---
 
-## 15.5. Phase 2B.5 — Experience proof
+## 15.5. Phase 2B.5 — Visual Projection Proof
 
-Between engine primitives and Save, prove a user can drive the scene:
+**Not** the product Configurator Preview.
 
-```text
-Real ProductRevision
-→ Choice UI from API (not fixtures)
-→ click ChoiceValue
-→ Selection updates
-→ deriveVisualState → reconcileScene
-→ Three.js visibly changes
-```
+`deriveVisualState()` remains constraint-agnostic (correct).
 
-Acceptance (experiential):
+This phase proves only the visual projection path:
 
 ```text
-Open editor
-→ product loads (Preview workspace)
-→ real choices appear
-→ click a value → 3D changes immediately
-→ click another value → correct replacement
-→ reset → baseline returns
-→ reload → same initial baseline result
+real API Choices / VisualEffects
+→ Selection changes (UI click)
+→ deriveVisualState()
+→ reconcileScene()
+→ actual THREE.Mesh.material / visible changes
+→ A → B → A deterministic
+→ {} restores baseline
 ```
+
+Naming:
+
+```text
+2B.5 Visual Projection Proof  = mapping debugger / projection harness
+Configurator Preview (later)  = Selection + validate + availability + visual + commerce
+```
+
+Preview UI in this phase is a **visual projection debugger**. It may emphasize bound Choices. It must not claim to be the full configurator experience.
+
+Do **not** mix constraints into `deriveVisualState()`. Kernel composition belongs in Configurator Preview:
+
+```text
+Selection
+  ↙ validate          ↘ deriveAvailability
+UI feedback / disabled values
+        ↓
+deriveVisualState → reconcileScene → Three.js
+```
+
+Acceptance requires at least one automated test that drives a real loaded scene graph (GLB-shaped hierarchy under a mount wrapper) and asserts the resolved `THREE.Mesh` material / visibility — not manual “you should see X” alone.
 
 Requirements:
 
 - No mock behavior cards
 - No manual “Apply selection” control
-- Click handlers only update Selection (no direct Three.js mutation)
-- One Choice with two values is sufficient (Frame walnut / oak)
+- Click handlers only update Selection (no direct Three.js mutation from the click)
+- `deriveVisualState` stays pure / constraint-free
 - Do not implement Save in this phase
+- Do not implement Configurator Preview (validation + availability composition) in this phase
+
+---
+
+## 15.6. Later — Configurator Preview
+
+Compose kernel + visual (+ eventually commerce). All Choices belong in Selection (Warranty, Size, Shipping, …), including those with no visual binding. Illegal combos are prevented or exposed via `validateSelection` / `deriveAvailability` while the visual engine stays independent.
 
 ---
 
 ## 16. Phase 2C — Save later
 
-Only after 2B.5 experience proof works.
+Only after 2B.5 Visual Projection Proof works.
 
 Then:
 
@@ -775,7 +796,7 @@ Order:
 ```text
 2A — normalizeVisualDocument
 2B — baseline + deriveVisualState + reconcileScene + determinism tests
-2B.5 — Experience proof (Choice UI → Selection → visible scene change)
+2B.5 — Visual Projection Proof (Selection → real THREE.Mesh change; not Configurator Preview)
 2C — Save only after 2B.5 passes
 ```
 
