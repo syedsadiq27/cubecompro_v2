@@ -592,7 +592,7 @@ async function seed() {
       productModelId: productModel.id,
       key: 'frame',
       targetType: 'MATERIAL',
-      nodePath: 'Chair/Frame',
+      nodePath: 'Chair/Legs',
       materialSlot: 'frame',
     },
   });

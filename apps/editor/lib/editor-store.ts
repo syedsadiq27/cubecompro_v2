@@ -418,11 +418,23 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         [choiceKey]: valueKey,
       },
     }));
-    void get().replayActiveVisual();
+    void get()
+      .replayActiveVisual()
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : 'Visual replay failed';
+        set({ loadError: message, statusMessage: message });
+      });
   },
   clearVisualSelection: () => {
     set({ visualSelection: {} });
-    void get().replayActiveVisual();
+    void get()
+      .replayActiveVisual()
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : 'Visual replay failed';
+        set({ loadError: message, statusMessage: message });
+      });
   },
   resetVisualSelection: () => {
     get().clearVisualSelection();
@@ -437,8 +449,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       graphAuth,
       graphDetail,
     } = get();
-    if (!runtime || !visualDocument || !visualBaseline || !graphDetail) {
+    if (!runtime || !visualDocument || !graphDetail) {
       return;
+    }
+    if (!visualBaseline) {
+      throw new Error('Visual baseline missing — reload the product');
     }
     await replayVisualDocument({
       root: runtime.productRoot,
@@ -449,6 +464,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       materialCache: visualMaterialCache,
       productRevisionId: graphDetail.id,
     });
+    set({ loadError: null });
     runtime.render();
   },
   setPreviewSelection: (attributeId, valueId) =>

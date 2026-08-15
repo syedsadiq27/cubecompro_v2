@@ -13,24 +13,32 @@ function assignMaterial(
   object: THREE.Object3D,
   material: THREE.Material | THREE.Material[]
 ): void {
+  const apply = (mesh: THREE.Mesh) => {
+    mesh.material = Array.isArray(material)
+      ? material.map((entry) => {
+          const cloned = entry.clone();
+          cloned.needsUpdate = true;
+          return cloned;
+        })
+      : (() => {
+          const cloned = material.clone();
+          cloned.needsUpdate = true;
+          return cloned;
+        })();
+  };
+
   const mesh = object as THREE.Mesh;
   if (mesh.isMesh) {
-    mesh.material = material;
-    return;
+    apply(mesh);
   }
   object.traverse((child) => {
+    if (child === object) return;
     const childMesh = child as THREE.Mesh;
     if (!childMesh.isMesh) return;
-    childMesh.material = Array.isArray(material)
-      ? material.map((entry) => entry.clone())
-      : material.clone();
+    apply(childMesh);
   });
 }
 
-/**
- * Only Three.js mutation boundary.
- * Make the loaded scene equal the desired VisualState.
- */
 export function reconcileScene(
   root: THREE.Object3D,
   document: VisualDocument,
