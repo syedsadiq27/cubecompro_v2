@@ -14,13 +14,17 @@ import {
   CreateModelTargetInput,
   CreateProductInput,
   CreateProductModelInput,
+  CreateProductModelLinkedAssetInput,
   CreateProductVariantInput,
   CreateVariantSelectionInput,
   CreateVisualEffectInput,
+  UpdateProductModelLinkedAssetInput,
+  UpdateProductModelRevisionInput,
   UpdateVisualEffectInput,
   ModelTargetModel,
   ProductModel,
   ProductModelAssetModel,
+  ProductModelLinkedAssetModel,
   ProductRevisionDetailModel,
   ProductRevisionModel,
   ProductVariantModel,
@@ -256,8 +260,52 @@ export class ProductResolver {
   }
 
   @Mutation(() => ProductModelAssetModel)
-  createProductModel(@Args('input') input: CreateProductModelInput) {
-    return this.products.createProductModel(input);
+  async createProductModel(@Args('input') input: CreateProductModelInput) {
+    const model = await this.products.createProductModel(input);
+    return {
+      id: model.id,
+      productRevisionId: model.productRevisionId,
+      objectAssetRevisionId: model.objectAssetRevisionId,
+      assetId: model.objectAssetRevision.objectAssetId,
+      key: model.key,
+      name: model.name,
+      linkedAssets: model.linkedAssets,
+    };
+  }
+
+  @Mutation(() => ProductModelAssetModel)
+  async updateProductModelRevision(
+    @Args('input') input: UpdateProductModelRevisionInput
+  ) {
+    const model = await this.products.updateProductModelRevision(input);
+    return {
+      id: model.id,
+      productRevisionId: model.productRevisionId,
+      objectAssetRevisionId: model.objectAssetRevisionId,
+      assetId: model.objectAssetRevision.objectAssetId,
+      key: model.key,
+      name: model.name,
+      linkedAssets: model.linkedAssets,
+    };
+  }
+
+  @Mutation(() => ProductModelLinkedAssetModel)
+  createProductModelLinkedAsset(
+    @Args('input') input: CreateProductModelLinkedAssetInput
+  ) {
+    return this.products.createProductModelLinkedAsset(input);
+  }
+
+  @Mutation(() => ProductModelLinkedAssetModel)
+  updateProductModelLinkedAsset(
+    @Args('input') input: UpdateProductModelLinkedAssetInput
+  ) {
+    return this.products.updateProductModelLinkedAsset(input);
+  }
+
+  @Mutation(() => Boolean)
+  deleteProductModelLinkedAsset(@Args('id') id: string) {
+    return this.products.deleteProductModelLinkedAsset(id);
   }
 
   @Mutation(() => ModelTargetModel)
@@ -396,7 +444,19 @@ function mapVersionDetail(
       })),
     })),
     models: detail.models.map((model) => ({
-      ...model,
+      id: model.id,
+      productRevisionId: model.productRevisionId,
+      objectAssetRevisionId: model.objectAssetRevisionId,
+      assetId: model.objectAssetRevision.objectAssetId,
+      key: model.key,
+      name: model.name,
+      linkedAssets: model.linkedAssets.map((link) => ({
+        id: link.id,
+        productModelId: link.productModelId,
+        role: link.role,
+        key: link.key,
+        assetRevisionId: link.assetRevisionId,
+      })),
       targets: model.targets,
     })),
     visualEffects: detail.visualEffects.map((effect) => ({

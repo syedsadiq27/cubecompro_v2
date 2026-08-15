@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   NotFoundException,
@@ -8,7 +9,9 @@ import {
   UnauthorizedException,
   StreamableFile,
 } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import type { Response } from 'express';
 import { AuthService } from '../auth/auth.service';
 import { DocumentStoreService } from './document-store.service';
@@ -22,6 +25,16 @@ export class DocumentsController {
     private readonly auth: AuthService
   ) {}
 
+  private requireUser(req: { headers: { authorization?: string } }) {
+    const header = req.headers.authorization;
+    if (!header?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing bearer token');
+    }
+    return this.auth.verifyAccessToken(
+      header.slice('Bearer '.length).trim()
+    );
+  }
+
   @Get('objects/:id/metadata')
   async getObjectMetadata(
     @Param('id') id: string,
@@ -29,25 +42,24 @@ export class DocumentsController {
     req: { headers: { authorization?: string } },
     @Res({ passthrough: true }) res: Response
   ) {
-    const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing bearer token');
-    }
-    const user = this.auth.verifyAccessToken(
-      header.slice('Bearer '.length).trim()
-    );
+    const user = this.requireUser(req);
 
-    const asset = await this.prisma.objectAsset.findUnique({ where: { id } });
+    const asset = await this.prisma.objectAsset.findUnique({
+      where: { id },
+      include: {
+        revisions: { orderBy: { version: 'desc' }, take: 1 },
+      },
+    });
     if (!asset || asset.organizationId !== user.organizationId) {
       throw new NotFoundException('Object asset not found');
     }
-    if (!asset.parsedMetadataUri) {
+    const metaUri =
+      asset.revisions[0]?.parsedMetadataUri ?? asset.parsedMetadataUri;
+    if (!metaUri) {
       throw new NotFoundException('Object metadata missing');
     }
 
-    const absolute = this.documents.resolveAbsolutePath(
-      asset.parsedMetadataUri
-    );
+    const absolute = this.documents.resolveAbsolutePath(metaUri);
     if (!absolute) {
       throw new NotFoundException('Object metadata file missing');
     }
@@ -64,20 +76,21 @@ export class DocumentsController {
     req: { headers: { authorization?: string } },
     @Res({ passthrough: true }) res: Response
   ) {
-    const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing bearer token');
-    }
-    const user = this.auth.verifyAccessToken(
-      header.slice('Bearer '.length).trim()
-    );
+    const user = this.requireUser(req);
 
-    const asset = await this.prisma.objectAsset.findUnique({ where: { id } });
+    const asset = await this.prisma.objectAsset.findUnique({
+      where: { id },
+      include: {
+        revisions: { orderBy: { version: 'desc' }, take: 1 },
+      },
+    });
     if (!asset || asset.organizationId !== user.organizationId) {
       throw new NotFoundException('Object asset not found');
     }
 
-    const absolute = this.documents.resolveAbsolutePath(asset.fileUri);
+    const tip = asset.revisions[0];
+    const uri = tip?.runtimeArtifactUri ?? asset.fileUri;
+    const absolute = this.documents.resolveAbsolutePath(uri);
     if (!absolute) {
       throw new NotFoundException('Object file missing');
     }
@@ -91,6 +104,52 @@ export class DocumentsController {
     return new StreamableFile(createReadStream(absolute));
   }
 
+  @Get('object-revisions/:id')
+  async getObjectRevision(
+    @Param('id') id: string,
+    @Req()
+    req: { headers: { authorization?: string } },
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const user = this.requireUser(req);
+
+    const revision = await this.prisma.objectAssetRevision.findUnique({
+      where: { id },
+      include: { objectAsset: true },
+    });
+    if (
+      !revision ||
+      revision.objectAsset.organizationId !== user.organizationId
+    ) {
+      throw new NotFoundException('Object asset revision not found');
+    }
+
+    const absolute = this.documents.resolveAbsolutePath(
+      revision.runtimeArtifactUri
+    );
+    if (!absolute) {
+      throw new NotFoundException('Object revision artifact missing');
+    }
+
+    const bytes = await readFile(absolute);
+    const hash = createHash('sha256').update(bytes).digest('hex');
+    if (hash !== revision.contentHash) {
+      throw new BadRequestException(
+        'Object revision artifact hash mismatch (corrupt or substituted)'
+      );
+    }
+
+    const isGlb =
+      absolute.endsWith('.glb') || revision.format === 'glb';
+    res.setHeader(
+      'Content-Type',
+      isGlb ? 'model/gltf-binary' : 'application/octet-stream'
+    );
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.setHeader('X-Content-Hash', revision.contentHash);
+    return new StreamableFile(bytes);
+  }
+
   @Get('materials/:id')
   async getMaterial(
     @Param('id') id: string,
@@ -98,13 +157,7 @@ export class DocumentsController {
     req: { headers: { authorization?: string } },
     @Res({ passthrough: true }) res: Response
   ) {
-    const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing bearer token');
-    }
-    const user = this.auth.verifyAccessToken(
-      header.slice('Bearer '.length).trim()
-    );
+    const user = this.requireUser(req);
 
     const asset = await this.prisma.materialAsset.findUnique({ where: { id } });
     if (!asset || asset.organizationId !== user.organizationId) {

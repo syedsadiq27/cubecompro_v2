@@ -19,7 +19,7 @@ export function SceneInspector() {
         <div className="space-y-2">
           <DetailRow
             label="Product"
-            value={editorDocument?.productName || 'Studio Chair'}
+            value={editorDocument?.productName || '—'}
           />
           <div className="flex items-center justify-between py-1">
             <span className="text-[var(--text-muted)]">Environment</span>

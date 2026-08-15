@@ -46,7 +46,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+import { setProductStatusAction } from '@/actions/products';
 import { ImportModal } from './import-modal';
 
 export type CatalogProduct = {
@@ -261,10 +262,17 @@ export function ProductsCatalog({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const toast = useToast();
+  const [pending, startTransition] = useTransition();
 
   const [catalog, setCatalog] = useState<CatalogProduct[]>(
     initialProducts.length > 0 ? initialProducts : INITIAL_DEMO_PRODUCTS
   );
+
+  useEffect(() => {
+    if (initialProducts.length > 0) {
+      setCatalog(initialProducts);
+    }
+  }, [initialProducts]);
 
   // Filter States initialized from URL params if present
   const initialStatusParam = (searchParams.get('status') as StatusFilter) || 'all';
@@ -294,16 +302,18 @@ export function ProductsCatalog({
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // Confirm Dialog State for Deletes
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
     body: string;
+    confirmLabel: string;
+    danger?: boolean;
     onConfirm: () => void;
   }>({
     open: false,
     title: '',
     body: '',
+    confirmLabel: 'Confirm',
     onConfirm: () => {},
   });
 
@@ -498,14 +508,34 @@ export function ProductsCatalog({
   };
 
   const handleBulkArchive = () => {
-    const count = selectedIds.size;
-    setCatalog((prev) =>
-      prev.map((p) =>
-        selectedIds.has(p.id) ? { ...p, statusName: 'ARCHIVED' } : p
-      )
-    );
-    setSelectedIds(new Set());
-    toast.success(`${count} product${count === 1 ? '' : 's'} archived`);
+    const ids = [...selectedIds];
+    const count = ids.length;
+    if (count === 0) return;
+    setConfirmDialog({
+      open: true,
+      title: `Archive ${count} product${count === 1 ? '' : 's'}?`,
+      body: 'Archived products leave the active catalog. Attached 3D models used only by these products are archived too. Shared models stay published.',
+      confirmLabel: 'Archive',
+      danger: false,
+      onConfirm: () => {
+        startTransition(async () => {
+          const results = await Promise.all(
+            ids.map((id) => setProductStatusAction(projectId, id, 'ARCHIVED'))
+          );
+          const failed = results.find((result) => !result.ok);
+          if (failed) {
+            toast.error(failed.error || 'Archive failed.');
+            return;
+          }
+          setSelectedIds(new Set());
+          setConfirmDialog((d) => ({ ...d, open: false }));
+          toast.success(
+            `${count} product${count === 1 ? '' : 's'} archived`
+          );
+          router.refresh();
+        });
+      },
+    });
   };
 
   const handleBulkDelete = () => {
@@ -514,6 +544,8 @@ export function ProductsCatalog({
       open: true,
       title: `Delete ${count} product${count === 1 ? '' : 's'}?`,
       body: 'This permanently removes the selected products from the catalog. This action cannot be undone.',
+      confirmLabel: 'Delete',
+      danger: true,
       onConfirm: () => {
         setCatalog((prev) => prev.filter((p) => !selectedIds.has(p.id)));
         if (inspectId && selectedIds.has(inspectId)) setInspectId(null);
@@ -526,15 +558,56 @@ export function ProductsCatalog({
 
   const handleSingleArchive = (product: CatalogProduct) => {
     const isArchived = product.statusName?.toUpperCase() === 'ARCHIVED';
-    const nextStatus = isArchived ? 'ACTIVE' : 'ARCHIVED';
-    setCatalog((prev) =>
-      prev.map((p) =>
-        p.id === product.id ? { ...p, statusName: nextStatus } : p
-      )
-    );
-    toast.success(
-      isArchived ? `${product.name} restored` : `${product.name} archived`
-    );
+    if (isArchived) {
+      setConfirmDialog({
+        open: true,
+        title: `Restore “${product.name}”?`,
+        body: 'This returns the product to the active catalog.',
+        confirmLabel: 'Restore',
+        danger: false,
+        onConfirm: () => {
+          startTransition(async () => {
+            const result = await setProductStatusAction(
+              projectId,
+              product.id,
+              'ACTIVE'
+            );
+            if (!result.ok) {
+              toast.error(result.error || 'Restore failed.');
+              return;
+            }
+            setConfirmDialog((d) => ({ ...d, open: false }));
+            toast.success(`${product.name} restored`);
+            router.refresh();
+          });
+        },
+      });
+      return;
+    }
+
+    setConfirmDialog({
+      open: true,
+      title: `Archive “${product.name}”?`,
+      body: 'Archived products leave the active catalog. Attached 3D models used only by these products are archived too. Shared models stay published.',
+      confirmLabel: 'Archive',
+      danger: false,
+      onConfirm: () => {
+        startTransition(async () => {
+          const result = await setProductStatusAction(
+            projectId,
+            product.id,
+            'ARCHIVED'
+          );
+          if (!result.ok) {
+            toast.error(result.error || 'Archive failed.');
+            return;
+          }
+          setConfirmDialog((d) => ({ ...d, open: false }));
+          toast.success(`${product.name} archived`);
+          router.refresh();
+        });
+      },
+    });
   };
 
   const handleDuplicate = (product: CatalogProduct) => {
@@ -558,6 +631,8 @@ export function ProductsCatalog({
       open: true,
       title: `Delete “${product.name}”?`,
       body: 'This permanently removes the product from the catalog. This action cannot be undone.',
+      confirmLabel: 'Delete',
+      danger: true,
       onConfirm: () => {
         setCatalog((prev) => prev.filter((p) => p.id !== product.id));
         if (inspectId === product.id) setInspectId(null);
@@ -939,6 +1014,7 @@ export function ProductsCatalog({
               type="button"
               size="sm"
               variant="secondary"
+              disabled={pending}
               onClick={handleBulkArchive}
             >
               Archive
@@ -1226,8 +1302,9 @@ export function ProductsCatalog({
         open={confirmDialog.open}
         title={confirmDialog.title}
         body={confirmDialog.body}
-        confirmLabel="Delete"
-        danger
+        confirmLabel={confirmDialog.confirmLabel}
+        danger={confirmDialog.danger}
+        pending={pending}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog((d) => ({ ...d, open: false }))}
       />

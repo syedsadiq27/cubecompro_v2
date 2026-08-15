@@ -156,6 +156,7 @@ export const OBJECT_ASSETS_QUERY = `
       sizeBytes
       purpose
       status
+      currentRevisionId
       metadataVersion
       nodeCount
       meshCount
@@ -199,6 +200,47 @@ export const CREATE_OBJECT_ASSET_MUTATION = `
       nodeCount
       meshCount
       materialCount
+    }
+  }
+`;
+
+export const CREATE_OBJECT_ASSET_REVISION_MUTATION = `
+  mutation CreateObjectAssetRevision($input: CreateObjectAssetRevisionInput!) {
+    createObjectAssetRevision(input: $input) {
+      id
+      objectAssetId
+      version
+      contentHash
+      format
+      sizeBytes
+      frozenAt
+      documentUrl
+    }
+  }
+`;
+
+export const UPDATE_OBJECT_ASSET_STATUS_MUTATION = `
+  mutation UpdateObjectAssetStatus($input: UpdateObjectAssetStatusInput!) {
+    updateObjectAssetStatus(input: $input) {
+      id
+      name
+      status
+      currentRevisionId
+    }
+  }
+`;
+
+export const OBJECT_ASSET_REVISIONS_QUERY = `
+  query ObjectAssetRevisions($objectAssetId: String!) {
+    objectAssetRevisions(objectAssetId: $objectAssetId) {
+      id
+      objectAssetId
+      version
+      contentHash
+      format
+      sizeBytes
+      frozenAt
+      documentUrl
     }
   }
 `;
@@ -377,6 +419,13 @@ export const PRODUCT_REVISION_DETAIL_QUERY = `
         key
         name
         assetId
+        objectAssetRevisionId
+        linkedAssets {
+          id
+          role
+          key
+          assetRevisionId
+        }
         targets {
           id
           key
@@ -513,11 +562,58 @@ export const CREATE_PRODUCT_MODEL_MUTATION = `
   mutation CreateProductModel($input: CreateProductModelInput!) {
     createProductModel(input: $input) {
       id
+      productRevisionId
+      assetId
+      objectAssetRevisionId
       key
       name
     }
   }
 `;
+
+export const UPDATE_PRODUCT_MODEL_REVISION_MUTATION = `
+  mutation UpdateProductModelRevision($input: UpdateProductModelRevisionInput!) {
+    updateProductModelRevision(input: $input) {
+      id
+      productRevisionId
+      assetId
+      objectAssetRevisionId
+      key
+      name
+    }
+  }
+`;
+
+export const CREATE_PRODUCT_MODEL_LINKED_ASSET_MUTATION = `
+  mutation CreateProductModelLinkedAsset($input: CreateProductModelLinkedAssetInput!) {
+    createProductModelLinkedAsset(input: $input) {
+      id
+      productModelId
+      role
+      key
+      assetRevisionId
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT_MODEL_LINKED_ASSET_MUTATION = `
+  mutation UpdateProductModelLinkedAsset($input: UpdateProductModelLinkedAssetInput!) {
+    updateProductModelLinkedAsset(input: $input) {
+      id
+      productModelId
+      role
+      key
+      assetRevisionId
+    }
+  }
+`;
+
+export const DELETE_PRODUCT_MODEL_LINKED_ASSET_MUTATION = `
+  mutation DeleteProductModelLinkedAsset($id: String!) {
+    deleteProductModelLinkedAsset(id: $id)
+  }
+`;
+
 
 export const CREATE_MODEL_TARGET_MUTATION = `
   mutation CreateModelTarget($input: CreateModelTargetInput!) {
@@ -630,15 +726,66 @@ export const RESOLVE_COMMERCE_QUERY = `
   }
 `;
 
-export const UPSERT_SHOPIFY_CONNECTION_MUTATION = `
-  mutation UpsertShopifyConnection($input: UpsertShopifyConnectionInput!) {
-    upsertShopifyConnection(input: $input) {
+export const SHOPIFY_CONNECTIONS_QUERY = `
+  query ShopifyConnections($organizationId: String!) {
+    shopifyConnections(organizationId: $organizationId) {
       id
       organizationId
       provider
       externalAccountId
+      displayName
       apiVersion
       hasAccessToken
+    }
+  }
+`;
+
+export const START_SHOPIFY_OAUTH_MUTATION = `
+  mutation StartShopifyOAuth($input: ShopifyOAuthStartInput!) {
+    startShopifyOAuth(input: $input) {
+      authorizeUrl
+    }
+  }
+`;
+
+export const DISCONNECT_SHOPIFY_MUTATION = `
+  mutation DisconnectShopify($input: DisconnectShopifyInput!) {
+    disconnectShopify(input: $input)
+  }
+`;
+
+export const SHOPIFY_CATALOG_PRODUCTS_QUERY = `
+  query ShopifyCatalogProducts(
+    $organizationId: String!
+    $query: String
+    $integrationConnectionId: String
+  ) {
+    shopifyCatalogProducts(
+      organizationId: $organizationId
+      query: $query
+      integrationConnectionId: $integrationConnectionId
+    ) {
+      id
+      title
+      handle
+      status
+      options
+      variantCount
+    }
+  }
+`;
+
+export const PREVIEW_SHOPIFY_PRODUCT_IMPORT_QUERY = `
+  query PreviewShopifyProductImport($input: PreviewShopifyImportInput!) {
+    previewShopifyProductImport(input: $input) {
+      connectionId
+      shop
+      productName
+      identityChoiceKeys
+      identityChoiceNames
+      mappedCount
+      unmappedCount
+      reviewJson
     }
   }
 `;
@@ -653,6 +800,56 @@ export const IMPORT_SHOPIFY_PRODUCT_MUTATION = `
       identityChoiceKeys
       mappingCount
       commerceMappingSetId
+    }
+  }
+`;
+
+export const PRODUCT_SHOPIFY_COMMERCE_QUERY = `
+  query ProductShopifyCommerce($productId: String!, $organizationId: String!) {
+    productShopifyCommerce(
+      productId: $productId
+      organizationId: $organizationId
+    ) {
+      shop
+      displayName
+      externalProductId
+      identityChoiceKeys
+      identityChoiceNames
+      mappedCount
+      unmappedCount
+      rows {
+        label
+        status
+        sku
+        externalId
+      }
+    }
+  }
+`;
+
+export const SHOPIFY_IMPORT_PROOF_QUERY = `
+  query ShopifyImportProof($productId: String!, $organizationId: String!) {
+    shopifyImportProof(productId: $productId, organizationId: $organizationId) {
+      productId
+      productRevisionId
+      productName
+      choices {
+        key
+        name
+        values {
+          key
+          name
+        }
+      }
+      identityChoiceNames
+      mappingCount
+      constraintCount
+      resolutions {
+        label
+        status
+        externalId
+        sku
+      }
     }
   }
 `;

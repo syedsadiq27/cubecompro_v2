@@ -24,6 +24,8 @@ export type CommerceMapping = {
 export type CommerceMappingSet = {
   productRevisionId: string;
   provider: string;
+  /** Required for ResolvedCommerce handoff / provider I/O. */
+  integrationConnectionId?: string;
   identityChoiceKeys: ChoiceKey[];
   mappings: CommerceMapping[];
 };
@@ -32,6 +34,8 @@ export type CommerceResolution =
   | {
       status: 'RESOLVED';
       provider: string;
+      /** Present when the mapping set carries a connection; required for live I/O. */
+      integrationConnectionId?: string;
       externalReference: CommerceExternalReference;
     }
   | {
@@ -58,6 +62,7 @@ export type NormalizeCommerceMappingInput = {
 export type NormalizeCommerceMappingSetInput = {
   productRevisionId: string;
   provider: string;
+  integrationConnectionId?: string | null;
   identityChoiceKeys: ChoiceKey[];
   revisionChoices: CommerceRevisionChoice[];
   mappings: NormalizeCommerceMappingInput[];
@@ -139,9 +144,16 @@ export function resolveCommerce(input: {
     return { status: 'UNMAPPED' };
   }
 
+  const integrationConnectionId =
+    typeof input.mappingSet.integrationConnectionId === 'string' &&
+    input.mappingSet.integrationConnectionId.trim().length > 0
+      ? input.mappingSet.integrationConnectionId.trim()
+      : undefined;
+
   return {
     status: 'RESOLVED',
     provider: input.mappingSet.provider,
+    ...(integrationConnectionId ? { integrationConnectionId } : {}),
     externalReference: match.externalReference,
   };
 }
@@ -153,6 +165,12 @@ export function normalizeCommerceMappingSet(
   if (!provider) {
     throw new CommerceNormalizeError('provider is required');
   }
+
+  const integrationConnectionId =
+    typeof input.integrationConnectionId === 'string' &&
+    input.integrationConnectionId.trim().length > 0
+      ? input.integrationConnectionId.trim()
+      : undefined;
 
   const revisionByKey = new Map(
     input.revisionChoices.map((choice) => [choice.key, choice])
@@ -260,6 +278,7 @@ export function normalizeCommerceMappingSet(
   return {
     productRevisionId: input.productRevisionId,
     provider,
+    ...(integrationConnectionId ? { integrationConnectionId } : {}),
     identityChoiceKeys,
     mappings,
   };

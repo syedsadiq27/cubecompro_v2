@@ -10,6 +10,7 @@ import {
   GraphVersionStatus,
   ObjectAssetPurpose,
   ObjectAssetStatus,
+  ProductModelAssetRole,
   ProductStatus,
   VisualOperation,
 } from '@prisma/client';
@@ -20,6 +21,7 @@ registerEnumType(AttributeType, { name: 'AttributeType' });
 registerEnumType(VisualOperation, { name: 'VisualOperation' });
 registerEnumType(ObjectAssetPurpose, { name: 'ObjectAssetPurpose' });
 registerEnumType(ObjectAssetStatus, { name: 'ObjectAssetStatus' });
+registerEnumType(ProductModelAssetRole, { name: 'ProductModelAssetRole' });
 
 @ObjectType()
 export class OrganizationModel {
@@ -232,6 +234,24 @@ export class ModelTargetModel {
 }
 
 @ObjectType()
+export class ProductModelLinkedAssetModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  productModelId: string;
+
+  @Field(() => ProductModelAssetRole)
+  role: ProductModelAssetRole;
+
+  @Field()
+  key: string;
+
+  @Field()
+  assetRevisionId: string;
+}
+
+@ObjectType()
 export class ProductModelAssetModel {
   @Field(() => ID)
   id: string;
@@ -239,14 +259,22 @@ export class ProductModelAssetModel {
   @Field()
   productRevisionId: string;
 
+  /** Parent ObjectAsset id (library identity). */
   @Field()
   assetId: string;
+
+  /** Exact immutable revision pin. */
+  @Field()
+  objectAssetRevisionId: string;
 
   @Field()
   key: string;
 
   @Field()
   name: string;
+
+  @Field(() => [ProductModelLinkedAssetModel], { nullable: true })
+  linkedAssets?: ProductModelLinkedAssetModel[];
 
   @Field(() => [ModelTargetModel], { nullable: true })
   targets?: ModelTargetModel[];
@@ -550,6 +578,39 @@ export class ObjectAssetModel {
 
   @Field(() => String, { nullable: true })
   metadataUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  currentRevisionId?: string | null;
+}
+
+@ObjectType()
+export class ObjectAssetRevisionModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  objectAssetId: string;
+
+  @Field(() => Number)
+  version: number;
+
+  @Field()
+  runtimeArtifactUri: string;
+
+  @Field()
+  contentHash: string;
+
+  @Field()
+  frozenAt: Date;
+
+  @Field(() => String, { nullable: true })
+  format?: string | null;
+
+  @Field(() => Number, { nullable: true })
+  sizeBytes?: number | null;
+
+  @Field(() => String, { nullable: true })
+  documentUrl?: string | null;
 }
 
 @ObjectType()
@@ -603,6 +664,12 @@ export class ResolvedVisualEffectModel {
   materialAssetId?: string | null;
 
   @Field(() => String, { nullable: true })
+  objectAssetRevisionId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  linkedAssetKey?: string | null;
+
+  @Field(() => String, { nullable: true })
   documentUrl?: string | null;
 }
 
@@ -610,6 +677,12 @@ export class ResolvedVisualEffectModel {
 export class Resolved3DStateModel {
   @Field(() => String, { nullable: true })
   modelId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  rootObjectAssetRevisionId?: string | null;
+
+  @Field(() => [String])
+  activeObjectAssetRevisionIds: string[];
 
   @Field(() => [ResolvedVisualEffectModel])
   effects: ResolvedVisualEffectModel[];
@@ -830,14 +903,60 @@ export class CreateProductModelInput {
   @Field()
   productRevisionId: string;
 
-  @Field()
-  assetId: string;
+  /** Pin the latest revision of this library ObjectAsset (default attach path). */
+  @Field(() => String, { nullable: true })
+  assetId?: string;
+
+  /** Explicit pin to an immutable ObjectAssetRevision. */
+  @Field(() => String, { nullable: true })
+  objectAssetRevisionId?: string;
 
   @Field()
   key: string;
 
   @Field()
   name: string;
+}
+
+@InputType()
+export class UpdateProductModelRevisionInput {
+  @Field()
+  productModelId: string;
+
+  /** Pin the latest revision of this library ObjectAsset. */
+  @Field(() => String, { nullable: true })
+  assetId?: string;
+
+  /** Explicit pin to an immutable ObjectAssetRevision. */
+  @Field(() => String, { nullable: true })
+  objectAssetRevisionId?: string;
+}
+
+@InputType()
+export class CreateProductModelLinkedAssetInput {
+  @Field()
+  productModelId: string;
+
+  @Field(() => ProductModelAssetRole)
+  role: ProductModelAssetRole;
+
+  @Field()
+  key: string;
+
+  @Field()
+  assetRevisionId: string;
+}
+
+@InputType()
+export class UpdateProductModelLinkedAssetInput {
+  @Field()
+  id: string;
+
+  @Field(() => String, { nullable: true })
+  key?: string;
+
+  @Field(() => String, { nullable: true })
+  assetRevisionId?: string;
 }
 
 @InputType()
@@ -943,18 +1062,30 @@ export class ReplaceCommerceMappingSetInput {
 }
 
 @InputType()
-export class UpsertShopifyConnectionInput {
+export class ShopifyOAuthStartInput {
   @Field()
   organizationId: string;
 
   @Field()
-  shop: string;
+  projectId: string;
 
   @Field()
-  accessToken: string;
+  shop: string;
+}
 
-  @Field(() => String, { nullable: true })
-  apiVersion?: string;
+@ObjectType()
+export class ShopifyOAuthStartModel {
+  @Field()
+  authorizeUrl: string;
+}
+
+@InputType()
+export class DisconnectShopifyInput {
+  @Field()
+  organizationId: string;
+
+  @Field()
+  integrationConnectionId: string;
 }
 
 @InputType()
@@ -972,6 +1103,18 @@ export class ImportShopifyProductInput {
   productJson?: string;
 }
 
+@InputType()
+export class PreviewShopifyImportInput {
+  @Field()
+  organizationId: string;
+
+  @Field()
+  shopifyProductId: string;
+
+  @Field(() => String, { nullable: true })
+  integrationConnectionId?: string;
+}
+
 @ObjectType()
 export class IntegrationConnectionModel {
   @Field(() => ID)
@@ -986,11 +1129,167 @@ export class IntegrationConnectionModel {
   @Field()
   externalAccountId: string;
 
+  @Field(() => String, { nullable: true })
+  displayName?: string | null;
+
   @Field()
   apiVersion: string;
 
   @Field()
   hasAccessToken: boolean;
+}
+
+@ObjectType()
+export class ShopifyCatalogProductModel {
+  @Field()
+  id: string;
+
+  @Field()
+  title: string;
+
+  @Field()
+  handle: string;
+
+  @Field()
+  status: string;
+
+  @Field(() => [String])
+  options: string[];
+
+  @Field()
+  variantCount: number;
+}
+
+@ObjectType()
+export class ShopifyImportPreviewModel {
+  @Field()
+  connectionId: string;
+
+  @Field()
+  shop: string;
+
+  @Field()
+  productName: string;
+
+  @Field(() => [String])
+  identityChoiceKeys: string[];
+
+  @Field(() => [String])
+  identityChoiceNames: string[];
+
+  @Field()
+  mappedCount: number;
+
+  @Field()
+  unmappedCount: number;
+
+  @Field()
+  reviewJson: string;
+}
+
+@ObjectType()
+export class ShopifyProductCommerceRowModel {
+  @Field()
+  label: string;
+
+  @Field()
+  status: string;
+
+  @Field(() => String, { nullable: true })
+  sku?: string | null;
+
+  @Field(() => String, { nullable: true })
+  externalId?: string | null;
+}
+
+@ObjectType()
+export class ShopifyProductCommerceModel {
+  @Field()
+  shop: string;
+
+  @Field(() => String, { nullable: true })
+  displayName?: string | null;
+
+  @Field()
+  externalProductId: string;
+
+  @Field(() => [String])
+  identityChoiceKeys: string[];
+
+  @Field(() => [String])
+  identityChoiceNames: string[];
+
+  @Field()
+  mappedCount: number;
+
+  @Field()
+  unmappedCount: number;
+
+  @Field(() => [ShopifyProductCommerceRowModel])
+  rows: ShopifyProductCommerceRowModel[];
+}
+
+@ObjectType()
+export class ShopifyImportProofChoiceValueModel {
+  @Field()
+  key: string;
+
+  @Field()
+  name: string;
+}
+
+@ObjectType()
+export class ShopifyImportProofChoiceModel {
+  @Field()
+  key: string;
+
+  @Field()
+  name: string;
+
+  @Field(() => [ShopifyImportProofChoiceValueModel])
+  values: ShopifyImportProofChoiceValueModel[];
+}
+
+@ObjectType()
+export class ShopifyImportProofResolutionModel {
+  @Field()
+  label: string;
+
+  @Field()
+  status: string;
+
+  @Field(() => String, { nullable: true })
+  externalId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  sku?: string | null;
+}
+
+@ObjectType()
+export class ShopifyImportProofModel {
+  @Field()
+  productId: string;
+
+  @Field()
+  productRevisionId: string;
+
+  @Field()
+  productName: string;
+
+  @Field(() => [ShopifyImportProofChoiceModel])
+  choices: ShopifyImportProofChoiceModel[];
+
+  @Field(() => [String])
+  identityChoiceNames: string[];
+
+  @Field()
+  mappingCount: number;
+
+  @Field()
+  constraintCount: number;
+
+  @Field(() => [ShopifyImportProofResolutionModel])
+  resolutions: ShopifyImportProofResolutionModel[];
 }
 
 @ObjectType()
@@ -1162,6 +1461,27 @@ export class CreateObjectAssetInput {
 
   @Field(() => ObjectAssetPurpose, { nullable: true })
   purpose?: ObjectAssetPurpose;
+}
+
+@InputType()
+export class CreateObjectAssetRevisionInput {
+  @Field()
+  objectAssetId: string;
+
+  @Field()
+  fileBase64: string;
+
+  @Field(() => String, { nullable: true })
+  fileName?: string;
+}
+
+@InputType()
+export class UpdateObjectAssetStatusInput {
+  @Field()
+  id: string;
+
+  @Field(() => ObjectAssetStatus)
+  status: ObjectAssetStatus;
 }
 
 @InputType()

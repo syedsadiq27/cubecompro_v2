@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import {
   Button,
   ConfirmDialog,
@@ -11,6 +12,11 @@ import {
   useToast,
 } from '@repo/ui';
 import {
+  createConstraintAction,
+  deleteConstraintAction,
+} from '@/actions/graph';
+import { useProductDraftSave } from '@/components/products/workspace/product-draft-save';
+import {
   CloseIcon,
   DragHandleIcon,
   ExternalLinkIcon,
@@ -19,8 +25,12 @@ import {
   PlusIcon,
   SearchIcon,
 } from '@/components/bo/icons';
-import { RowActionMenu } from '@/components/bo';
-import type { GraphDetail } from '@/lib/product-workspace';
+import { EmptyState, RowActionMenu } from '@/components/bo';
+import type { ShopifyCommerceView } from '@/actions/shopify';
+import {
+  type GraphDetail,
+  useLiveProductData,
+} from '@/lib/product-workspace';
 
 type RuleItem = {
   id: string;
@@ -48,22 +58,75 @@ const DEFAULT_RULES: RuleItem[] = [
   },
 ];
 
+function rulesFromDetail(detail: GraphDetail | null): RuleItem[] {
+  const constraints = detail?.constraints ?? [];
+  return constraints.map((constraint, index) => {
+    const label = constraint.terms
+      .map((term) => {
+        const choice = term.choiceKey ?? 'option';
+        const value = term.choiceValueKey ?? term.choiceValueId;
+        return `${choice} = ${value}`;
+      })
+      .join(' · ');
+    return {
+      id: constraint.id,
+      priority: index + 1,
+      ifCondition: label || 'Constraint',
+      thenAction: 'Mark invalid',
+      description: 'Forbidden option combination',
+      status: 'Active' as const,
+      createdDate: '',
+      updatedDate: '',
+      updatedTime: '',
+    };
+  });
+}
+
+function emptyChoiceSelections(
+  detail: GraphDetail | null
+): Record<string, string> {
+  const next: Record<string, string> = {};
+  for (const choice of detail?.choices ?? []) {
+    next[choice.id] = '';
+  }
+  return next;
+}
+
 export function RulesTab({
   projectId,
   productId,
   detail,
   editable,
+  shopifyCommerce,
 }: {
   projectId: string;
   productId: string;
   detail: GraphDetail | null;
   editable: boolean;
+  shopifyCommerce?: ShopifyCommerceView | null;
 }) {
   const toast = useToast();
-  const [rules, setRules] = useState<RuleItem[]>(DEFAULT_RULES);
-  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(DEFAULT_RULES[0]?.id ?? null);
+  const router = useRouter();
+  const draftSave = useProductDraftSave();
+  const [pending, startTransition] = useTransition();
+  const live = useLiveProductData(detail, shopifyCommerce);
+  const liveRules = rulesFromDetail(detail);
+  const seed = live ? liveRules : DEFAULT_RULES;
+  const choices = detail?.choices ?? [];
+  const [rules, setRules] = useState<RuleItem[]>(seed);
+  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(
+    seed[0]?.id ?? null
+  );
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('Active');
+
+  useEffect(() => {
+    const next = live ? rulesFromDetail(detail) : DEFAULT_RULES;
+    setRules(next);
+    setSelectedRuleId((current) =>
+      next.some((rule) => rule.id === current) ? current : (next[0]?.id ?? null)
+    );
+  }, [live, detail?.id, detail?.constraints.length]);
 
   // Dialogs
   const [addRuleOpen, setAddRuleOpen] = useState(false);
@@ -74,6 +137,9 @@ export function RulesTab({
   const [newThen, setNewThen] = useState('Color ≠ White');
   const [newDesc, setNewDesc] = useState('');
   const [newPriority, setNewPriority] = useState(1);
+  const [choiceSelections, setChoiceSelections] = useState<
+    Record<string, string>
+  >(() => emptyChoiceSelections(detail));
 
   // Edit states
   const [editIf, setEditIf] = useState('');
@@ -107,8 +173,55 @@ export function RulesTab({
 
   const selectedRule = rules.find((r) => r.id === selectedRuleId) ?? null;
 
+  const openAddRule = () => {
+    setChoiceSelections(emptyChoiceSelections(detail));
+    setNewIf('Material = Leather');
+    setNewThen('Color ≠ White');
+    setNewDesc('');
+    setNewPriority(rules.length + 1);
+    setAddRuleOpen(true);
+  };
+
   const handleAddRule = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (live) {
+      if (!detail?.id) {
+        toast.error('No product revision to attach a constraint to.');
+        return;
+      }
+      const choiceValueIds = Object.values(choiceSelections).filter(Boolean);
+      if (choiceValueIds.length < 2) {
+        toast.error('Pick a value from at least two options.');
+        return;
+      }
+      if (draftSave.enabled) {
+        draftSave.queue({
+          kind: 'createConstraint',
+          label: `Constraint (${choiceValueIds.length} values)`,
+          productRevisionId: detail.id,
+          choiceValueIds,
+        });
+        setAddRuleOpen(false);
+        toast.success('Queued constraint — click Save to commit');
+        return;
+      }
+      startTransition(async () => {
+        const result = await createConstraintAction(projectId, productId, {
+          productRevisionId: detail.id,
+          choiceValueIds,
+        });
+        if (result.ok) {
+          setAddRuleOpen(false);
+          toast.success('Constraint created');
+          router.refresh();
+        } else {
+          toast.error(result.error || 'Failed to create constraint');
+        }
+      });
+      return;
+    }
+
     const newRule: RuleItem = {
       id: `rule_${Date.now()}`,
       priority: newPriority,
@@ -118,7 +231,10 @@ export function RulesTab({
       status: 'Active',
       createdDate: 'Just now',
       updatedDate: 'May 14, 2025',
-      updatedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      updatedTime: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
     };
 
     setRules((prev) => [...prev, newRule]);
@@ -155,8 +271,38 @@ export function RulesTab({
     setConfirmDialog({
       open: true,
       title: 'Delete configuration rule?',
-      body: `This permanently deletes the rule “${rule.description}”. Option compatibility checks will no longer enforce this restriction.`,
+      body: `This permanently deletes the rule “${rule.description || rule.ifCondition}”. Option compatibility checks will no longer enforce this restriction.`,
       onConfirm: () => {
+        if (live) {
+          if (draftSave.enabled) {
+            draftSave.queue({
+              kind: 'deleteConstraint',
+              label: `Delete ${rule.description || rule.ifCondition}`,
+              constraintId: rule.id,
+            });
+            setRules((prev) => prev.filter((r) => r.id !== rule.id));
+            if (selectedRuleId === rule.id) {
+              setSelectedRuleId(null);
+            }
+            toast.success('Queued delete — click Save to commit');
+            return;
+          }
+          startTransition(async () => {
+            const result = await deleteConstraintAction(
+              projectId,
+              productId,
+              rule.id
+            );
+            setConfirmDialog((d) => ({ ...d, open: false }));
+            if (result.ok) {
+              toast.success('Constraint deleted');
+              router.refresh();
+            } else {
+              toast.error(result.error || 'Failed to delete constraint');
+            }
+          });
+          return;
+        }
         setRules((prev) => prev.filter((r) => r.id !== rule.id));
         if (selectedRuleId === rule.id) setSelectedRuleId(null);
         setConfirmDialog((d) => ({ ...d, open: false }));
@@ -197,7 +343,8 @@ export function RulesTab({
             <Button
               type="button"
               size="sm"
-              onClick={() => setAddRuleOpen(true)}
+              onClick={openAddRule}
+              disabled={live && (!editable || choices.length < 2)}
               className="ui:flex ui:items-center ui:gap-1.5 ui:h-8 ui:px-3 ui:rounded-lg ui:bg-[var(--ink)] ui:hover:bg-black ui:text-white ui:text-[12px] ui:font-medium ui:shadow-xs"
             >
               <PlusIcon size={14} />
@@ -206,7 +353,23 @@ export function RulesTab({
           </div>
         </div>
 
-        {/* Toolbar */}
+        {live && rules.length === 0 ? (
+          <EmptyState
+            title="No configuration rules yet"
+            description="Shopify variant availability does not define product compatibility. A missing Shopify variant is UNMAPPED — not INVALID. Add a rule only when a combination should be forbidden."
+            action={
+              editable && choices.length >= 2 ? (
+                <Button type="button" size="sm" onClick={openAddRule}>
+                  Add rule
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : null}
+
+        {/* Toolbar + table (mock UI preserved; hidden when live graph has no rules) */}
+        {!(live && rules.length === 0) ? (
+          <>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <SearchIcon
@@ -341,19 +504,25 @@ export function RulesTab({
                               id: 'inspect',
                               label: isSelected ? 'Close details' : 'Inspect rule',
                               onClick: () =>
-                                setSelectedRuleId((c) => (c === rule.id ? null : rule.id)),
+                                setSelectedRuleId((c) =>
+                                  c === rule.id ? null : rule.id
+                                ),
                             },
-                            {
-                              id: 'edit',
-                              label: 'Edit rule',
-                              onClick: () => {
-                                setEditRuleTarget(rule);
-                                setEditIf(rule.ifCondition);
-                                setEditThen(rule.thenAction);
-                                setEditDesc(rule.description);
-                                setEditPriority(rule.priority);
-                              },
-                            },
+                            ...(live
+                              ? []
+                              : [
+                                  {
+                                    id: 'edit',
+                                    label: 'Edit rule',
+                                    onClick: () => {
+                                      setEditRuleTarget(rule);
+                                      setEditIf(rule.ifCondition);
+                                      setEditThen(rule.thenAction);
+                                      setEditDesc(rule.description);
+                                      setEditPriority(rule.priority);
+                                    },
+                                  },
+                                ]),
                             {
                               id: 'delete',
                               label: 'Delete rule',
@@ -371,6 +540,8 @@ export function RulesTab({
             </DataTable.Body>
           </DataTable>
         </div>
+          </>
+        ) : null}
       </div>
 
       {/* Right Inspector Drawer (~4 cols / 340px) */}
@@ -404,30 +575,45 @@ export function RulesTab({
 
             {/* Actions */}
             <div className="p-4 flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="flex-1 ui:h-8 ui:text-[12px]"
-                onClick={() => {
-                  setEditRuleTarget(selectedRule);
-                  setEditIf(selectedRule.ifCondition);
-                  setEditThen(selectedRule.thenAction);
-                  setEditDesc(selectedRule.description);
-                  setEditPriority(selectedRule.priority);
-                }}
-              >
-                <PencilIcon size={13} className="mr-1 inline" />
-                <span>Edit rule</span>
-              </Button>
-              <button
-                type="button"
-                aria-label="More"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] text-[var(--ink)] hover:bg-[var(--canvas)]"
-                onClick={() => handleDeleteRule(selectedRule)}
-              >
-                <MoreHorizontalIcon size={15} />
-              </button>
+              {!live ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="flex-1 ui:h-8 ui:text-[12px]"
+                  onClick={() => {
+                    setEditRuleTarget(selectedRule);
+                    setEditIf(selectedRule.ifCondition);
+                    setEditThen(selectedRule.thenAction);
+                    setEditDesc(selectedRule.description);
+                    setEditPriority(selectedRule.priority);
+                  }}
+                >
+                  <PencilIcon size={13} className="mr-1 inline" />
+                  <span>Edit rule</span>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="flex-1 ui:h-8 ui:text-[12px]"
+                  onClick={() => handleDeleteRule(selectedRule)}
+                  disabled={pending || !editable}
+                >
+                  Delete constraint
+                </Button>
+              )}
+              {!live ? (
+                <button
+                  type="button"
+                  aria-label="More"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] text-[var(--ink)] hover:bg-[var(--canvas)]"
+                  onClick={() => handleDeleteRule(selectedRule)}
+                >
+                  <MoreHorizontalIcon size={15} />
+                </button>
+              ) : null}
             </div>
 
             {/* Summary */}
@@ -568,9 +754,13 @@ export function RulesTab({
           <div className="w-full max-w-md rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-5 shadow-xl animate-in zoom-in-95 duration-150">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-[16px] font-semibold text-[var(--ink)]">New Rule</h3>
+                <h3 className="text-[16px] font-semibold text-[var(--ink)]">
+                  {live ? 'New constraint' : 'New Rule'}
+                </h3>
                 <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
-                  Define a logic restriction between configuration options.
+                  {live
+                    ? 'Pick one value from at least two options. That combination becomes invalid.'
+                    : 'Define a logic restriction between configuration options.'}
                 </p>
               </div>
               <button
@@ -583,50 +773,89 @@ export function RulesTab({
             </div>
 
             <form onSubmit={handleAddRule} className="mt-4 space-y-3.5">
-              <Field label="IF Condition" htmlFor="new-rule-if">
-                <Input
-                  id="new-rule-if"
-                  type="text"
-                  required
-                  placeholder="e.g. Material = Leather"
-                  value={newIf}
-                  onChange={(e) => setNewIf(e.target.value)}
-                  className="ui:font-mono ui:text-[12px]"
-                />
-              </Field>
+              {live ? (
+                <>
+                  {choices.map((choice) => (
+                    <Field
+                      key={choice.id}
+                      label={choice.name}
+                      htmlFor={`constraint-${choice.id}`}
+                    >
+                      <Select
+                        id={`constraint-${choice.id}`}
+                        value={choiceSelections[choice.id] ?? ''}
+                        onChange={(e) =>
+                          setChoiceSelections((prev) => ({
+                            ...prev,
+                            [choice.id]: e.target.value,
+                          }))
+                        }
+                        className="ui:text-[13px]"
+                      >
+                        <option value="">Not included</option>
+                        {choice.values.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                  ))}
+                  {choices.length < 2 ? (
+                    <p className="text-[12px] text-[var(--text-secondary)]">
+                      Add at least two options on the Options tab before creating
+                      a constraint.
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <Field label="IF Condition" htmlFor="new-rule-if">
+                    <Input
+                      id="new-rule-if"
+                      type="text"
+                      required
+                      placeholder="e.g. Material = Leather"
+                      value={newIf}
+                      onChange={(e) => setNewIf(e.target.value)}
+                      className="ui:font-mono ui:text-[12px]"
+                    />
+                  </Field>
 
-              <Field label="THEN Action" htmlFor="new-rule-then">
-                <Input
-                  id="new-rule-then"
-                  type="text"
-                  required
-                  placeholder="e.g. Color ≠ White"
-                  value={newThen}
-                  onChange={(e) => setNewThen(e.target.value)}
-                  className="ui:font-mono ui:text-[12px]"
-                />
-              </Field>
+                  <Field label="THEN Action" htmlFor="new-rule-then">
+                    <Input
+                      id="new-rule-then"
+                      type="text"
+                      required
+                      placeholder="e.g. Color ≠ White"
+                      value={newThen}
+                      onChange={(e) => setNewThen(e.target.value)}
+                      className="ui:font-mono ui:text-[12px]"
+                    />
+                  </Field>
 
-              <Field label="Description" htmlFor="new-rule-desc">
-                <Input
-                  id="new-rule-desc"
-                  type="text"
-                  placeholder="e.g. White is not available for leather material."
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                />
-              </Field>
+                  <Field label="Description" htmlFor="new-rule-desc">
+                    <Input
+                      id="new-rule-desc"
+                      type="text"
+                      placeholder="e.g. White is not available for leather material."
+                      value={newDesc}
+                      onChange={(e) => setNewDesc(e.target.value)}
+                    />
+                  </Field>
 
-              <Field label="Priority" htmlFor="new-rule-priority">
-                <Input
-                  id="new-rule-priority"
-                  type="number"
-                  min={1}
-                  value={newPriority}
-                  onChange={(e) => setNewPriority(Number(e.target.value))}
-                  className="ui:w-24 ui:font-mono ui:text-[12px]"
-                />
-              </Field>
+                  <Field label="Priority" htmlFor="new-rule-priority">
+                    <Input
+                      id="new-rule-priority"
+                      type="number"
+                      min={1}
+                      value={newPriority}
+                      onChange={(e) => setNewPriority(Number(e.target.value))}
+                      className="ui:w-24 ui:font-mono ui:text-[12px]"
+                    />
+                  </Field>
+                </>
+              )}
 
               <div className="mt-5 flex justify-end gap-2 pt-2 border-t border-[var(--line)]">
                 <Button
@@ -640,9 +869,14 @@ export function RulesTab({
                 <Button
                   type="submit"
                   size="sm"
+                  disabled={pending}
                   className="ui:bg-[var(--ink)] ui:text-white ui:hover:bg-black"
                 >
-                  Create rule
+                  {pending
+                    ? 'Saving…'
+                    : live
+                      ? 'Create constraint'
+                      : 'Create rule'}
                 </Button>
               </div>
             </form>

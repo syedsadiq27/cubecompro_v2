@@ -3,12 +3,15 @@ import {
   CreateLibraryFolderInput,
   CreateMaterialAssetInput,
   CreateObjectAssetInput,
+  CreateObjectAssetRevisionInput,
   CreateTextureAssetInput,
   LibraryFolderModel,
   MaterialAssetModel,
   ObjectAssetModel,
+  ObjectAssetRevisionModel,
   TextureAssetModel,
   UpdateMaterialAssetInput,
+  UpdateObjectAssetStatusInput,
 } from '../graphql/models';
 import { LibraryService } from './library.service';
 
@@ -62,6 +65,23 @@ export class LibraryResolver {
   @Mutation(() => ObjectAssetModel)
   createObjectAsset(@Args('input') input: CreateObjectAssetInput) {
     return this.library.createObject(input);
+  }
+
+  @Mutation(() => ObjectAssetRevisionModel)
+  createObjectAssetRevision(
+    @Args('input') input: CreateObjectAssetRevisionInput
+  ) {
+    return this.library.createObjectRevision(input);
+  }
+
+  @Mutation(() => ObjectAssetModel)
+  updateObjectAssetStatus(@Args('input') input: UpdateObjectAssetStatusInput) {
+    return this.library.updateObjectStatus(input);
+  }
+
+  @Query(() => [ObjectAssetRevisionModel])
+  objectAssetRevisions(@Args('objectAssetId') objectAssetId: string) {
+    return this.library.listObjectRevisions(objectAssetId);
   }
 
   @Query(() => [ObjectAssetModel])

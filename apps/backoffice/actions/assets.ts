@@ -5,10 +5,13 @@ import { graphRequest } from '@repo/product-graph';
 import {
   CREATE_MATERIAL_ASSET_MUTATION,
   CREATE_OBJECT_ASSET_MUTATION,
+  CREATE_OBJECT_ASSET_REVISION_MUTATION,
   DELETE_OBJECT_ASSET_MUTATION,
   DELETE_TEXTURE_ASSET_MUTATION,
   ME_QUERY,
+  OBJECT_ASSET_REVISIONS_QUERY,
   UPDATE_MATERIAL_ASSET_MUTATION,
+  UPDATE_OBJECT_ASSET_STATUS_MUTATION,
 } from '@repo/product-graph';
 import { getProjectSession } from '@/lib/session-server';
 
@@ -181,6 +184,125 @@ export async function createObjectAction(
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Upload failed.',
+    };
+  }
+}
+
+export async function createObjectRevisionAction(
+  projectId: string,
+  objectAssetId: string,
+  formData: FormData
+) {
+  const project = await getProjectSession();
+  if (!project || project.projectId !== projectId) {
+    return { ok: false, error: 'Session missing.' };
+  }
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: 'GLB/GLTF file is required.' };
+  }
+
+  try {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const fileBase64 = bytes.toString('base64');
+    const created = await graphRequest<{
+      createObjectAssetRevision: {
+        id: string;
+        version: number;
+        contentHash: string;
+      };
+    }>(
+      CREATE_OBJECT_ASSET_REVISION_MUTATION,
+      {
+        input: {
+          objectAssetId,
+          fileBase64,
+          fileName: file.name,
+        },
+      },
+      project.projectToken
+    );
+    revalidatePath(`/${projectId}/library/objects`);
+    revalidatePath(`/${projectId}/library`);
+    return {
+      ok: true,
+      id: created.createObjectAssetRevision.id,
+      version: created.createObjectAssetRevision.version,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Upload failed.',
+    };
+  }
+}
+
+export async function listObjectRevisionsAction(
+  projectId: string,
+  objectAssetId: string
+) {
+  const project = await getProjectSession();
+  if (!project || project.projectId !== projectId) {
+    return { ok: false as const, error: 'Session missing.', revisions: [] };
+  }
+
+  try {
+    const data = await graphRequest<{
+      objectAssetRevisions: Array<{
+        id: string;
+        version: number;
+        contentHash: string;
+        format?: string | null;
+        sizeBytes?: number | null;
+        frozenAt: string;
+      }>;
+    }>(
+      OBJECT_ASSET_REVISIONS_QUERY,
+      { objectAssetId },
+      project.projectToken
+    );
+    return {
+      ok: true as const,
+      revisions: data.objectAssetRevisions,
+    };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error: error instanceof Error ? error.message : 'Failed to load revisions.',
+      revisions: [],
+    };
+  }
+}
+
+export async function setObjectAssetStatusAction(
+  projectId: string,
+  objectAssetId: string,
+  status: 'READY' | 'ARCHIVED' | 'FAILED' | 'PROCESSING'
+) {
+  const project = await getProjectSession();
+  if (!project || project.projectId !== projectId) {
+    return { ok: false, error: 'Session missing.' };
+  }
+
+  try {
+    await graphRequest(
+      UPDATE_OBJECT_ASSET_STATUS_MUTATION,
+      {
+        input: {
+          id: objectAssetId,
+          status,
+        },
+      },
+      project.projectToken
+    );
+    revalidatePath(`/${projectId}/library/objects`);
+    revalidatePath(`/${projectId}/library`);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Status update failed.',
     };
   }
 }

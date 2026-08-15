@@ -38,6 +38,9 @@ export class ResolveResolver {
         : null,
       threeD: {
         modelId: resolved.threeD.modelId,
+        rootObjectAssetRevisionId: resolved.threeD.rootObjectAssetRevisionId,
+        activeObjectAssetRevisionIds:
+          resolved.threeD.activeObjectAssetRevisionIds,
         effects: resolved.threeD.effects.map((effect) => ({
           targetKey: effect.targetKey,
           targetType: effect.targetType,
@@ -45,6 +48,8 @@ export class ResolveResolver {
           operation: effect.operation,
           valueJson: JSON.stringify(effect.value),
           materialAssetId: effect.materialAssetId ?? null,
+          objectAssetRevisionId: effect.objectAssetRevisionId ?? null,
+          linkedAssetKey: effect.linkedAssetKey ?? null,
           documentUrl: effect.documentUrl ?? null,
         })),
       },

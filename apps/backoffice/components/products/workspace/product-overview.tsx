@@ -10,7 +10,11 @@ import {
   PencilIcon,
 } from '@/components/bo/icons';
 import { StatusBadge } from '@/components/bo/states/operational-states';
-import type { GraphDetail } from '@/lib/product-workspace';
+import type { ShopifyCommerceView } from '@/actions/shopify';
+import {
+  type GraphDetail,
+  useLiveProductData,
+} from '@/lib/product-workspace';
 
 export function EditProductDetailsDrawer({
   projectId,
@@ -125,6 +129,7 @@ export function ProductOverview({
   detail,
   modelCount = 1,
   mappingCount = 1,
+  shopifyCommerce,
   onEditDetails,
   onConfigureOptions,
   onOpenVariants,
@@ -142,6 +147,7 @@ export function ProductOverview({
   detail: GraphDetail | null;
   modelCount?: number;
   mappingCount?: number;
+  shopifyCommerce?: ShopifyCommerceView | null;
   onEditDetails: () => void;
   onConfigureOptions: () => void;
   onOpenVariants?: () => void;
@@ -150,14 +156,17 @@ export function ProductOverview({
   onOpenActivity?: () => void;
 }) {
   const toast = useToast();
+  const live = useLiveProductData(detail, shopifyCommerce);
 
-  const galleryImages = [
-    'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1580481077197-28565a0db830?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=600&auto=format&fit=crop&q=80',
-  ];
+  const galleryImages = live
+    ? ([] as string[])
+    : [
+        'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1580481077197-28565a0db830?w=600&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=600&auto=format&fit=crop&q=80',
+      ];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [moreMetaExpanded, setMoreMetaExpanded] = useState(false);
@@ -193,15 +202,26 @@ export function ProductOverview({
                 {/* Left: Image Gallery */}
                 <div className="sm:col-span-5 space-y-2">
                   <div className="relative h-52 sm:h-auto sm:aspect-square w-full rounded-xl border border-[var(--line)] bg-[#F8F7F5] overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={galleryImages[activeImageIndex]}
-                      alt={product.name}
-                      className="h-full w-full object-cover transition-all duration-200"
-                    />
+                    {galleryImages.length > 0 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={galleryImages[activeImageIndex]}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-all duration-200"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-[var(--canvas)] text-center px-4">
+                        <p className="text-[13px] font-medium text-[var(--ink)]">
+                          No image
+                        </p>
+                        <p className="text-[11px] text-[var(--text-muted)]">
+                          Product media is not configured yet.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Thumbnail Row */}
+                  {galleryImages.length > 0 ? (
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
                     {galleryImages.slice(0, 4).map((src, i) => (
                       <button
@@ -226,6 +246,7 @@ export function ProductOverview({
                       +3
                     </div>
                   </div>
+                  ) : null}
                 </div>
 
                 {/* Right: Identity & Meta */}
@@ -244,11 +265,33 @@ export function ProductOverview({
                   </div>
 
                   <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
-                    {product.description ||
-                      'Modern lounge chair with premium upholstery and solid wood frame. Designed for comfort and timeless interiors.'}
+                    {product.description?.trim()
+                      ? product.description
+                      : live
+                        ? 'No description.'
+                        : 'Modern lounge chair with premium upholstery and solid wood frame. Designed for comfort and timeless interiors.'}
                   </p>
 
                   <div className="space-y-1.5 border-t border-[var(--line)] pt-2.5 text-[12px]">
+                    {live ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[var(--text-muted)]">Key</span>
+                          <span className="font-mono font-medium text-[var(--ink)]">
+                            {product.key}
+                          </span>
+                        </div>
+                        {shopifyCommerce ? (
+                          <div className="flex items-center justify-between">
+                            <span className="text-[var(--text-muted)]">Shopify</span>
+                            <span className="font-mono text-[var(--text-secondary)]">
+                              {shopifyCommerce.shop}
+                            </span>
+                          </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
                     <div className="flex items-center justify-between">
                       <span className="text-[var(--text-muted)]">Brand</span>
                       <span className="font-medium text-[var(--ink)]">CubeCom</span>
@@ -265,6 +308,8 @@ export function ProductOverview({
                       <span className="text-[var(--text-muted)]">Updated</span>
                       <span className="text-[var(--text-secondary)]">May 14, 2025 by Demo Owner</span>
                     </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -292,11 +337,41 @@ export function ProductOverview({
                   Configuration structure
                 </p>
                 <span className="rounded bg-[var(--canvas)] px-2 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-muted)]">
-                  4 options
+                  {detail?.choices.length
+                    ? `${detail.choices.length} options`
+                    : '4 options'}
                 </span>
               </div>
 
               <div className="space-y-2.5 text-[12px]">
+                {detail?.choices.length ? (
+                  detail.choices.map((choice) => (
+                    <div
+                      key={choice.id}
+                      className="rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] p-2.5 space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-[var(--ink)]">
+                          {choice.name}
+                        </span>
+                        <span className="text-[11px] text-[var(--text-muted)]">
+                          {choice.type || 'Choice'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
+                        {choice.values.map((value) => (
+                          <span
+                            key={value.id}
+                            className="rounded bg-[var(--canvas)] px-1.5 py-0.5"
+                          >
+                            {value.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <>
                 {/* Color Choice */}
                 <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] p-2.5 space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -343,6 +418,8 @@ export function ProductOverview({
                     Leather, Fabric
                   </div>
                 </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -450,9 +527,13 @@ export function ProductOverview({
           <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-4 shadow-xs space-y-3">
             <h3 className="text-[13px] font-semibold text-[var(--ink)]">Description</h3>
             <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
-              {product.description ||
-                'The Studio Chair pairs ergonomic design with refined craft. Precision-machined solid wood legs provide stability, while the hand-finished upholstery ensures lasting comfort for contract and residential use.'}
+              {product.description?.trim()
+                ? product.description
+                : live
+                  ? 'No description imported.'
+                  : 'The Studio Chair pairs ergonomic design with refined craft. Precision-machined solid wood legs provide stability, while the hand-finished upholstery ensures lasting comfort for contract and residential use.'}
             </p>
+            {!live ? (
             <div className="pt-2 border-t border-[var(--line)]">
               <h4 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase mb-1.5">
                 Key Features
@@ -463,11 +544,18 @@ export function ProductOverview({
                 <li>Modular upholstery replacement system</li>
               </ul>
             </div>
+            ) : null}
           </div>
 
           {/* Card 4: Attributes */}
           <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-4 shadow-xs space-y-3">
             <h3 className="text-[13px] font-semibold text-[var(--ink)]">Attributes</h3>
+            {live ? (
+              <p className="text-[12px] text-[var(--text-secondary)]">
+                No product attributes in the API yet. Dimensions, weight, and
+                similar fields are not stored on Product today.
+              </p>
+            ) : (
             <div className="space-y-2 text-[12px]">
               <div className="flex justify-between border-b border-[var(--line)]/60 pb-1.5">
                 <span className="text-[var(--text-muted)]">Dimensions</span>
@@ -490,6 +578,7 @@ export function ProductOverview({
                 <span className="text-[var(--ink)]">Portugal</span>
               </div>
             </div>
+            )}
           </div>
         </div>
 
@@ -517,6 +606,12 @@ export function ProductOverview({
             {/* Card 5: SEO */}
             <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-4 shadow-xs space-y-3">
               <h3 className="text-[13px] font-semibold text-[var(--ink)]">SEO</h3>
+              {live ? (
+                <p className="text-[12px] text-[var(--text-secondary)]">
+                  No SEO fields on Product yet. Title, handle, and meta
+                  description are mock UI only until a catalog SEO model exists.
+                </p>
+              ) : (
               <div className="space-y-2 text-[12px]">
                 <div>
                   <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase">
@@ -541,6 +636,7 @@ export function ProductOverview({
                   </p>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Card 6: Linked Resources */}

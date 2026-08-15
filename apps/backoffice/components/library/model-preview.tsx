@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createGltfLoader } from '@/lib/create-gltf-loader';
 
 const MAX_ACTIVE_PREVIEWS = 4;
 const HIDE_TEARDOWN_MS = 400;
@@ -64,11 +64,13 @@ function disposeRenderer(renderer: THREE.WebGLRenderer) {
 
 export function ModelGlbPreview({
   assetId,
+  objectAssetRevisionId,
   className = '',
   interactive = false,
   priority = false,
 }: {
   assetId: string;
+  objectAssetRevisionId?: string | null;
   className?: string;
   interactive?: boolean;
   priority?: boolean;
@@ -188,14 +190,19 @@ export function ModelGlbPreview({
 
     (async () => {
       try {
-        const response = await fetch(`/api/documents/objects/${assetId}`, {
+        const response = await fetch(
+          objectAssetRevisionId
+            ? `/api/documents/object-revisions/${objectAssetRevisionId}`
+            : `/api/documents/objects/${assetId}`,
+          {
           cache: 'force-cache',
-        });
+          }
+        );
         if (!response.ok) throw new Error('Failed to load model');
         const blob = await response.blob();
         if (disposed) return;
         objectUrl = URL.createObjectURL(blob);
-        const loader = new GLTFLoader();
+        const loader = createGltfLoader();
         const gltf = await loader.loadAsync(objectUrl);
         if (disposed) {
           disposeObject(gltf.scene);
@@ -223,7 +230,7 @@ export function ModelGlbPreview({
       disposeRenderer(renderer);
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [assetId, interactive, active, priority]);
+  }, [assetId, objectAssetRevisionId, interactive, active, priority]);
 
   return (
     <div

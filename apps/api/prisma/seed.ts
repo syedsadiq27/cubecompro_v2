@@ -447,6 +447,41 @@ async function seed() {
     });
   }
 
+  const latestChairRevision = await prisma.objectAssetRevision.findFirst({
+    where: { objectAssetId: chairAsset.id },
+    orderBy: { version: 'desc' },
+  });
+  let chairRevision = latestChairRevision;
+  if (!chairRevision) {
+    chairRevision = await prisma.objectAssetRevision.create({
+      data: {
+        objectAssetId: chairAsset.id,
+        version: 1,
+        runtimeArtifactUri: chairMeta.uri,
+        contentHash: chairMeta.sha256,
+        format: 'glb',
+        sizeBytes: chairGlb.length,
+        parsedMetadataUri: chairParsedMeta.uri,
+        parsedMetadataSha256: chairParsedMeta.sha256,
+        metadataVersion: chairParsed.metadataVersion,
+      },
+    });
+  } else if (chairRevision.contentHash !== chairMeta.sha256) {
+    chairRevision = await prisma.objectAssetRevision.create({
+      data: {
+        objectAssetId: chairAsset.id,
+        version: chairRevision.version + 1,
+        runtimeArtifactUri: chairMeta.uri,
+        contentHash: chairMeta.sha256,
+        format: 'glb',
+        sizeBytes: chairGlb.length,
+        parsedMetadataUri: chairParsedMeta.uri,
+        parsedMetadataSha256: chairParsedMeta.sha256,
+        metadataVersion: chairParsed.metadataVersion,
+      },
+    });
+  }
+
   let product = await prisma.product.findUnique({
     where: {
       projectId_key: {
@@ -610,9 +645,18 @@ async function seed() {
   const productModel = await prisma.productModel.create({
     data: {
       productRevisionId: version.id,
-      assetId: chairAsset.id,
+      objectAssetRevisionId: chairRevision.id,
       key: 'primary',
       name: 'Primary Chair',
+      linkedAssets: {
+        create: [
+          {
+            role: 'OBJECT',
+            key: 'root',
+            assetRevisionId: chairRevision.id,
+          },
+        ],
+      },
     },
   });
 

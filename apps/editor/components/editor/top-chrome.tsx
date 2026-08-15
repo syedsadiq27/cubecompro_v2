@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, StatusBadge, TopBar } from '@repo/ui';
 import { useEditorStore } from '@/lib/editor-store';
 import { EDITOR_EMBED } from '@repo/product-graph';
@@ -18,12 +18,19 @@ export function TopChrome() {
     (state) => state.saveVisualDocument
   );
 
-  const [productName, setProductName] = useState(
-    editorDocument?.productName || 'Studio Chair'
-  );
+  const loadedName = editorDocument?.productName?.trim() || '';
+  const [productName, setProductName] = useState(loadedName);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [saveDropdownOpen, setSaveDropdownOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isEditingTitle) {
+      setProductName(loadedName);
+    }
+  }, [loadedName, isEditingTitle]);
+
+  const displayName = productName || (loading ? 'Loading…' : 'No product');
 
   const onClose = () => {
     setSelected(null);
@@ -74,7 +81,9 @@ export function TopChrome() {
       start={
         <>
           <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-[var(--text-muted)]">
-            <span className="cursor-pointer hover:text-[var(--ink)]">Catalog</span>
+            <span className="cursor-pointer hover:text-[var(--ink)]">
+              Catalog
+            </span>
             <span>/</span>
             {isEditingTitle ? (
               <input
@@ -96,7 +105,7 @@ export function TopChrome() {
                 onClick={() => setIsEditingTitle(true)}
                 className="group flex h-7 items-center gap-1 rounded-md px-1.5 text-[12px] font-semibold text-[var(--ink)] hover:bg-[var(--canvas)]"
               >
-                <span className="truncate">{productName}</span>
+                <span className="truncate">{displayName}</span>
                 <span className="text-[10px] text-[var(--text-muted)] opacity-60 group-hover:opacity-100">
                   ✎
                 </span>

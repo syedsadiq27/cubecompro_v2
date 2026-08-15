@@ -24,6 +24,7 @@ export type ObjectAssetOption = {
   code?: string | null;
   fileUrl?: string | null;
   status?: string | null;
+  currentRevisionId?: string | null;
   meshCount?: number | null;
   format?: string | null;
 };
@@ -70,6 +71,21 @@ export function countValues(detail: GraphDetail | null): number {
   return detail.choices.reduce(
     (sum, attribute) => sum + attribute.values.length,
     0
+  );
+}
+
+/** Prefer live revision/commerce data over demo mockups when present. */
+export function useLiveProductData(
+  detail: GraphDetail | null,
+  shopifyCommerce?: unknown
+): boolean {
+  if (shopifyCommerce) return true;
+  if (!detail) return false;
+  return (
+    detail.choices.length > 0 ||
+    detail.models.length > 0 ||
+    detail.constraints.length > 0 ||
+    detail.variants.length > 0
   );
 }
 
@@ -225,4 +241,8 @@ export function semanticKeyFromNodeName(name: string): string {
 
 export function objectProxyUrl(assetId: string): string {
   return `/api/documents/objects/${assetId}`;
+}
+
+export function objectRevisionProxyUrl(objectAssetRevisionId: string): string {
+  return `/api/documents/object-revisions/${objectAssetRevisionId}`;
 }

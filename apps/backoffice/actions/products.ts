@@ -47,6 +47,38 @@ export async function softDeleteProductAction(
   }
 }
 
+export async function setProductStatusAction(
+  projectId: string,
+  productId: string,
+  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED'
+): Promise<MutationResult> {
+  const project = await getProjectSession();
+  if (!project || project.projectId !== projectId) {
+    return { ok: false, error: 'Project session missing.' };
+  }
+
+  try {
+    await graphRequest(
+      UPDATE_PRODUCT_MUTATION,
+      {
+        input: {
+          id: productId,
+          status,
+        },
+      },
+      project.projectToken
+    );
+    revalidatePath(`/${projectId}/products`);
+    revalidatePath(`/${projectId}/products/${productId}`);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Status update failed.',
+    };
+  }
+}
+
 export async function updateProductMetadataAction(
   projectId: string,
   productId: string,

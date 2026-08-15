@@ -71,6 +71,32 @@ export function shopifyLabelToSemanticKey(label: string): string {
   return key;
 }
 
+/** Stable short key from a Shopify GID or legacy numeric id (for product.key only). */
+export function shopifyResourceKey(id: string | number): string {
+  const trimmed = String(id).trim();
+  const match = /\/(\d+)$/.exec(trimmed);
+  return match?.[1] ?? trimmed.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+export function sameShopifyResourceId(
+  left: string | number,
+  right: string | number
+): boolean {
+  const a = String(left).trim();
+  const b = String(right).trim();
+  if (a === b) return true;
+  return shopifyResourceKey(a) === shopifyResourceKey(b);
+}
+
+/** Prefer numeric legacy id for UI display; keep full GID in persistence. */
+export function shopifyDisplayId(id: string | number | null | undefined): string {
+  if (id == null) return '';
+  const trimmed = String(id).trim();
+  if (!trimmed) return '';
+  const match = /\/(\d+)$/.exec(trimmed);
+  return match?.[1] ?? trimmed;
+}
+
 function isDefaultTitleOnly(options: ShopifyProductOptionDto[]): boolean {
   if (options.length !== 1) return false;
   const option = options[0]!;
@@ -107,7 +133,10 @@ export function planShopifyProductImport(
   const handleKey = product.handle?.trim()
     ? shopifyLabelToSemanticKey(product.handle)
     : shopifyLabelToSemanticKey(productName);
-  const productKey = `shopify-${externalProductId}-${handleKey}`.slice(0, 64);
+  const productKey = `shopify-${shopifyResourceKey(externalProductId)}-${handleKey}`.slice(
+    0,
+    64
+  );
 
   const options = Array.isArray(product.options) ? product.options : [];
   const emptyIdentity = options.length === 0 || isDefaultTitleOnly(options);
@@ -266,5 +295,111 @@ export function planShopifyProductImport(
     choices,
     identityChoiceKeys,
     mappings,
+  };
+}
+
+export type ShopifyImportReviewRow = {
+  label: string;
+  terms: Array<{ choiceKey: string; valueKey: string; valueName: string }>;
+  status: 'mapped' | 'unmapped';
+  externalId?: string;
+  sku?: string;
+};
+
+export type ShopifyImportReview = {
+  plan: ShopifyImportPlan;
+  rows: ShopifyImportReviewRow[];
+  mappedCount: number;
+  unmappedCount: number;
+};
+
+function cartesianProduct<T>(lists: T[][]): T[][] {
+  if (lists.length === 0) return [[]];
+  return lists.reduce<T[][]>(
+    (acc, list) => acc.flatMap((prefix) => list.map((item) => [...prefix, item])),
+    [[]]
+  );
+}
+
+/**
+ * Build review rows: observed Shopify variants + missing combinations as UNMAPPED.
+ * Missing combinations are catalog gaps, not CubeCom INVALID.
+ */
+export function buildShopifyImportReview(
+  plan: ShopifyImportPlan
+): ShopifyImportReview {
+  if (plan.identityChoiceKeys.length === 0) {
+    const mapping = plan.mappings[0];
+    const rows: ShopifyImportReviewRow[] = mapping
+      ? [
+          {
+            label: 'Default',
+            terms: [],
+            status: 'mapped',
+            externalId: mapping.externalId,
+            sku: mapping.sku,
+          },
+        ]
+      : [];
+    return {
+      plan,
+      rows,
+      mappedCount: rows.length,
+      unmappedCount: 0,
+    };
+  }
+
+  const valueNameByKey = new Map<string, string>();
+  for (const choice of plan.choices) {
+    for (const value of choice.values) {
+      valueNameByKey.set(`${choice.key}\0${value.key}`, value.name);
+    }
+  }
+
+  const mappedBySignature = new Map<string, ShopifyImportMappingPlan>();
+  for (const mapping of plan.mappings) {
+    const signature = mapping.terms
+      .map((term) => `${term.choiceKey}=${term.valueKey}`)
+      .join('&');
+    mappedBySignature.set(signature, mapping);
+  }
+
+  const valueLists = plan.choices.map((choice) =>
+    choice.values.map((value) => ({
+      choiceKey: choice.key,
+      valueKey: value.key,
+      valueName: value.name,
+    }))
+  );
+  const combinations = cartesianProduct(valueLists);
+
+  const rows: ShopifyImportReviewRow[] = combinations.map((combo) => {
+    const signature = combo
+      .map((term) => `${term.choiceKey}=${term.valueKey}`)
+      .join('&');
+    const mapped = mappedBySignature.get(signature);
+    const label = combo.map((term) => term.valueName).join(' + ');
+    if (mapped) {
+      return {
+        label,
+        terms: combo,
+        status: 'mapped' as const,
+        externalId: mapped.externalId,
+        sku: mapped.sku,
+      };
+    }
+    return {
+      label,
+      terms: combo,
+      status: 'unmapped' as const,
+    };
+  });
+
+  const mappedCount = rows.filter((row) => row.status === 'mapped').length;
+  return {
+    plan,
+    rows,
+    mappedCount,
+    unmappedCount: rows.length - mappedCount,
   };
 }

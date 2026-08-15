@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import { Button, useToast } from '@repo/ui';
+import { createProductModelAction } from '@/actions/graph';
+import { ChangeProductModelForm } from '@/components/products/workspace/change-product-model-form';
 import { ModelGlbPreview } from '@/components/library/model-preview';
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
   CloseIcon,
-  DownloadIcon,
   ExternalLinkIcon,
   EyeIcon,
   GlobeIcon,
@@ -18,40 +20,190 @@ import {
   PlusIcon,
   SmartphoneIcon,
 } from '@/components/bo/icons';
+import { EmptyState } from '@/components/bo';
 import { StatusBadge } from '@/components/bo/states/operational-states';
-import { getEditorStudioPath } from '@/lib/editor-embed';
-import type {
-  GraphDetail,
-  MaterialAssetOption,
-  ObjectAssetOption,
+import { getEditorStudioPath, getProduct3DStudioPath } from '@/lib/editor-embed';
+import type { ShopifyCommerceView } from '@/actions/shopify';
+import {
+  type GraphDetail,
+  type MaterialAssetOption,
+  type ObjectAssetOption,
+  useLiveProductData,
 } from '@/lib/product-workspace';
 
 export function ThreeDTab({
   projectId,
   productId,
+  productName,
+  productKey,
   detail,
   objectAssets = [],
   materialAssets = [],
   editable,
+  shopifyCommerce,
 }: {
   projectId: string;
   productId: string;
+  productName: string;
+  productKey?: string;
   detail: GraphDetail | null;
   objectAssets?: ObjectAssetOption[];
   materialAssets?: MaterialAssetOption[];
   editable: boolean;
+  shopifyCommerce?: ShopifyCommerceView | null;
 }) {
   const toast = useToast();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const live = useLiveProductData(detail, shopifyCommerce);
   const [expandedMapping, setExpandedMapping] = useState<'color' | 'frame' | null>('color');
   const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [showAttach, setShowAttach] = useState(false);
+  const [showChangeModel, setShowChangeModel] = useState(false);
 
   const primaryModel = detail?.models[0] ?? null;
   const primaryAsset =
     objectAssets.find((asset) => asset.id === primaryModel?.assetId) ?? null;
-  const assetName = primaryAsset?.name ?? primaryModel?.name ?? 'Demo Chair';
+  const assetName =
+    primaryAsset?.name ??
+    primaryModel?.name ??
+    (live ? 'Attached model' : 'Demo Chair');
   const editorHref = primaryModel
     ? getEditorStudioPath(projectId, productId, primaryModel.id)
     : null;
+  const studioHref = getProduct3DStudioPath(projectId, productId);
+
+  if (live && !primaryModel) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <p className="text-[12px] font-medium text-[var(--text-secondary)]">
+            {productName}
+          </p>
+          <h2 className="mt-0.5 text-[15px] font-semibold text-[var(--ink)]">
+            3D
+          </h2>
+          <p className="mt-0.5 text-[12px] text-[var(--text-secondary)] max-w-xl">
+            No VisualDocument for this ProductRevision yet. Do not reuse another
+            product&apos;s model just to fill the viewport.
+          </p>
+        </div>
+        {!showAttach ? (
+          <EmptyState
+            title="No visual model configured"
+            description="Attach a library object to this product revision, then bind targets to choice values in 3D Studio."
+            action={
+              editable ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setShowAttach(true)}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <PlusIcon size={14} />
+                    Attach model
+                  </span>
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-[14px] font-semibold text-[var(--ink)]">
+                  Attach library object
+                </h3>
+                <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">
+                  Choose a GLB from the project library. Upload new models under
+                  Library first if needed.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAttach(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--ink)]"
+              >
+                <CloseIcon size={16} />
+              </button>
+            </div>
+            {objectAssets.length === 0 ? (
+              <p className="text-[13px] text-[var(--text-secondary)]">
+                No object assets in this project yet.{' '}
+                <Link
+                  href={`/${projectId}/library`}
+                  className="font-medium text-[#665CFF] hover:underline"
+                >
+                  Open library
+                </Link>
+              </p>
+            ) : detail ? (
+              <form
+                className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const form = event.currentTarget;
+                  const formData = new FormData(form);
+                  startTransition(async () => {
+                    const result = await createProductModelAction(
+                      projectId,
+                      productId,
+                      formData
+                    );
+                    if (result.ok) {
+                      toast.success('Model attached');
+                      setShowAttach(false);
+                      router.refresh();
+                    } else {
+                      toast.error(result.error || 'Failed to attach model');
+                    }
+                  });
+                }}
+              >
+                <input
+                  type="hidden"
+                  name="productRevisionId"
+                  value={detail.id}
+                />
+                <input type="hidden" name="key" value="primary" />
+                <input
+                  name="name"
+                  required
+                  placeholder="Model name"
+                  defaultValue="Primary model"
+                  className="w-full rounded-lg border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]"
+                />
+                <select
+                  name="assetId"
+                  required
+                  className="w-full rounded-lg border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]"
+                >
+                  {objectAssets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.name}
+                    </option>
+                  ))}
+                </select>
+                <Button type="submit" size="sm" disabled={pending}>
+                  {pending ? 'Attaching…' : 'Attach'}
+                </Button>
+              </form>
+            ) : null}
+            <p className="text-[12px] text-[var(--text-muted)]">
+              Or open{' '}
+              <Link
+                href={studioHref}
+                className="font-medium text-[#665CFF] hover:underline"
+              >
+                3D Studio
+              </Link>{' '}
+              for the full attach flow.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
@@ -76,6 +228,9 @@ export function ThreeDTab({
                     {primaryModel?.assetId ? (
                       <ModelGlbPreview
                         assetId={primaryModel.assetId}
+                        objectAssetRevisionId={
+                          primaryModel.objectAssetRevisionId
+                        }
                         priority
                         interactive
                         className="absolute inset-0 h-full w-full"
@@ -126,7 +281,12 @@ export function ThreeDTab({
                   <div>
                     <h4 className="text-[15px] font-semibold text-[var(--ink)]">{assetName}</h4>
                     <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                      6 meshes · 3 targets · 2 mappings
+                      {primaryAsset?.meshCount != null
+                        ? `${primaryAsset.meshCount} meshes`
+                        : 'Library object'}
+                      {primaryModel?.targets?.length
+                        ? ` · ${primaryModel.targets.length} targets`
+                        : ''}
                     </p>
 
                     <div className="mt-3 space-y-2 text-[12px]">
@@ -136,46 +296,49 @@ export function ThreeDTab({
                           Ready
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[var(--text-muted)]">Last updated</span>
-                        <span className="text-[var(--text-secondary)]">May 14, 2025 10:24 AM</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[var(--text-muted)]">3D model</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toast.info('Downloading demo-chair.glb')}
-                          className="ui:h-auto ui:gap-1 ui:px-0 ui:font-mono ui:text-[11px] ui:text-[var(--ink)] ui:hover:bg-transparent ui:hover:underline"
-                        >
-                          <span>demo-chair.glb</span>
-                          <DownloadIcon size={12} className="text-[var(--text-muted)]" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[var(--text-muted)]">Thumbnail</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toast.info('Downloading demo-chair-thumb.png')}
-                          className="ui:h-auto ui:gap-1 ui:px-0 ui:font-mono ui:text-[11px] ui:text-[var(--ink)] ui:hover:bg-transparent ui:hover:underline"
-                        >
-                          <span>demo-chair-thumb.png</span>
-                          <DownloadIcon size={12} className="text-[var(--text-muted)]" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[var(--text-muted)]">File size</span>
-                        <span className="font-mono text-[var(--ink)]">24.6 MB</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[var(--text-muted)] shrink-0">3D model</span>
+                        <span className="truncate font-medium text-[var(--ink)]">
+                          {assetName}
+                        </span>
                       </div>
                     </div>
+
+                    {editable && primaryModel ? (
+                      <div className="mt-3 space-y-2">
+                        {!showChangeModel ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            className="w-full"
+                            onClick={() => setShowChangeModel(true)}
+                          >
+                            Change model
+                          </Button>
+                        ) : (
+                          <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-3 space-y-2">
+                            <p className="text-[12px] text-[var(--text-secondary)]">
+                              Pins the latest revision of the selected library
+                              object on this draft.
+                            </p>
+                            <ChangeProductModelForm
+                              projectId={projectId}
+                              productId={productId}
+                              productModelId={primaryModel.id}
+                              objectAssets={objectAssets}
+                              currentAssetId={primaryModel.assetId}
+                              onCancel={() => setShowChangeModel(false)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
 
                   <Button
                     as={Link}
-                    href={editorHref ?? `/${projectId}/editor`}
+                    href={editorHref ?? studioHref}
                     size="sm"
                     className="w-full ui:flex ui:items-center ui:justify-center ui:gap-1.5 ui:h-9 ui:rounded-lg ui:bg-[var(--ink)] ui:hover:bg-black ui:text-white ui:text-[12px] ui:font-medium ui:shadow-xs"
                   >
@@ -492,18 +655,30 @@ export function ThreeDTab({
             {/* Header */}
             <div className="p-4 flex items-start gap-3.5">
               <div className="h-14 w-14 shrink-0 rounded-lg border border-[var(--line)] bg-[#F8F7F5] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://images.unsplash.com/photo-1592078615290-033ee584e267?w=120&auto=format&fit=crop&q=80"
-                  alt="Studio Chair"
-                  className="h-full w-full object-cover"
-                />
+                {primaryModel?.assetId ? (
+                  <ModelGlbPreview
+                    assetId={primaryModel.assetId}
+                    objectAssetRevisionId={primaryModel.objectAssetRevisionId}
+                    className="h-full w-full"
+                  />
+                ) : live ? (
+                  <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--text-muted)]">
+                    No thumb
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src="https://images.unsplash.com/photo-1592078615290-033ee584e267?w=120&auto=format&fit=crop&q=80"
+                    alt={productName || 'Studio Chair'}
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-1.5">
                   <h3 className="truncate text-[15px] font-semibold text-[var(--ink)]">
-                    Studio Chair
+                    {live ? productName : 'Studio Chair'}
                   </h3>
                   <button
                     type="button"
@@ -514,7 +689,9 @@ export function ThreeDTab({
                     <CloseIcon size={14} />
                   </button>
                 </div>
-                <p className="text-[11px] font-mono text-[var(--text-muted)]">CHAIR-01</p>
+                <p className="text-[11px] font-mono text-[var(--text-muted)]">
+                  {live ? productKey || productId.slice(0, 8) : 'CHAIR-01'}
+                </p>
                 <div className="mt-1">
                   <StatusBadge role="published" label="ACTIVE" />
                 </div>

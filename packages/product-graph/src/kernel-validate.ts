@@ -114,6 +114,26 @@ export function validateSelection(
   return { valid: issues.length === 0, issues };
 }
 
+/**
+ * Kernel configuration evaluation for the commerce pipeline gate.
+ * Completeness is separate from validity (missing required ≠ constraint violation).
+ */
+export type ConfigurationEvaluationResult = KernelValidationResult & {
+  complete: boolean;
+};
+
+export function evaluateConfiguration(
+  selection: Selection,
+  choices: readonly KernelChoice[],
+  constraints: readonly KernelConstraint[]
+): ConfigurationEvaluationResult {
+  const validation = validateSelection(selection, choices, constraints);
+  return {
+    ...validation,
+    complete: isSelectionComplete(selection, choices),
+  };
+}
+
 function unsetRequiredChoices(
   selection: Selection,
   choices: readonly KernelChoice[]

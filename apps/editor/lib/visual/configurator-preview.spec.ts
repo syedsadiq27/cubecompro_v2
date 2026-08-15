@@ -97,6 +97,11 @@ describe('configurator-preview kernel composition', () => {
       frame: 'walnut',
     });
     expect(withLeather.validation.valid).toBe(true);
+    expect(withLeather.layers.validity).toBe('VALID');
+    expect(withLeather.layers.completeness).toBe('COMPLETE');
+    expect(withLeather.layers.commerce).toBe('UNMAPPED');
+    expect(withLeather.layers.purchase).toBe('UNAVAILABLE');
+    expect(withLeather.layers.visual).toBe('NO MODEL');
     expect(
       isChoiceValueAvailable(withLeather.availability, 'color', 'white')
     ).toBe(false);

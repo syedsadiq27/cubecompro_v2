@@ -16,6 +16,7 @@ enum GraphVersionStatus {
 enum ProductStatus {
   DRAFT
   ACTIVE
+  UNPUBLISHED
   ARCHIVED
 }
 
@@ -31,6 +32,16 @@ enum VisualOperation {
   SET_MATERIAL
   SET_VISIBILITY
   SET_MODEL
+  REPLACE_COMPONENT
+}
+
+enum ProductModelAssetRole {
+  OBJECT
+  MATERIAL
+  TEXTURE
+  ENVIRONMENT
+  SHADER
+  ANIMATION
 }
 
 enum OrganizationStatus {
@@ -379,19 +390,34 @@ model ConstraintTerm {
 }
 
 model ProductModel {
-  id                String @id @default(cuid())
-  productRevisionId String @map("graphVersionId")
-  assetId           String
-  key               String
-  name              String
+  id                    String @id @default(cuid())
+  productRevisionId     String @map("graphVersionId")
+  objectAssetRevisionId String
+  key                   String
+  name                  String
 
-  productRevision ProductRevision @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
-  asset           ObjectAsset     @relation(fields: [assetId], references: [id], onDelete: Restrict)
-  targets         ModelTarget[]
+  productRevision     ProductRevision     @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  objectAssetRevision ObjectAssetRevision @relation(fields: [objectAssetRevisionId], references: [id], onDelete: Restrict)
+  targets             ModelTarget[]
+  linkedAssets        ProductModelAsset[]
 
   @@unique([productRevisionId, key])
   @@index([productRevisionId])
-  @@index([assetId])
+  @@index([objectAssetRevisionId])
+}
+
+model ProductModelAsset {
+  id              String                @id @default(cuid())
+  productModelId  String
+  role            ProductModelAssetRole
+  key             String
+  assetRevisionId String
+
+  productModel ProductModel @relation(fields: [productModelId], references: [id], onDelete: Cascade)
+
+  @@unique([productModelId, role, key])
+  @@index([productModelId])
+  @@index([assetRevisionId])
 }
 
 model ModelTarget {
@@ -460,7 +486,7 @@ model CommerceMappingSet {
   integrationConnectionId String?
 
   productRevision       ProductRevision        @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
-  integrationConnection IntegrationConnection? @relation(fields: [integrationConnectionId], references: [id], onDelete: Restrict)
+  integrationConnection IntegrationConnection? @relation(fields: [integrationConnectionId], references: [id], onDelete: SetNull)
   identityChoices       CommerceIdentityChoice[]
   mappings              CommerceMapping[]
 
@@ -512,14 +538,15 @@ model IntegrationConnection {
   organizationId    String
   provider          String
   externalAccountId String
+  displayName       String?
   accessToken       String
-  apiVersion        String   @default("2024-10")
+  apiVersion        String   @default("2026-07")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  mappingSets       CommerceMappingSet[]
-  productImports    ProductProviderImport[]
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mappingSets    CommerceMappingSet[]
+  productImports ProductProviderImport[]
 
   @@unique([organizationId, provider, externalAccountId])
   @@index([organizationId])
@@ -631,6 +658,7 @@ enum ObjectAssetStatus {
   PROCESSING
   READY
   FAILED
+  ARCHIVED
 }
 
 model ObjectAsset {
@@ -656,13 +684,34 @@ model ObjectAsset {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  folder       LibraryFolder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  productModels ProductModel[]
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  revisions    ObjectAssetRevision[]
 
   @@index([organizationId, projectId])
   @@index([folderId])
+}
+
+model ObjectAssetRevision {
+  id                   String   @id @default(cuid())
+  objectAssetId        String
+  version              Int
+  runtimeArtifactUri   String
+  contentHash          String
+  frozenAt             DateTime @default(now())
+  format               String?
+  sizeBytes            Int?
+  parsedMetadataUri    String?
+  parsedMetadataSha256 String?
+  metadataVersion      Int?
+
+  objectAsset   ObjectAsset    @relation(fields: [objectAssetId], references: [id], onDelete: Cascade)
+  productModels ProductModel[]
+
+  @@unique([objectAssetId, version])
+  @@index([objectAssetId])
+  @@index([contentHash])
 }
 
 model PlatformSetting {

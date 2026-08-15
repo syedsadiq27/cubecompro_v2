@@ -33,11 +33,21 @@ export {
 export { defaultVisualSelection } from './selection';
 export {
   evaluateConfiguratorPreview,
+  evaluateVisualStatus,
   isChoiceValueAvailable,
+  mappingSetFromGraphDetail,
   toKernelChoices,
   toKernelConstraints,
 } from './configurator-preview';
-export type { ConfiguratorPreviewState } from './configurator-preview';
+export type {
+  CommerceResolutionLabel,
+  ConfiguratorLayerStatus,
+  ConfiguratorPreviewState,
+  KernelCompletenessLabel,
+  KernelValidityLabel,
+  PurchasePreviewLabel,
+  VisualStatusLabel,
+} from './configurator-preview';
 export {
   bindingSemanticKey,
   bindingsEqualForPersist,

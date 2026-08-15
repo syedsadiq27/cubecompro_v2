@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Button } from '@repo/ui';
+import { createGltfLoader } from '@/lib/create-gltf-loader';
 import type { SceneNodeInfo } from '@/lib/product-workspace';
 
 function buildNodePath(object: THREE.Object3D, root: THREE.Object3D): string {
@@ -151,7 +151,7 @@ export function ModelMappingViewer({
     };
     tick();
 
-    const loader = new GLTFLoader();
+    const loader = createGltfLoader();
     loader.load(
       modelUrl,
       (gltf) => {

@@ -6,6 +6,8 @@ import {
 import {
   AttributeType,
   GraphVersionStatus,
+  ObjectAssetStatus,
+  ProductModelAssetRole,
   ProductStatus,
   VisualOperation,
   type Prisma,
@@ -19,6 +21,8 @@ import {
 } from './kernel-authoring';
 import { ConstraintService } from './constraint.service';
 import { CommerceMappingService } from './commerce-mapping.service';
+
+export const PRODUCT_MODEL_ROOT_ASSET_KEY = 'root';
 
 const graphDetailInclude = {
   choices: {
@@ -37,7 +41,13 @@ const graphDetailInclude = {
       },
     },
   },
-  models: { include: { targets: true } },
+  models: {
+    include: {
+      targets: true,
+      objectAssetRevision: true,
+      linkedAssets: { orderBy: [{ role: 'asc' as const }, { key: 'asc' as const }] },
+    },
+  },
   variants: { include: { selections: true } },
   commerceMappingSets: {
     include: {
@@ -134,7 +144,13 @@ export class ProductService {
     status?: ProductStatus;
   }) {
     await this.getById(input.id);
-    return this.prisma.product.update({
+
+    const orphanObjectAssetIds =
+      input.status === ProductStatus.ARCHIVED
+        ? await this.listObjectAssetIdsPinnedOnlyByProduct(input.id)
+        : [];
+
+    const updated = await this.prisma.product.update({
       where: { id: input.id },
       data: {
         ...(input.name !== undefined ? { name: input.name } : {}),
@@ -145,6 +161,49 @@ export class ProductService {
         ...(input.status !== undefined ? { status: input.status } : {}),
       },
     });
+
+    if (orphanObjectAssetIds.length > 0) {
+      await this.prisma.objectAsset.updateMany({
+        where: { id: { in: orphanObjectAssetIds } },
+        data: { status: ObjectAssetStatus.ARCHIVED },
+      });
+    }
+
+    return updated;
+  }
+
+  private async listObjectAssetIdsPinnedOnlyByProduct(productId: string) {
+    const models = await this.prisma.productModel.findMany({
+      where: { productRevision: { productId } },
+      select: {
+        objectAssetRevision: { select: { objectAssetId: true } },
+      },
+    });
+    const candidateIds = [
+      ...new Set(
+        models.map((model) => model.objectAssetRevision.objectAssetId)
+      ),
+    ];
+    if (candidateIds.length === 0) return [];
+
+    const stillShared = await this.prisma.productModel.findMany({
+      where: {
+        objectAssetRevision: { objectAssetId: { in: candidateIds } },
+        productRevision: {
+          product: {
+            id: { not: productId },
+            status: { not: ProductStatus.ARCHIVED },
+          },
+        },
+      },
+      select: {
+        objectAssetRevision: { select: { objectAssetId: true } },
+      },
+    });
+    const sharedIds = new Set(
+      stillShared.map((row) => row.objectAssetRevision.objectAssetId)
+    );
+    return candidateIds.filter((id) => !sharedIds.has(id));
   }
 
   async delete(id: string) {
@@ -337,9 +396,26 @@ export class ProductService {
         const createdModel = await tx.productModel.create({
           data: {
             productRevisionId: draft.id,
-            assetId: model.assetId,
+            objectAssetRevisionId: model.objectAssetRevisionId,
             key: model.key,
             name: model.name,
+            linkedAssets: {
+              create: (
+                model.linkedAssets.length > 0
+                  ? model.linkedAssets
+                  : [
+                      {
+                        role: ProductModelAssetRole.OBJECT,
+                        key: PRODUCT_MODEL_ROOT_ASSET_KEY,
+                        assetRevisionId: model.objectAssetRevisionId,
+                      },
+                    ]
+              ).map((link) => ({
+                role: link.role,
+                key: link.key,
+                assetRevisionId: link.assetRevisionId,
+              })),
+            },
           },
         });
 
@@ -620,25 +696,344 @@ export class ProductService {
 
   async createProductModel(input: {
     productRevisionId: string;
-    assetId: string;
+    assetId?: string;
+    objectAssetRevisionId?: string;
     key: string;
     name: string;
   }) {
     await this.assertDraft(input.productRevisionId);
-    const asset = await this.prisma.objectAsset.findUnique({
-      where: { id: input.assetId },
-    });
-    if (!asset) {
-      throw new NotFoundException('Object asset not found');
+
+    let revisionId = input.objectAssetRevisionId?.trim() || '';
+    if (!revisionId) {
+      const assetId = input.assetId?.trim();
+      if (!assetId) {
+        throw new BadRequestException(
+          'assetId or objectAssetRevisionId is required'
+        );
+      }
+      const latest = await this.prisma.objectAssetRevision.findFirst({
+        where: { objectAssetId: assetId },
+        orderBy: { version: 'desc' },
+      });
+      if (!latest) {
+        throw new NotFoundException(
+          'Object asset has no immutable revision to pin'
+        );
+      }
+      revisionId = latest.id;
     }
+
+    const revision = await this.prisma.objectAssetRevision.findUnique({
+      where: { id: revisionId },
+      include: { objectAsset: true },
+    });
+    if (!revision) {
+      throw new NotFoundException('Object asset revision not found');
+    }
+
     return this.prisma.productModel.create({
       data: {
         productRevisionId: input.productRevisionId,
-        assetId: input.assetId,
+        objectAssetRevisionId: revision.id,
         key: input.key,
         name: input.name,
+        linkedAssets: {
+          create: [
+            {
+              role: ProductModelAssetRole.OBJECT,
+              key: PRODUCT_MODEL_ROOT_ASSET_KEY,
+              assetRevisionId: revision.id,
+            },
+          ],
+        },
+      },
+      include: { objectAssetRevision: true, linkedAssets: true },
+    });
+  }
+
+  async updateProductModelRevision(input: {
+    productModelId: string;
+    assetId?: string;
+    objectAssetRevisionId?: string;
+  }) {
+    const model = await this.prisma.productModel.findUnique({
+      where: { id: input.productModelId },
+    });
+    if (!model) {
+      throw new NotFoundException('Product model not found');
+    }
+    await this.assertDraft(model.productRevisionId);
+
+    let revisionId = input.objectAssetRevisionId?.trim() || '';
+    if (!revisionId) {
+      const assetId = input.assetId?.trim();
+      if (!assetId) {
+        throw new BadRequestException(
+          'assetId or objectAssetRevisionId is required'
+        );
+      }
+      const latest = await this.prisma.objectAssetRevision.findFirst({
+        where: { objectAssetId: assetId },
+        orderBy: { version: 'desc' },
+      });
+      if (!latest) {
+        throw new NotFoundException(
+          'Object asset has no immutable revision to pin'
+        );
+      }
+      revisionId = latest.id;
+    }
+
+    const revision = await this.prisma.objectAssetRevision.findUnique({
+      where: { id: revisionId },
+    });
+    if (!revision) {
+      throw new NotFoundException('Object asset revision not found');
+    }
+
+    return this.prisma.productModel.update({
+      where: { id: input.productModelId },
+      data: {
+        objectAssetRevisionId: revision.id,
+        linkedAssets: {
+          upsert: {
+            where: {
+              productModelId_role_key: {
+                productModelId: input.productModelId,
+                role: ProductModelAssetRole.OBJECT,
+                key: PRODUCT_MODEL_ROOT_ASSET_KEY,
+              },
+            },
+            create: {
+              role: ProductModelAssetRole.OBJECT,
+              key: PRODUCT_MODEL_ROOT_ASSET_KEY,
+              assetRevisionId: revision.id,
+            },
+            update: {
+              assetRevisionId: revision.id,
+            },
+          },
+        },
+      },
+      include: { objectAssetRevision: true, linkedAssets: true },
+    });
+  }
+
+  async createProductModelLinkedAsset(input: {
+    productModelId: string;
+    role: ProductModelAssetRole;
+    key: string;
+    assetRevisionId: string;
+  }) {
+    const model = await this.prisma.productModel.findUnique({
+      where: { id: input.productModelId },
+    });
+    if (!model) {
+      throw new NotFoundException('Product model not found');
+    }
+    await this.assertDraft(model.productRevisionId);
+
+    const key = input.key.trim();
+    if (!key) {
+      throw new BadRequestException('key is required');
+    }
+    if (
+      input.role === ProductModelAssetRole.OBJECT &&
+      key === PRODUCT_MODEL_ROOT_ASSET_KEY
+    ) {
+      throw new BadRequestException(
+        'Root object link is managed via the product model pin, not as an additional link'
+      );
+    }
+
+    await this.assertLinkedAssetRevision(input.role, input.assetRevisionId);
+
+    return this.prisma.productModelAsset.create({
+      data: {
+        productModelId: input.productModelId,
+        role: input.role,
+        key,
+        assetRevisionId: input.assetRevisionId.trim(),
       },
     });
+  }
+
+  async updateProductModelLinkedAsset(input: {
+    id: string;
+    assetRevisionId?: string;
+    key?: string;
+  }) {
+    const link = await this.prisma.productModelAsset.findUnique({
+      where: { id: input.id },
+      include: { productModel: true },
+    });
+    if (!link) {
+      throw new NotFoundException('Product model asset link not found');
+    }
+    await this.assertDraft(link.productModel.productRevisionId);
+
+    const isRoot =
+      link.role === ProductModelAssetRole.OBJECT &&
+      link.key === PRODUCT_MODEL_ROOT_ASSET_KEY;
+    if (isRoot) {
+      throw new BadRequestException(
+        'OBJECT/root is a mechanical mirror of ProductModel.objectAssetRevisionId. Repoint the product model instead.'
+      );
+    }
+
+    const nextKey =
+      input.key !== undefined ? input.key.trim() : undefined;
+    if (nextKey !== undefined && !nextKey) {
+      throw new BadRequestException('key is required');
+    }
+    if (nextKey === PRODUCT_MODEL_ROOT_ASSET_KEY) {
+      throw new BadRequestException('Cannot rename a link to the reserved root key');
+    }
+
+    const nextRevisionId =
+      input.assetRevisionId !== undefined
+        ? input.assetRevisionId.trim()
+        : undefined;
+    if (nextRevisionId !== undefined) {
+      if (!nextRevisionId) {
+        throw new BadRequestException('assetRevisionId is required');
+      }
+      await this.assertLinkedAssetRevision(link.role, nextRevisionId);
+    }
+
+    return this.prisma.productModelAsset.update({
+      where: { id: input.id },
+      data: {
+        ...(nextKey !== undefined ? { key: nextKey } : {}),
+        ...(nextRevisionId !== undefined
+          ? { assetRevisionId: nextRevisionId }
+          : {}),
+      },
+    });
+  }
+
+  async deleteProductModelLinkedAsset(id: string) {
+    const link = await this.prisma.productModelAsset.findUnique({
+      where: { id },
+      include: { productModel: true },
+    });
+    if (!link) {
+      throw new NotFoundException('Product model asset link not found');
+    }
+    await this.assertDraft(link.productModel.productRevisionId);
+
+    if (
+      link.role === ProductModelAssetRole.OBJECT &&
+      link.key === PRODUCT_MODEL_ROOT_ASSET_KEY
+    ) {
+      throw new BadRequestException(
+        'Cannot delete the root object link. Repoint the product model instead.'
+      );
+    }
+
+    await this.prisma.productModelAsset.delete({ where: { id } });
+    return true;
+  }
+
+  private async assertReplaceComponentValue(
+    productModelId: string,
+    parsed: Prisma.InputJsonValue
+  ): Promise<Prisma.InputJsonValue> {
+    const linkedAssetKey =
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      !Array.isArray(parsed) &&
+      typeof (parsed as { linkedAssetKey?: unknown }).linkedAssetKey === 'string'
+        ? (parsed as { linkedAssetKey: string }).linkedAssetKey.trim()
+        : '';
+    const role =
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      !Array.isArray(parsed) &&
+      typeof (parsed as { role?: unknown }).role === 'string'
+        ? (parsed as { role: string }).role
+        : '';
+
+    if (!linkedAssetKey || role !== 'OBJECT') {
+      throw new BadRequestException(
+        'REPLACE_COMPONENT value must be { "linkedAssetKey": "<key>", "role": "OBJECT" }'
+      );
+    }
+    if (linkedAssetKey === PRODUCT_MODEL_ROOT_ASSET_KEY) {
+      throw new BadRequestException(
+        'REPLACE_COMPONENT cannot target the reserved OBJECT/root mirror'
+      );
+    }
+
+    const link = await this.prisma.productModelAsset.findUnique({
+      where: {
+        productModelId_role_key: {
+          productModelId,
+          role: ProductModelAssetRole.OBJECT,
+          key: linkedAssetKey,
+        },
+      },
+    });
+    if (!link) {
+      throw new BadRequestException(
+        `linkedAssetKey "${linkedAssetKey}" must reference an OBJECT link on this product model`
+      );
+    }
+
+    const revision = await this.prisma.objectAssetRevision.findUnique({
+      where: { id: link.assetRevisionId },
+    });
+    if (!revision) {
+      throw new BadRequestException(
+        `OBJECT link "${linkedAssetKey}" does not pin an ObjectAssetRevision`
+      );
+    }
+
+    return { linkedAssetKey, role: 'OBJECT' };
+  }
+
+  private async assertLinkedAssetRevision(
+    role: ProductModelAssetRole,
+    assetRevisionId: string
+  ) {
+    const id = assetRevisionId.trim();
+    if (!id) {
+      throw new BadRequestException('assetRevisionId is required');
+    }
+
+    if (role === ProductModelAssetRole.OBJECT) {
+      const revision = await this.prisma.objectAssetRevision.findUnique({
+        where: { id },
+      });
+      if (!revision) {
+        throw new NotFoundException('Object asset revision not found');
+      }
+      return;
+    }
+
+    if (role === ProductModelAssetRole.MATERIAL) {
+      const material = await this.prisma.materialAsset.findUnique({
+        where: { id },
+      });
+      if (!material) {
+        throw new NotFoundException('Material asset not found');
+      }
+      return;
+    }
+
+    if (role === ProductModelAssetRole.TEXTURE) {
+      const texture = await this.prisma.textureAsset.findUnique({
+        where: { id },
+      });
+      if (!texture) {
+        throw new NotFoundException('Texture asset not found');
+      }
+      return;
+    }
+
+    throw new BadRequestException(
+      `Linking role ${role} is reserved for a later slice`
+    );
   }
 
   async createModelTarget(input: {
@@ -740,6 +1135,13 @@ export class ProductService {
       parsed = { materialAssetId };
     }
 
+    if (input.operation === VisualOperation.REPLACE_COMPONENT) {
+      parsed = await this.assertReplaceComponentValue(
+        target.productModelId,
+        parsed
+      );
+    }
+
     return this.prisma.visualEffect.create({
       data: {
         choiceValueId: input.choiceValueId,
@@ -807,6 +1209,13 @@ export class ProductService {
         );
       }
       parsed = { materialAssetId };
+    }
+
+    if (operation === VisualOperation.REPLACE_COMPONENT) {
+      parsed = await this.assertReplaceComponentValue(
+        existing.modelTarget.productModelId,
+        parsed
+      );
     }
 
     if (operation === VisualOperation.SET_VISIBILITY) {
@@ -885,10 +1294,53 @@ export class ProductService {
       throw new BadRequestException('Only DRAFT versions can be published');
     }
 
+    // Draft may still pin an older ObjectAssetRevision after a library tip
+    // upload. Publishing freezes pins — advance each ProductModel to the
+    // current tip of its ObjectAsset so storefront gets the intended bytes.
+    for (const model of detail.models) {
+      const objectAssetId = model.objectAssetRevision.objectAssetId;
+      const tip = await this.prisma.objectAssetRevision.findFirst({
+        where: { objectAssetId },
+        orderBy: { version: 'desc' },
+      });
+      if (!tip) {
+        throw new BadRequestException(
+          `Product model “${model.name}” has no library revision to publish`
+        );
+      }
+      if (tip.id !== model.objectAssetRevisionId) {
+        await this.prisma.productModel.update({
+          where: { id: model.id },
+          data: {
+            objectAssetRevisionId: tip.id,
+            linkedAssets: {
+              upsert: {
+                where: {
+                  productModelId_role_key: {
+                    productModelId: model.id,
+                    role: ProductModelAssetRole.OBJECT,
+                    key: PRODUCT_MODEL_ROOT_ASSET_KEY,
+                  },
+                },
+                create: {
+                  role: ProductModelAssetRole.OBJECT,
+                  key: PRODUCT_MODEL_ROOT_ASSET_KEY,
+                  assetRevisionId: tip.id,
+                },
+                update: { assetRevisionId: tip.id },
+              },
+            },
+          },
+        });
+      }
+    }
+
+    const frozen = await this.getGraphVersionDetail(id);
+
     const snapshot = {
-      productId: detail.productId,
-      version: detail.version,
-      choices: detail.choices.map((choice) => ({
+      productId: frozen.productId,
+      version: frozen.version,
+      choices: frozen.choices.map((choice) => ({
         id: choice.id,
         key: choice.key,
         name: choice.name,
@@ -904,23 +1356,30 @@ export class ProductService {
           metadata: value.metadata,
         })),
       })),
-      rules: detail.rules.map((rule) => ({
+      rules: frozen.rules.map((rule) => ({
         id: rule.id,
         condition: rule.condition,
         effect: rule.effect,
       })),
-      constraints: detail.constraints.map((constraint) => ({
+      constraints: frozen.constraints.map((constraint) => ({
         id: constraint.id,
         productRevisionId: constraint.productRevisionId,
         terms: constraint.terms.map((term) => ({
           choiceValueId: term.choiceValueId,
         })),
       })),
-      models: detail.models.map((model) => ({
+      models: frozen.models.map((model) => ({
         id: model.id,
-        assetId: model.assetId,
+        objectAssetRevisionId: model.objectAssetRevisionId,
+        assetId: model.objectAssetRevision.objectAssetId,
         key: model.key,
         name: model.name,
+        linkedAssets: model.linkedAssets.map((link) => ({
+          id: link.id,
+          role: link.role,
+          key: link.key,
+          assetRevisionId: link.assetRevisionId,
+        })),
         targets: model.targets.map((target) => ({
           id: target.id,
           key: target.key,
@@ -930,14 +1389,14 @@ export class ProductService {
           metadata: target.metadata,
         })),
       })),
-      visualEffects: detail.visualEffects.map((effect) => ({
+      visualEffects: frozen.visualEffects.map((effect) => ({
         id: effect.id,
         choiceValueId: effect.choiceValueId,
         modelTargetId: effect.modelTargetId,
         operation: effect.operation,
         value: effect.value,
       })),
-      variants: detail.variants.map((variant) => ({
+      variants: frozen.variants.map((variant) => ({
         id: variant.id,
         provider: variant.provider,
         externalId: variant.externalId,
@@ -950,16 +1409,16 @@ export class ProductService {
       })),
     };
 
-    const product = await this.getById(detail.productId);
+    const product = await this.getById(frozen.productId);
     const stored = await this.documents.putJson(
-      `${product.organizationId}/${product.projectId}/products/${product.id}/graph/v${detail.version}.json`,
+      `${product.organizationId}/${product.projectId}/products/${product.id}/graph/v${frozen.version}.json`,
       snapshot
     );
 
     return this.prisma.$transaction(async (tx) => {
       await tx.productRevision.updateMany({
         where: {
-          productId: detail.productId,
+          productId: frozen.productId,
           status: GraphVersionStatus.PUBLISHED,
           id: { not: id },
         },
@@ -977,7 +1436,7 @@ export class ProductService {
       });
 
       await tx.product.update({
-        where: { id: detail.productId },
+        where: { id: frozen.productId },
         data: {
           activeRevisionId: published.id,
           status: ProductStatus.ACTIVE,

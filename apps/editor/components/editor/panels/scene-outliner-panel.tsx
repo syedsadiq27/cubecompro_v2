@@ -6,6 +6,7 @@ import { EyeIcon } from '@/components/editor/icons';
 
 export function SceneOutlinerPanel({ showSearch = false }: { showSearch?: boolean }) {
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
+  const editorDocument = useEditorStore((state) => state.document);
   const [search, setSearch] = useState('');
   const [frameExpanded, setFrameExpanded] = useState(true);
   const [seatExpanded, setSeatExpanded] = useState(true);
@@ -26,10 +27,27 @@ export function SceneOutlinerPanel({ showSearch = false }: { showSearch?: boolea
     Fabric_Gray: true,
   });
 
+  const rootLabel =
+    editorDocument?.modelName?.trim() ||
+    editorDocument?.productName?.trim() ||
+    'No model';
+
   const toggleVisibility = (key: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setVisibleItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  if (!editorDocument) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-[12px] text-[var(--text-muted)]">
+        <p>No visual model attached to this product revision.</p>
+        <p className="text-center text-[11px]">
+          Attach a library object from the product 3D tab before authoring
+          scene hierarchy.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col justify-between">
@@ -51,7 +69,7 @@ export function SceneOutlinerPanel({ showSearch = false }: { showSearch?: boolea
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-[10px] text-[var(--text-muted)]">⌄</span>
             <span className="font-mono text-[11px]">⬡</span>
-            <span className="truncate">Studio Chair</span>
+            <span className="truncate">{rootLabel}</span>
           </div>
           <span className="rounded bg-violet-100/60 px-1 py-0.2 font-mono text-[9px] font-bold text-[var(--brand)] uppercase">
             Root

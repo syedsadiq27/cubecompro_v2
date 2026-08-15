@@ -9,6 +9,11 @@ import {
   createProductModelAction,
   createVisualEffectAction,
 } from '@/actions/graph';
+import { ChangeProductModelForm } from '@/components/products/workspace/change-product-model-form';
+import {
+  ProductDraftSaveProvider,
+  useProductDraftSave,
+} from '@/components/products/workspace/product-draft-save';
 import {
   ModelMappingViewer,
   ModelPartsTree,
@@ -17,6 +22,7 @@ import { getEditorStudioPath } from '@/lib/editor-embed';
 import {
   humanizeEffectValue,
   objectProxyUrl,
+  objectRevisionProxyUrl,
   semanticKeyFromNodeName,
   targetLabel,
   type GraphDetail,
@@ -27,7 +33,27 @@ import {
 const inputClass =
   'w-full rounded-lg border border-[var(--line)] bg-white px-2.5 py-1.5 text-[13px]';
 
-export function Product3DStudio({
+export function Product3DStudio(props: {
+  projectId: string;
+  productId: string;
+  productName: string;
+  detail: GraphDetail | null;
+  objectAssets: ObjectAssetOption[];
+  materials?: Array<{ id: string; name: string }>;
+  editable: boolean;
+}) {
+  return (
+    <ProductDraftSaveProvider
+      projectId={props.projectId}
+      productId={props.productId}
+      enabled={props.editable}
+    >
+      <Product3DStudioInner {...props} />
+    </ProductDraftSaveProvider>
+  );
+}
+
+function Product3DStudioInner({
   projectId,
   productId,
   productName,
@@ -45,6 +71,7 @@ export function Product3DStudio({
   editable: boolean;
 }) {
   const router = useRouter();
+  const draftSave = useProductDraftSave();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
@@ -59,9 +86,14 @@ export function Product3DStudio({
     'hide'
   );
   const [materialAssetId, setMaterialAssetId] = useState('');
+  const [showChangeModel, setShowChangeModel] = useState(false);
 
   const primaryModel = detail?.models[0] ?? null;
-  const modelUrl = primaryModel ? objectProxyUrl(primaryModel.assetId) : null;
+  const modelUrl = primaryModel?.objectAssetRevisionId
+    ? objectRevisionProxyUrl(primaryModel.objectAssetRevisionId)
+    : primaryModel
+      ? objectProxyUrl(primaryModel.assetId)
+      : null;
   const assetName =
     objectAssets.find((asset) => asset.id === primaryModel?.assetId)?.name ??
     primaryModel?.name ??
@@ -139,6 +171,23 @@ export function Product3DStudio({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {editable ? (
+            <Button
+              type="button"
+              size="md"
+              variant="secondary"
+              disabled={draftSave.saving}
+              onClick={() => {
+                void draftSave.save();
+              }}
+            >
+              {draftSave.saving
+                ? 'Saving…'
+                : draftSave.dirty
+                  ? `Save (${draftSave.pendingCount})`
+                  : 'Save'}
+            </Button>
+          ) : null}
           {stageHref ? (
             <Link
               href={stageHref}
@@ -238,6 +287,36 @@ export function Product3DStudio({
                       Attach model
                     </Button>
                   </form>
+                ) : null}
+
+                {primaryModel && editable ? (
+                  <div className="space-y-2">
+                    {!showChangeModel ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setShowChangeModel(true)}
+                      >
+                        Change model
+                      </Button>
+                    ) : (
+                      <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-3 space-y-2">
+                        <p className="text-[12px] text-[var(--text-secondary)]">
+                          Draft only — pins the latest library revision. Existing
+                          targets may need remapping if the hierarchy changed.
+                        </p>
+                        <ChangeProductModelForm
+                          projectId={projectId}
+                          productId={productId}
+                          productModelId={primaryModel.id}
+                          objectAssets={objectAssets}
+                          currentAssetId={primaryModel.assetId}
+                          onCancel={() => setShowChangeModel(false)}
+                        />
+                      </div>
+                    )}
+                  </div>
                 ) : null}
               </Panel>
 
@@ -377,16 +456,33 @@ export function Product3DStudio({
                             size="sm"
                             disabled={pending || !targetKey || !selectedPath}
                             onClick={() => {
-                              const formData = new FormData();
-                              formData.set('productModelId', primaryModel.id);
-                              formData.set('key', targetKey);
-                              formData.set('targetType', targetType);
-                              formData.set('nodePath', selectedPath ?? '');
-                              if (targetType === 'MATERIAL') {
-                                formData.set(
-                                  'materialSlot',
-                                  selectedLeafName || targetKey
+                              if (!primaryModel) return;
+                              const form = {
+                                productModelId: primaryModel.id,
+                                key: targetKey,
+                                targetType,
+                                nodePath: selectedPath ?? '',
+                                ...(targetType === 'MATERIAL'
+                                  ? {
+                                      materialSlot:
+                                        selectedLeafName || targetKey,
+                                    }
+                                  : {}),
+                              };
+                              if (draftSave.enabled) {
+                                draftSave.queue({
+                                  kind: 'createModelTarget',
+                                  label: `Target ${targetKey}`,
+                                  form,
+                                });
+                                setMessage(
+                                  `Queued target “${targetKey}”. Click Save to commit.`
                                 );
+                                return;
+                              }
+                              const formData = new FormData();
+                              for (const [key, value] of Object.entries(form)) {
+                                formData.set(key, value);
                               }
                               startTransition(async () => {
                                 const result = await createModelTargetAction(
@@ -403,7 +499,7 @@ export function Product3DStudio({
                               });
                             }}
                           >
-                            Create target
+                            {draftSave.enabled ? 'Queue target' : 'Create target'}
                           </Button>
                         </div>
                         {targets.length > 0 ? (
@@ -501,18 +597,34 @@ export function Product3DStudio({
                               (mapAction === 'material' && !materialAssetId)
                             }
                             onClick={() => {
-                              const formData = new FormData();
-                              formData.set('choiceValueId', mapValueId);
-                              formData.set('modelTargetId', mapTargetId);
+                              const form: Record<string, string> = {
+                                choiceValueId: mapValueId,
+                                modelTargetId: mapTargetId,
+                              };
                               if (mapAction === 'material') {
-                                formData.set('operation', 'SET_MATERIAL');
-                                formData.set('materialAssetId', materialAssetId);
+                                form.operation = 'SET_MATERIAL';
+                                form.materialAssetId = materialAssetId;
                               } else {
-                                formData.set('operation', 'SET_VISIBILITY');
-                                formData.set(
-                                  'value',
-                                  mapAction === 'show' ? 'true' : 'false'
+                                form.operation = 'SET_VISIBILITY';
+                                form.value =
+                                  mapAction === 'show' ? 'true' : 'false';
+                              }
+                              const label = `Mapping ${mapAction}`;
+                              if (draftSave.enabled) {
+                                draftSave.queue({
+                                  kind: 'createVisualEffect',
+                                  label,
+                                  form,
+                                });
+                                setMaterialAssetId('');
+                                setMessage(
+                                  'Queued mapping. Click Save to commit.'
                                 );
+                                return;
+                              }
+                              const formData = new FormData();
+                              for (const [key, value] of Object.entries(form)) {
+                                formData.set(key, value);
                               }
                               startTransition(async () => {
                                 const result = await createVisualEffectAction(
@@ -532,10 +644,23 @@ export function Product3DStudio({
                               });
                             }}
                           >
-                            Add mapping
+                            {draftSave.enabled ? 'Queue mapping' : 'Add mapping'}
                           </Button>
                         </div>
                       </div>
+                      {draftSave.pending.length > 0 ? (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-[12px] text-amber-950">
+                          <p className="font-medium">
+                            {draftSave.pendingCount} unsaved change
+                            {draftSave.pendingCount === 1 ? '' : 's'}
+                          </p>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-amber-900/90">
+                            {draftSave.pending.map((op) => (
+                              <li key={op.id}>{op.label}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                       {message ? (
                         <p className="text-[12px] text-[var(--text-secondary)]">
                           {message}

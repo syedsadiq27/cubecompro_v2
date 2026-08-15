@@ -1,5 +1,6 @@
 import {
   planShopifyProductImport,
+  buildShopifyImportReview,
   shopifyLabelToSemanticKey,
   ShopifyImportError,
 } from './shopify-import';
@@ -128,7 +129,45 @@ describe('planShopifyProductImport', () => {
     ).toThrow(ShopifyImportError);
   });
 
+  it('preserves Shopify GraphQL GIDs as canonical external ids', () => {
+    const plan = planShopifyProductImport({
+      id: 'gid://shopify/Product/9001',
+      title: 'Studio Chair',
+      handle: 'studio-chair',
+      options: [
+        { name: 'Frame', values: ['Walnut', 'Oak'] },
+        { name: 'Fabric', values: ['Beige', 'Black'] },
+      ],
+      variants: [
+        {
+          id: 'gid://shopify/ProductVariant/123',
+          sku: 'WAL-BEI',
+          option1: 'Walnut',
+          option2: 'Beige',
+        },
+      ],
+    });
+    expect(plan.externalProductId).toBe('gid://shopify/Product/9001');
+    expect(plan.mappings[0]?.externalId).toBe(
+      'gid://shopify/ProductVariant/123'
+    );
+    expect(plan.productKey.startsWith('shopify-9001-')).toBe(true);
+  });
+
   it('derives stable semantic keys', () => {
     expect(shopifyLabelToSemanticKey('Walnut Wood')).toBe('walnut-wood');
+  });
+});
+
+describe('buildShopifyImportReview', () => {
+  it('marks missing cartesian combinations as unmapped', () => {
+    const plan = planShopifyProductImport(frameFabricProduct);
+    const review = buildShopifyImportReview(plan);
+    expect(review.mappedCount).toBe(3);
+    expect(review.unmappedCount).toBe(1);
+    expect(review.rows).toHaveLength(4);
+    const unmapped = review.rows.find((row) => row.status === 'unmapped');
+    expect(unmapped?.label).toBe('Oak + Black');
+    expect(unmapped?.externalId).toBeUndefined();
   });
 });

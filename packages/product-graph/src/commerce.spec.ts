@@ -224,6 +224,24 @@ describe('projectCommerceIdentity / resolveCommerce', () => {
     });
   });
 
+  it('passes integrationConnectionId through RESOLVED for live handoff', () => {
+    const withConnection = {
+      ...mappingSet,
+      integrationConnectionId: 'conn-shop-1',
+    };
+    expect(
+      resolveCommerce({
+        selection: { frame: 'oak' },
+        mappingSet: withConnection,
+      })
+    ).toEqual({
+      status: 'RESOLVED',
+      provider: 'shopify',
+      integrationConnectionId: 'conn-shop-1',
+      externalReference: { type: 'VARIANT', id: 'var-oak' },
+    });
+  });
+
   it('resolves when optional identity Choice is selected', () => {
     expect(
       resolveCommerce({

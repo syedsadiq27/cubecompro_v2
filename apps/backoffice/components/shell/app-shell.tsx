@@ -64,7 +64,7 @@ function ProjectSidebar({
           icon: <LinkIcon size={16} />,
         },
         {
-          href: `/${projectId}/settings/commerce`,
+          href: `/${projectId}/integrations/shopify`,
           label: 'Channels',
           icon: <StoreIcon size={16} />,
         },
@@ -104,7 +104,7 @@ function ProjectSidebar({
   const platform: NavItem[] = projectId
     ? [
         {
-          href: `/${projectId}/settings/cms`,
+          href: `/${projectId}/integrations/shopify`,
           label: 'Integrations',
           icon: <PuzzleIcon size={16} />,
         },

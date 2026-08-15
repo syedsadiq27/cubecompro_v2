@@ -47,11 +47,23 @@ export type GraphTarget = {
   materialSlot?: string | null;
 };
 
+export type GraphModelLinkedAsset = {
+  id: string;
+  role: string;
+  key: string;
+  assetRevisionId: string;
+};
+
 export type GraphModel = {
   id: string;
   key: string;
   name: string;
+  /** Parent ObjectAsset id (library identity). */
   assetId: string;
+  /** Exact immutable ObjectAssetRevision pin. */
+  objectAssetRevisionId: string;
+  /** Typed multi-asset universe for this model (4B). */
+  linkedAssets: GraphModelLinkedAsset[];
   targets: GraphTarget[];
 };
 
@@ -77,6 +89,33 @@ export type GraphVariant = {
   selections?: GraphVariantSelection[];
 };
 
+export type GraphCommerceMappingTerm = {
+  choiceValueId: string;
+  choiceKey?: string | null;
+  choiceValueKey?: string | null;
+};
+
+export type GraphCommerceMapping = {
+  id: string;
+  identitySignature: string;
+  externalType: string;
+  externalId: string;
+  sku?: string | null;
+  terms: GraphCommerceMappingTerm[];
+};
+
+export type GraphCommerceMappingSet = {
+  id: string;
+  provider: string;
+  identityChoices: Array<{
+    choiceId: string;
+    choiceKey?: string | null;
+    sortOrder: number;
+  }>;
+  mappings: GraphCommerceMapping[];
+  domainJson: string;
+};
+
 export type GraphDetail = {
   id: string;
   version: number;
@@ -89,6 +128,7 @@ export type GraphDetail = {
   models: GraphModel[];
   visualEffects: GraphVisualEffect[];
   variants: GraphVariant[];
+  commerceMappingSets?: GraphCommerceMappingSet[];
 };
 
 export type GraphSessionAuth = {

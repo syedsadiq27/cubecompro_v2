@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -20,7 +20,11 @@ import {
   PlusIcon,
 } from '@/components/bo/icons';
 import { RowActionMenu } from '@/components/bo';
-import type { GraphDetail, MaterialAssetOption } from '@/lib/product-workspace';
+import {
+  type GraphDetail,
+  type MaterialAssetOption,
+  useLiveProductData,
+} from '@/lib/product-workspace';
 
 type OptionValueItem = {
   id: string;
@@ -110,22 +114,59 @@ const DEFAULT_OPTIONS: OptionItem[] = [
   },
 ];
 
+function optionsFromDetail(detail: GraphDetail | null): OptionItem[] {
+  if (!detail?.choices.length) return [];
+  return detail.choices.map((choice) => ({
+    id: choice.id,
+    key: choice.key,
+    name: choice.name,
+    type: choice.type || 'Choice',
+    required: choice.required,
+    valuesSummary: choice.values.map((value) => value.name).join(', '),
+    valueCount: choice.values.length,
+    updatedDate: '',
+    updatedTime: '',
+    thumbnailType: 'size' as const,
+    values: choice.values.map((value) => ({
+      id: value.id,
+      key: value.key,
+      label: value.name,
+      status: 'Active',
+    })),
+  }));
+}
+
 export function OptionsTab({
   projectId,
   productId,
   detail,
   editable,
   materialAssets = [],
+  shopifyCommerce,
 }: {
   projectId: string;
   productId: string;
   detail: GraphDetail | null;
   editable: boolean;
   materialAssets?: MaterialAssetOption[];
+  shopifyCommerce?: unknown;
 }) {
   const toast = useToast();
-  const [options, setOptions] = useState<OptionItem[]>(DEFAULT_OPTIONS);
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(DEFAULT_OPTIONS[0]?.id ?? null);
+  const live = useLiveProductData(detail, shopifyCommerce);
+  const liveOptions = optionsFromDetail(detail);
+  const seed = live && liveOptions.length > 0 ? liveOptions : DEFAULT_OPTIONS;
+  const [options, setOptions] = useState<OptionItem[]>(seed);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(
+    seed[0]?.id ?? null
+  );
+
+  useEffect(() => {
+    const next = live && liveOptions.length > 0 ? liveOptions : DEFAULT_OPTIONS;
+    setOptions(next);
+    setSelectedOptionId((current) =>
+      next.some((option) => option.id === current) ? current : (next[0]?.id ?? null)
+    );
+  }, [live, detail?.id, detail?.choices.length]);
 
   // Dialog states
   const [addOptionOpen, setAddOptionOpen] = useState(false);
