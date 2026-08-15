@@ -13,6 +13,18 @@ export function PreviewInspector() {
       (binding) => visualSelection[binding.choiceKey] === binding.valueKey
     ) ?? [];
 
+  const byPart = new Map<string, typeof activeBindings>();
+  for (const binding of activeBindings) {
+    const target = visualDocument?.targets.find(
+      (entry) => entry.key === binding.targetKey
+    );
+    const part =
+      target?.nodePath.split('/').filter(Boolean).at(-1) ?? binding.targetKey;
+    const list = byPart.get(part) ?? [];
+    list.push(binding);
+    byPart.set(part, list);
+  }
+
   return (
     <div className="space-y-4 select-none">
       <div>
@@ -26,7 +38,7 @@ export function PreviewInspector() {
           />
         </div>
         <p className="text-[11px] text-[var(--text-muted)]">
-          Selection → deriveVisualState → reconcileScene
+          Pick Frame or Seat in Preview, then a value.
         </p>
       </div>
 
@@ -42,11 +54,10 @@ export function PreviewInspector() {
             }
           />
           <DetailRow
-            label="Bindings"
+            label="Active meshes"
             value={
               <span className="font-mono">
-                {activeBindings.length} / {visualDocument?.bindings.length ?? 0}{' '}
-                active
+                {byPart.size} / {visualDocument?.targets.length ?? 0}
               </span>
             }
           />
@@ -61,34 +72,31 @@ export function PreviewInspector() {
       </div>
 
       <div>
-        <InspectorSection title="Active visual bindings" />
+        <InspectorSection title="Meshes changing" />
         <div className="space-y-1.5 text-[11px]">
-          {activeBindings.length === 0 ? (
+          {byPart.size === 0 ? (
             <p className="text-[var(--text-muted)]">
-              None — scene should match ObjectAsset baseline.
+              None — scene matches ObjectAsset baseline.
             </p>
           ) : (
-            activeBindings.map((binding) => {
-              const target = visualDocument?.targets.find(
-                (entry) => entry.key === binding.targetKey
-              );
+            [...byPart.entries()].map(([part, bindings]) => {
+              const sample = bindings[0]!;
               const summary =
-                binding.operation === 'SET_MATERIAL'
-                  ? binding.materialAssetId
-                  : binding.visible
+                sample.operation === 'SET_MATERIAL'
+                  ? sample.materialAssetId.slice(0, 10) + '…'
+                  : sample.visible
                     ? 'visible'
                     : 'hidden';
               return (
                 <div
-                  key={`${binding.choiceKey}:${binding.valueKey}:${binding.targetKey}:${binding.operation}`}
-                  className="space-y-0.5 rounded border border-[var(--line)] bg-[var(--canvas)]/50 p-2 font-mono text-[10px] text-[var(--text-secondary)]"
+                  key={part}
+                  className="space-y-0.5 rounded border border-[var(--line)] bg-[var(--canvas)]/50 p-2 text-[10px] text-[var(--text-secondary)]"
                 >
                   <span className="block font-sans font-bold text-[var(--ink)]">
-                    {binding.choiceKey} → {binding.valueKey}
+                    {part}
                   </span>
-                  <span className="text-[var(--text-muted)]">
-                    {binding.operation} · {binding.targetKey}
-                    {target?.nodePath ? ` · ${target.nodePath}` : ''} ·{' '}
+                  <span className="font-mono text-[var(--text-muted)]">
+                    {sample.choiceKey}={sample.valueKey} · {sample.operation} ·{' '}
                     {summary}
                   </span>
                 </div>
