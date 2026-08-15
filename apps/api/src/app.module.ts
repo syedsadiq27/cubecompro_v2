@@ -17,6 +17,7 @@ import { ProductModule } from './product/product.module';
 import { ProjectModule } from './project/project.module';
 import { ResolveModule } from './resolve/resolve.module';
 import { SavedConfigurationModule } from './saved-configuration/saved-configuration.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SavedConfigurationModule } from './saved-configuration/saved-configurat
     LibraryModule,
     ResolveModule,
     SavedConfigurationModule,
+    IntegrationsModule,
   ],
   controllers: [HealthController],
   providers: [HealthResolver],

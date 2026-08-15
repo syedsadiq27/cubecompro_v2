@@ -226,6 +226,7 @@ export class ProductResolver {
       productRevisionId: input.productRevisionId,
       provider: input.provider,
       selection,
+      integrationConnectionId: input.integrationConnectionId,
     });
 
     if (result.resolution.status === 'RESOLVED') {
@@ -333,6 +334,7 @@ function mapCommerceMappingSet(
     id: set.id,
     productRevisionId: set.productRevisionId,
     provider: set.provider,
+    integrationConnectionId: set.integrationConnectionId,
     identityChoices: set.identityChoices.map((entry) => ({
       mappingSetId: entry.mappingSetId,
       choiceId: entry.choiceId,

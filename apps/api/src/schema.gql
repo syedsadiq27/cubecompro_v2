@@ -198,12 +198,47 @@ input ReplaceCommerceMappingInput {
 
 input ReplaceCommerceMappingSetInput {
   identityChoiceIds: [String!]!
+  integrationConnectionId: String
   mappings: [ReplaceCommerceMappingInput!]!
   productRevisionId: String!
   provider: String!
 }
 
+input UpsertShopifyConnectionInput {
+  accessToken: String!
+  apiVersion: String
+  organizationId: String!
+  shop: String!
+}
+
+input ImportShopifyProductInput {
+  integrationConnectionId: String!
+  productJson: String
+  projectId: String!
+  shopifyProductId: String!
+}
+
+type IntegrationConnectionModel {
+  apiVersion: String!
+  externalAccountId: String!
+  hasAccessToken: Boolean!
+  id: ID!
+  organizationId: String!
+  provider: String!
+}
+
+type ImportShopifyProductResultModel {
+  commerceMappingSetId: String!
+  externalProductId: String!
+  identityChoiceKeys: [String!]!
+  integrationConnectionId: String!
+  mappingCount: Float!
+  productId: String!
+  productRevisionId: String!
+}
+
 input ResolveCommerceInput {
+  integrationConnectionId: String
   productRevisionId: String!
   provider: String!
   selectionJson: String!
@@ -251,6 +286,7 @@ type CommerceMappingSetModel {
   domainJson: String!
   id: ID!
   identityChoices: [CommerceIdentityChoiceModel!]!
+  integrationConnectionId: String
   mappings: [CommerceMappingModel!]!
   productRevisionId: String!
   provider: String!
@@ -328,6 +364,7 @@ type Mutation {
   deleteTextureAsset(id: String!): Boolean!
   deleteVisualEffect(id: String!): Boolean!
   discardDraftProductRevision(productId: String!): Boolean!
+  importShopifyProduct(input: ImportShopifyProductInput!): ImportShopifyProductResultModel!
   login(input: LoginInput!): AuthPayloadModel!
   publishProductRevision(id: String!): ProductRevisionModel!
   replaceCommerceMappingSet(input: ReplaceCommerceMappingSetInput!): CommerceMappingSetModel!
@@ -337,6 +374,7 @@ type Mutation {
   updateProduct(input: UpdateProductInput!): ProductModel!
   updateProfile(input: UpdateProfileInput!): AuthUserModel!
   updateVisualEffect(input: UpdateVisualEffectInput!): VisualEffectModel!
+  upsertShopifyConnection(input: UpsertShopifyConnectionInput!): IntegrationConnectionModel!
 }
 
 type MyProjectModel {
@@ -511,6 +549,7 @@ type Query {
   projectsByOrganization(organizationId: String!): [ProjectModel!]!
   resolveConfiguration(input: ConfigurationStateInput!): ResolvedConfigurationModel!
   savedConfiguration(id: String!): SavedConfigurationModel!
+  shopifyConnections(organizationId: String!): [IntegrationConnectionModel!]!
   textureAssets(projectId: String!): [TextureAssetModel!]!
 }
 

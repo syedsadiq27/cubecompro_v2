@@ -484,8 +484,7 @@ projectCommerceIdentity()
 then
 
 3C
-Shopify / commercetools importer
-only when real provider integration begins
+Shopify connection + product import — implemented (Admin REST product fetch + pure plan + CubeCom persistence)
 
 then
 

@@ -371,6 +371,9 @@ export class CommerceMappingSetModel {
   @Field()
   provider: string;
 
+  @Field(() => String, { nullable: true })
+  integrationConnectionId?: string | null;
+
   @Field(() => [CommerceIdentityChoiceModel])
   identityChoices: CommerceIdentityChoiceModel[];
 
@@ -934,6 +937,84 @@ export class ReplaceCommerceMappingSetInput {
 
   @Field(() => [ReplaceCommerceMappingInput])
   mappings: ReplaceCommerceMappingInput[];
+
+  @Field(() => String, { nullable: true })
+  integrationConnectionId?: string;
+}
+
+@InputType()
+export class UpsertShopifyConnectionInput {
+  @Field()
+  organizationId: string;
+
+  @Field()
+  shop: string;
+
+  @Field()
+  accessToken: string;
+
+  @Field(() => String, { nullable: true })
+  apiVersion?: string;
+}
+
+@InputType()
+export class ImportShopifyProductInput {
+  @Field()
+  integrationConnectionId: string;
+
+  @Field()
+  projectId: string;
+
+  @Field()
+  shopifyProductId: string;
+
+  @Field(() => String, { nullable: true })
+  productJson?: string;
+}
+
+@ObjectType()
+export class IntegrationConnectionModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  organizationId: string;
+
+  @Field()
+  provider: string;
+
+  @Field()
+  externalAccountId: string;
+
+  @Field()
+  apiVersion: string;
+
+  @Field()
+  hasAccessToken: boolean;
+}
+
+@ObjectType()
+export class ImportShopifyProductResultModel {
+  @Field()
+  productId: string;
+
+  @Field()
+  productRevisionId: string;
+
+  @Field()
+  integrationConnectionId: string;
+
+  @Field()
+  externalProductId: string;
+
+  @Field(() => [String])
+  identityChoiceKeys: string[];
+
+  @Field()
+  mappingCount: number;
+
+  @Field()
+  commerceMappingSetId: string;
 }
 
 @InputType()
@@ -946,6 +1027,9 @@ export class ResolveCommerceInput {
 
   @Field()
   selectionJson: string;
+
+  @Field(() => String, { nullable: true })
+  integrationConnectionId?: string;
 }
 
 @ObjectType()

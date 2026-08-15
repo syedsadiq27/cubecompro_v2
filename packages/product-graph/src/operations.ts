@@ -630,6 +630,33 @@ export const RESOLVE_COMMERCE_QUERY = `
   }
 `;
 
+export const UPSERT_SHOPIFY_CONNECTION_MUTATION = `
+  mutation UpsertShopifyConnection($input: UpsertShopifyConnectionInput!) {
+    upsertShopifyConnection(input: $input) {
+      id
+      organizationId
+      provider
+      externalAccountId
+      apiVersion
+      hasAccessToken
+    }
+  }
+`;
+
+export const IMPORT_SHOPIFY_PRODUCT_MUTATION = `
+  mutation ImportShopifyProduct($input: ImportShopifyProductInput!) {
+    importShopifyProduct(input: $input) {
+      productId
+      productRevisionId
+      integrationConnectionId
+      externalProductId
+      identityChoiceKeys
+      mappingCount
+      commerceMappingSetId
+    }
+  }
+`;
+
 export const CREATE_PRODUCT_VARIANT_MUTATION = `
   mutation CreateProductVariant($input: CreateProductVariantInput!) {
     createProductVariant(input: $input) {

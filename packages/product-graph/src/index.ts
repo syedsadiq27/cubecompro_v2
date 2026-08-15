@@ -96,3 +96,16 @@ export type {
   NormalizeCommerceMappingSetInput,
   NormalizeCommerceMappingTermInput,
 } from './commerce.js';
+export {
+  ShopifyImportError,
+  planShopifyProductImport,
+  shopifyLabelToSemanticKey,
+} from './shopify-import.js';
+export type {
+  ShopifyImportChoicePlan,
+  ShopifyImportMappingPlan,
+  ShopifyImportPlan,
+  ShopifyProductDto,
+  ShopifyProductOptionDto,
+  ShopifyProductVariantDto,
+} from './shopify-import.js';

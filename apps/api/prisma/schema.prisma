@@ -155,6 +155,7 @@ model Organization {
   textureAssets       TextureAsset[]
   objectAssets        ObjectAsset[]
   savedConfigurations SavedConfiguration[]
+  integrationConnections IntegrationConnection[]
 }
 
 model OrganizationEntitlement {
@@ -269,6 +270,7 @@ model Product {
   activeRevision      ProductRevision?  @relation("ActiveRevision", fields: [activeRevisionId], references: [id], onDelete: SetNull)
   revisions           ProductRevision[] @relation("ProductRevisions")
   savedConfigurations SavedConfiguration[]
+  providerImports     ProductProviderImport[]
 
   @@unique([projectId, key])
   @@index([organizationId])
@@ -452,16 +454,19 @@ model VariantSelection {
 }
 
 model CommerceMappingSet {
-  id                String @id @default(cuid())
-  productRevisionId String
-  provider          String
+  id                      String  @id @default(cuid())
+  productRevisionId       String
+  provider                String
+  integrationConnectionId String?
 
-  productRevision ProductRevision          @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
-  identityChoices CommerceIdentityChoice[]
-  mappings        CommerceMapping[]
+  productRevision       ProductRevision        @relation(fields: [productRevisionId], references: [id], onDelete: Cascade)
+  integrationConnection IntegrationConnection? @relation(fields: [integrationConnectionId], references: [id], onDelete: Restrict)
+  identityChoices       CommerceIdentityChoice[]
+  mappings              CommerceMapping[]
 
-  @@unique([productRevisionId, provider])
+  @@unique([productRevisionId, provider, integrationConnectionId])
   @@index([productRevisionId])
+  @@index([integrationConnectionId])
 }
 
 model CommerceIdentityChoice {
@@ -500,6 +505,38 @@ model CommerceMappingTerm {
 
   @@id([mappingId, choiceValueId])
   @@index([choiceValueId])
+}
+
+model IntegrationConnection {
+  id                String   @id @default(cuid())
+  organizationId    String
+  provider          String
+  externalAccountId String
+  accessToken       String
+  apiVersion        String   @default("2024-10")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mappingSets       CommerceMappingSet[]
+  productImports    ProductProviderImport[]
+
+  @@unique([organizationId, provider, externalAccountId])
+  @@index([organizationId])
+}
+
+model ProductProviderImport {
+  id                      String   @id @default(cuid())
+  productId               String   @unique
+  integrationConnectionId String
+  externalProductId       String
+  createdAt               DateTime @default(now())
+
+  product               Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  integrationConnection IntegrationConnection @relation(fields: [integrationConnectionId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationConnectionId, externalProductId])
+  @@index([integrationConnectionId])
 }
 
 model LibraryFolder {

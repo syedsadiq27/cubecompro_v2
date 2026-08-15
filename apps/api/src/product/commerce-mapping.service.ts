@@ -56,13 +56,16 @@ export class CommerceMappingService {
     return set;
   }
 
-  async getByRevisionProvider(productRevisionId: string, provider: string) {
-    const set = await this.prisma.commerceMappingSet.findUnique({
+  async getByRevisionProvider(
+    productRevisionId: string,
+    provider: string,
+    integrationConnectionId?: string | null
+  ) {
+    const set = await this.prisma.commerceMappingSet.findFirst({
       where: {
-        productRevisionId_provider: {
-          productRevisionId,
-          provider,
-        },
+        productRevisionId,
+        provider,
+        integrationConnectionId: integrationConnectionId ?? null,
       },
       include: mappingSetInclude,
     });
@@ -129,6 +132,7 @@ export class CommerceMappingService {
       externalId: string;
       sku?: string | null;
     }>;
+    integrationConnectionId?: string | null;
   }) {
     const revision = await this.prisma.productRevision.findUnique({
       where: { id: input.productRevisionId },
@@ -148,6 +152,26 @@ export class CommerceMappingService {
     const provider = input.provider.trim();
     if (!provider) {
       throw new BadRequestException('provider is required');
+    }
+
+    let integrationConnectionId = input.integrationConnectionId ?? null;
+    if (integrationConnectionId) {
+      const connection = await this.prisma.integrationConnection.findUnique({
+        where: { id: integrationConnectionId },
+      });
+      if (!connection) {
+        throw new NotFoundException('Integration connection not found');
+      }
+      if (connection.organizationId !== revision.organizationId) {
+        throw new BadRequestException(
+          'Integration connection is not in the product organization'
+        );
+      }
+      if (connection.provider !== provider) {
+        throw new BadRequestException(
+          `Integration connection provider ${connection.provider} does not match ${provider}`
+        );
+      }
     }
 
     const choiceById = new Map(
@@ -232,6 +256,7 @@ export class CommerceMappingService {
         where: {
           productRevisionId: input.productRevisionId,
           provider,
+          integrationConnectionId,
         },
       });
 
@@ -239,6 +264,7 @@ export class CommerceMappingService {
         data: {
           productRevisionId: input.productRevisionId,
           provider,
+          integrationConnectionId,
           identityChoices: {
             create: identityChoices.map((entry) => ({
               choiceId: entry.choice.id,
@@ -306,6 +332,7 @@ export class CommerceMappingService {
     productRevisionId: string;
     provider: string;
     selection: Selection;
+    integrationConnectionId?: string | null;
   }): Promise<{
     domain: DomainCommerceMappingSet;
     resolution: CommerceResolution;
@@ -314,7 +341,8 @@ export class CommerceMappingService {
   }> {
     const set = await this.getByRevisionProvider(
       input.productRevisionId,
-      input.provider
+      input.provider,
+      input.integrationConnectionId
     );
     const domain = await this.normalizePersisted(set);
     const identity = projectCommerceIdentity(
