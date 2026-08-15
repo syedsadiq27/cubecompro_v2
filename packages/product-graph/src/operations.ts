@@ -514,6 +514,22 @@ export const CREATE_VISUAL_EFFECT_MUTATION = `
   }
 `;
 
+export const UPDATE_VISUAL_EFFECT_MUTATION = `
+  mutation UpdateVisualEffect($input: UpdateVisualEffectInput!) {
+    updateVisualEffect(input: $input) {
+      id
+      valueJson
+      operation
+    }
+  }
+`;
+
+export const DELETE_VISUAL_EFFECT_MUTATION = `
+  mutation DeleteVisualEffect($id: String!) {
+    deleteVisualEffect(id: $id)
+  }
+`;
+
 export const CREATE_PRODUCT_VARIANT_MUTATION = `
   mutation CreateProductVariant($input: CreateProductVariantInput!) {
     createProductVariant(input: $input) {

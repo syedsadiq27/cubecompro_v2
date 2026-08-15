@@ -1,230 +1,245 @@
 'use client';
 
-import { useState } from 'react';
-import { StatusBadge } from '@repo/ui';
+import { useEffect, useState } from 'react';
+import { Button, StatusBadge } from '@repo/ui';
+import {
+  MATERIAL_ASSETS_QUERY,
+  graphRequest,
+} from '@repo/product-graph';
 import { useEditorStore } from '@/lib/editor-store';
+import { bindingSemanticKey, type VisualBinding } from '@/lib/visual';
 
-type VisualMapping = {
-  id: string;
-  optionLabel: string;
-  optionValue: string;
-  targetMesh: string;
-  operation: 'SET_MATERIAL' | 'SHOW_HIDE' | 'SWAP_MESH';
-  targetValue: string;
-  status: 'Active' | 'Draft';
-};
+type MaterialOption = { id: string; name: string; code: string };
 
-const DEFAULT_MAPPINGS: VisualMapping[] = [
-  {
-    id: 'map-1',
-    optionLabel: 'Frame',
-    optionValue: 'Walnut',
-    targetMesh: 'Chair_Frame',
-    operation: 'SET_MATERIAL',
-    targetValue: 'Material_Walnut_Wood',
-    status: 'Active',
-  },
-  {
-    id: 'map-2',
-    optionLabel: 'Frame',
-    optionValue: 'Oak',
-    targetMesh: 'Chair_Frame',
-    operation: 'SET_MATERIAL',
-    targetValue: 'Material_Oak_Wood',
-    status: 'Active',
-  },
-  {
-    id: 'map-3',
-    optionLabel: 'Color',
-    optionValue: 'Black',
-    targetMesh: 'Seat_Cushion',
-    operation: 'SET_MATERIAL',
-    targetValue: 'Material_Black_Leather',
-    status: 'Active',
-  },
-  {
-    id: 'map-4',
-    optionLabel: 'Color',
-    optionValue: 'White',
-    targetMesh: 'Seat_Cushion',
-    operation: 'SET_MATERIAL',
-    targetValue: 'Material_White_Leather',
-    status: 'Active',
-  },
-];
+function targetNodePath(
+  targetKey: string,
+  targets: { key: string; nodePath: string }[]
+): string {
+  return targets.find((t) => t.key === targetKey)?.nodePath ?? targetKey;
+}
 
 export function MappingsPanel() {
-  const [mappings, setMappings] = useState<VisualMapping[]>(DEFAULT_MAPPINGS);
-  const [selectedId, setSelectedId] = useState<string>(DEFAULT_MAPPINGS[0]?.id ?? '');
-  const [createOpen, setCreateOpen] = useState(false);
+  const visualDocument = useEditorStore((state) => state.visualDocument);
+  const visualSelection = useEditorStore((state) => state.visualSelection);
+  const dirty = useEditorStore((state) => state.dirty);
+  const loading = useEditorStore((state) => state.loading);
+  const projectId = useEditorStore((state) => state.projectId);
+  const graphAuth = useEditorStore((state) => state.graphAuth);
+  const updateVisualBinding = useEditorStore(
+    (state) => state.updateVisualBinding
+  );
+  const saveVisualDocument = useEditorStore(
+    (state) => state.saveVisualDocument
+  );
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
-  // Form states
-  const [newOption, setNewOption] = useState('Frame = Walnut');
-  const [newTarget, setNewTarget] = useState('Chair_Frame');
-  const [newOperation, setNewOperation] = useState<'SET_MATERIAL' | 'SHOW_HIDE' | 'SWAP_MESH'>('SET_MATERIAL');
-  const [newTargetValue, setNewTargetValue] = useState('Material_Walnut_Wood');
+  const [materials, setMaterials] = useState<MaterialOption[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  const handleTestMapping = (mapping: VisualMapping) => {
-    setStatusMessage(`Testing mapping: ${mapping.targetMesh} → ${mapping.targetValue}`);
-  };
-
-  const handleAddMapping = (e: React.FormEvent) => {
-    e.preventDefault();
-    const [optLabel, optVal] = newOption.split(' = ');
-    const newMap: VisualMapping = {
-      id: `map-${Date.now()}`,
-      optionLabel: optLabel || 'Option',
-      optionValue: optVal || 'Value',
-      targetMesh: newTarget,
-      operation: newOperation,
-      targetValue: newTargetValue,
-      status: 'Active',
+  useEffect(() => {
+    if (!projectId || !graphAuth) {
+      setMaterials([]);
+      return;
+    }
+    let cancelled = false;
+    void graphRequest<{ materialAssets: MaterialOption[] }>(
+      MATERIAL_ASSETS_QUERY,
+      { projectId },
+      graphAuth.token,
+      graphAuth.apiUrl
+    )
+      .then((data) => {
+        if (!cancelled) setMaterials(data.materialAssets);
+      })
+      .catch(() => {
+        if (!cancelled) setMaterials([]);
+      });
+    return () => {
+      cancelled = true;
     };
-    setMappings((prev) => [...prev, newMap]);
-    setSelectedId(newMap.id);
-    setCreateOpen(false);
-    setStatusMessage(`Created mapping: ${newMap.optionLabel} → ${newMap.targetMesh}`);
+  }, [projectId, graphAuth]);
+
+  const bindings = visualDocument?.bindings ?? [];
+  const targets = visualDocument?.targets ?? [];
+  const unsupported = visualDocument?.unsupported ?? [];
+
+  if (!visualDocument) {
+    return (
+      <div className="flex h-full items-center justify-center p-4 text-[12px] text-[var(--text-muted)]">
+        Load a product revision to hydrate visual bindings.
+      </div>
+    );
+  }
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      await saveVisualDocument();
+    } catch {
+      /* statusMessage set in store */
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="flex h-full flex-col justify-between select-none">
       <div className="min-h-0 flex-1 overflow-y-auto p-2.5 space-y-3 text-[12px]">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <p className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
-            Option &rarr; Scene Bindings ({mappings.length})
+            Option &rarr; Scene Bindings ({bindings.length})
           </p>
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            className="rounded border border-[var(--line)] bg-[var(--surface-pure)] px-2 py-0.5 text-[11px] font-medium text-[var(--ink)] hover:bg-[var(--canvas)]"
-          >
-            + Add mapping
-          </button>
+          <StatusBadge
+            role={dirty ? 'warning' : 'published'}
+            label={dirty ? 'UNSAVED' : 'HYDRATED'}
+          />
         </div>
 
-        <div className="space-y-1.5 text-[11px]">
-          {mappings.map((mapping) => {
-            const isSelected = selectedId === mapping.id;
-            return (
-              <div
-                key={mapping.id}
-                onClick={() => setSelectedId(mapping.id)}
-                className={`rounded-lg border p-2.5 space-y-1.5 transition-colors cursor-pointer ${
-                  isSelected
-                    ? 'border-[var(--brand)] bg-violet-50/20'
-                    : 'border-[var(--line)] bg-[var(--surface-pure)] hover:bg-[var(--canvas)]/40'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[var(--ink)]">
-                    {mapping.optionLabel} &rarr; {mapping.optionValue}
-                  </span>
-                  <StatusBadge role="published" label={mapping.operation} />
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] font-mono">
-                  <span>Target: {mapping.targetMesh}</span>
-                  <span>{mapping.targetValue}</span>
-                </div>
-                <div className="flex items-center justify-end gap-1.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTestMapping(mapping);
-                    }}
-                    className="rounded border border-[var(--line)] bg-[var(--canvas)]/50 px-2 py-0.5 text-[10px] font-medium hover:bg-[var(--canvas)]"
-                  >
-                    Test binding
-                  </button>
-                </div>
+        <p className="text-[11px] text-[var(--text-muted)]">
+          Edit SET_MATERIAL / SET_VISIBILITY, then Save. Preview selection drives
+          replay.
+        </p>
+
+        {unsupported.length > 0 && (
+          <div className="rounded-lg border border-amber-500/40 bg-amber-50/30 p-2 text-[10px] text-amber-900">
+            {unsupported.map((entry) => (
+              <div key={entry.effectId}>
+                {entry.operation}: {entry.reason}
               </div>
-            );
-          })}
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-1.5 text-[11px]">
+          {bindings.length === 0 ? (
+            <p className="text-[var(--text-muted)]">
+              No SET_MATERIAL / SET_VISIBILITY bindings on this model.
+            </p>
+          ) : (
+            bindings.map((binding) => (
+              <BindingRow
+                key={bindingSemanticKey(binding)}
+                binding={binding}
+                active={
+                  visualSelection[binding.choiceKey] === binding.valueKey
+                }
+                targetPath={targetNodePath(binding.targetKey, targets)}
+                materials={materials}
+                onChange={(patch) =>
+                  updateVisualBinding(
+                    {
+                      choiceKey: binding.choiceKey,
+                      valueKey: binding.valueKey,
+                      targetKey: binding.targetKey,
+                      operation: binding.operation,
+                    },
+                    patch
+                  )
+                }
+              />
+            ))
+          )}
         </div>
       </div>
 
-      {/* Add Mapping Modal */}
-      {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-100">
-          <div className="w-full max-w-sm rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-4 shadow-2xl space-y-3 text-[12px]">
-            <div className="flex items-center justify-between border-b border-[var(--line)] pb-2">
-              <h3 className="font-bold text-[var(--ink)]">New Visual Effect Binding</h3>
-              <button type="button" onClick={() => setCreateOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--ink)]">✕</button>
-            </div>
+      <div className="shrink-0 border-t border-[var(--line)] p-2.5">
+        <Button
+          type="button"
+          size="sm"
+          className="w-full"
+          disabled={!dirty || loading || saving}
+          onClick={() => {
+            void onSave();
+          }}
+        >
+          {saving ? 'Saving…' : 'Save visual bindings'}
+        </Button>
+        {!dirty ? (
+          <button
+            type="button"
+            className="mt-1.5 w-full text-[10px] text-[var(--text-muted)] hover:text-[var(--ink)]"
+            onClick={() =>
+              setStatusMessage('No unsaved binding edits.')
+            }
+          >
+            Nothing to save
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
-            <form onSubmit={handleAddMapping} className="space-y-2.5">
-              <div className="space-y-1">
-                <label className="font-medium text-[var(--ink)] block">Product Option &amp; Value</label>
-                <select
-                  value={newOption}
-                  onChange={(e) => setNewOption(e.target.value)}
-                  className="h-8 w-full rounded-md border border-[var(--line)] bg-[var(--canvas)]/40 px-2 text-[11px] text-[var(--ink)] outline-none"
-                >
-                  <option value="Frame = Walnut">Frame = Walnut</option>
-                  <option value="Frame = Oak">Frame = Oak</option>
-                  <option value="Color = Black">Color = Black</option>
-                  <option value="Color = White">Color = White</option>
-                </select>
-              </div>
+function BindingRow(props: {
+  binding: VisualBinding;
+  active: boolean;
+  targetPath: string;
+  materials: MaterialOption[];
+  onChange: (patch: { materialAssetId?: string; visible?: boolean }) => void;
+}) {
+  const { binding, active, targetPath, materials, onChange } = props;
+  const materialOptions =
+    binding.operation === 'SET_MATERIAL' &&
+    binding.materialAssetId &&
+    !materials.some((m) => m.id === binding.materialAssetId)
+      ? [
+          ...materials,
+          {
+            id: binding.materialAssetId,
+            name: binding.materialAssetId,
+            code: '',
+          },
+        ]
+      : materials;
 
-              <div className="space-y-1">
-                <label className="font-medium text-[var(--ink)] block">Target Mesh in Scene</label>
-                <select
-                  value={newTarget}
-                  onChange={(e) => setNewTarget(e.target.value)}
-                  className="h-8 w-full rounded-md border border-[var(--line)] bg-[var(--canvas)]/40 px-2 text-[11px] text-[var(--ink)] outline-none"
-                >
-                  <option value="Chair_Frame">Chair_Frame (Mesh)</option>
-                  <option value="Seat_Cushion">Seat_Cushion (Mesh)</option>
-                  <option value="Front_Leg">Front_Leg (Mesh)</option>
-                  <option value="Back_Leg">Back_Leg (Mesh)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-medium text-[var(--ink)] block">Operation</label>
-                <select
-                  value={newOperation}
-                  onChange={(e) => setNewOperation(e.target.value as any)}
-                  className="h-8 w-full rounded-md border border-[var(--line)] bg-[var(--canvas)]/40 px-2 text-[11px] text-[var(--ink)] outline-none"
-                >
-                  <option value="SET_MATERIAL">Set Material</option>
-                  <option value="SHOW_HIDE">Show / Hide Object</option>
-                  <option value="SWAP_MESH">Swap Geometry</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-medium text-[var(--ink)] block">Target Material / Value</label>
-                <input
-                  type="text"
-                  required
-                  value={newTargetValue}
-                  onChange={(e) => setNewTargetValue(e.target.value)}
-                  placeholder="Material_Walnut_Wood"
-                  className="h-8 w-full rounded-md border border-[var(--line)] bg-[var(--canvas)]/40 px-2 text-[11px] font-mono text-[var(--ink)] outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--line)]">
-                <button
-                  type="button"
-                  onClick={() => setCreateOpen(false)}
-                  className="rounded border border-[var(--line)] px-2.5 py-1 text-[11px] hover:bg-[var(--canvas)]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded bg-[var(--ink)] hover:bg-black px-3 py-1 text-[11px] font-semibold text-white"
-                >
-                  Save Binding
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+  return (
+    <div
+      className={`rounded-lg border p-2.5 space-y-1.5 ${
+        active
+          ? 'border-[var(--brand)] bg-violet-50/20'
+          : 'border-[var(--line)] bg-[var(--surface-pure)]'
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <span className="font-bold text-[var(--ink)]">
+          {binding.choiceKey} &rarr; {binding.valueKey}
+        </span>
+        <StatusBadge role="published" label={binding.operation} />
+      </div>
+      <p className="text-[10px] text-[var(--text-muted)] font-mono">
+        Target: {binding.targetKey} ({targetPath})
+      </p>
+      {binding.operation === 'SET_MATERIAL' ? (
+        <label className="flex flex-col gap-1 text-[10px] text-[var(--text-muted)]">
+          Material asset
+          <select
+            className="h-7 rounded-md border border-[var(--line)] bg-[var(--surface-pure)] px-1.5 text-[11px] text-[var(--ink)]"
+            value={binding.materialAssetId}
+            onChange={(e) => onChange({ materialAssetId: e.target.value })}
+          >
+            {materialOptions.length === 0 ? (
+              <option value={binding.materialAssetId}>
+                {binding.materialAssetId}
+              </option>
+            ) : (
+              materialOptions.map((material) => (
+                <option key={material.id} value={material.id}>
+                  {material.name || material.code || material.id}
+                </option>
+              ))
+            )}
+          </select>
+        </label>
+      ) : (
+        <label className="flex items-center gap-2 text-[11px] text-[var(--ink)]">
+          <input
+            type="checkbox"
+            className="accent-[var(--brand)]"
+            checked={binding.visible}
+            onChange={(e) => onChange({ visible: e.target.checked })}
+          />
+          Visible
+        </label>
       )}
     </div>
   );

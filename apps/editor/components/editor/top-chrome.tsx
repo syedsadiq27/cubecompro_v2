@@ -8,16 +8,22 @@ import { EDITOR_EMBED } from '@repo/product-graph';
 export function TopChrome() {
   const editorDocument = useEditorStore((state) => state.document);
   const dirty = useEditorStore((state) => state.dirty);
+  const loading = useEditorStore((state) => state.loading);
+  const visualDocument = useEditorStore((state) => state.visualDocument);
   const setSelected = useEditorStore((state) => state.setSelected);
   const embedded = useEditorStore((state) => state.embedded);
   const returnTo = useEditorStore((state) => state.returnTo);
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
+  const saveVisualDocument = useEditorStore(
+    (state) => state.saveVisualDocument
+  );
 
   const [productName, setProductName] = useState(
     editorDocument?.productName || 'Studio Chair'
   );
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [saveDropdownOpen, setSaveDropdownOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const onClose = () => {
     setSelected(null);
@@ -40,6 +46,26 @@ export function TopChrome() {
       return;
     }
     setStatusMessage('No previous page to return to.');
+  };
+
+  const onSave = async () => {
+    if (!visualDocument) {
+      setStatusMessage('Load a product with visual bindings before saving.');
+      return;
+    }
+    if (!dirty) {
+      setStatusMessage('No unsaved visual binding edits.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await saveVisualDocument();
+    } catch {
+      /* statusMessage set in store */
+    } finally {
+      setSaving(false);
+      setSaveDropdownOpen(false);
+    }
   };
 
   return (
@@ -122,10 +148,13 @@ export function TopChrome() {
               <Button
                 type="button"
                 size="sm"
-                onClick={() => setStatusMessage('Scene saved successfully.')}
+                disabled={saving || loading || !visualDocument}
+                onClick={() => {
+                  void onSave();
+                }}
                 className="ui:rounded-r-none"
               >
-                Save
+                {saving ? 'Saving…' : 'Save'}
               </Button>
               <Button
                 type="button"
@@ -142,18 +171,17 @@ export function TopChrome() {
                   type="button"
                   className="w-full rounded px-3 py-1.5 text-left hover:bg-[var(--canvas)]"
                   onClick={() => {
-                    setSaveDropdownOpen(false);
-                    setStatusMessage('Saved draft version.');
+                    void onSave();
                   }}
                 >
-                  Save as draft
+                  Save visual bindings
                 </button>
                 <button
                   type="button"
                   className="w-full rounded px-3 py-1.5 text-left hover:bg-[var(--canvas)]"
                   onClick={() => {
                     setSaveDropdownOpen(false);
-                    setStatusMessage('Publishing to storefront…');
+                    setStatusMessage('Publishing is out of scope for 2C.');
                   }}
                 >
                   Save &amp; publish

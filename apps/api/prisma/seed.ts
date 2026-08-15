@@ -311,6 +311,15 @@ async function seed() {
       metallic: 0,
     }
   );
+  const oakDoc = await putJson(
+    `${organization.id}/${project.id}/materials/oak-wood.json`,
+    {
+      shaderModel: 'PBR',
+      baseColor: '#C29B62',
+      roughness: 0.6,
+      metallic: 0,
+    }
+  );
   const blackDoc = await putJson(
     `${organization.id}/${project.id}/materials/fabric-black.json`,
     {
@@ -365,6 +374,12 @@ async function seed() {
     name: 'Walnut Wood',
     documentUri: walnutDoc.uri,
     documentSha256: walnutDoc.sha256,
+  });
+  const oakMaterial = await upsertMaterial({
+    code: 'WOOD-OAK',
+    name: 'Oak Wood',
+    documentUri: oakDoc.uri,
+    documentSha256: oakDoc.sha256,
   });
   const blackMaterial = await upsertMaterial({
     code: 'FABRIC-BLACK',
@@ -551,10 +566,38 @@ async function seed() {
       sortOrder: 0,
     },
   });
-  void colorWhite;
+  const materialFabric = await prisma.choiceValue.create({
+    data: {
+      choiceId: material.id,
+      key: 'fabric',
+      name: 'Fabric',
+      sortOrder: 1,
+    },
+  });
+
+  async function forbidCombo(
+    label: string,
+    choiceValueIds: string[]
+  ): Promise<void> {
+    if (choiceValueIds.length < 2) {
+      throw new Error(`Constraint ${label} needs ≥2 terms`);
+    }
+    const constraint = await prisma.constraint.create({
+      data: { productRevisionId: version.id },
+    });
+    for (const choiceValueId of choiceValueIds) {
+      await prisma.constraintTerm.create({
+        data: { constraintId: constraint.id, choiceValueId },
+      });
+    }
+  }
+
+  await forbidCombo('leather+white', [materialLeather.id, colorWhite.id]);
+  await forbidCombo('xl+oak', [sizeXl.id, frameOak.id]);
+  await forbidCombo('leather+oak', [materialLeather.id, frameOak.id]);
+  await forbidCombo('white+xl', [colorWhite.id, sizeXl.id]);
   void sizeL;
-  void frameOak;
-  void materialLeather;
+  void materialFabric;
 
   await prisma.configurationRule.create({
     data: {
@@ -582,13 +625,40 @@ async function seed() {
       materialSlot: 'frame',
     },
   });
-  const bodyTarget = await prisma.modelTarget.create({
+  const legsTarget = await prisma.modelTarget.create({
     data: {
       productModelId: productModel.id,
-      key: 'body',
+      key: 'legs',
+      targetType: 'MATERIAL',
+      nodePath: 'Chair/Legs',
+      materialSlot: 'legs',
+    },
+  });
+  const leftArmTarget = await prisma.modelTarget.create({
+    data: {
+      productModelId: productModel.id,
+      key: 'left_arm',
+      targetType: 'MATERIAL',
+      nodePath: 'Chair/LeftArm',
+      materialSlot: 'left_arm',
+    },
+  });
+  const rightArmTarget = await prisma.modelTarget.create({
+    data: {
+      productModelId: productModel.id,
+      key: 'right_arm',
+      targetType: 'MATERIAL',
+      nodePath: 'Chair/RightArm',
+      materialSlot: 'right_arm',
+    },
+  });
+  const seatTarget = await prisma.modelTarget.create({
+    data: {
+      productModelId: productModel.id,
+      key: 'seat',
       targetType: 'MATERIAL',
       nodePath: 'Chair/Seat',
-      materialSlot: 'body',
+      materialSlot: 'seat',
     },
   });
   await prisma.modelTarget.create({
@@ -600,20 +670,61 @@ async function seed() {
     },
   });
 
+  const woodTargets = [
+    frameTarget,
+    legsTarget,
+    leftArmTarget,
+    rightArmTarget,
+  ];
+  for (const target of woodTargets) {
+    await prisma.visualEffect.create({
+      data: {
+        choiceValueId: frameWalnut.id,
+        modelTargetId: target.id,
+        operation: VisualOperation.SET_MATERIAL,
+        value: { materialAssetId: walnutMaterial.id },
+      },
+    });
+    await prisma.visualEffect.create({
+      data: {
+        choiceValueId: frameOak.id,
+        modelTargetId: target.id,
+        operation: VisualOperation.SET_MATERIAL,
+        value: { materialAssetId: oakMaterial.id },
+      },
+    });
+  }
+
+  const whiteDoc = await putJson(
+    `${organization.id}/${project.id}/materials/fabric-white.json`,
+    {
+      shaderModel: 'PBR',
+      baseColor: '#F4F4F5',
+      roughness: 0.75,
+      metallic: 0,
+    }
+  );
+  const whiteMaterial = await upsertMaterial({
+    code: 'FABRIC-WHITE',
+    name: 'Fabric White',
+    documentUri: whiteDoc.uri,
+    documentSha256: whiteDoc.sha256,
+  });
+
   await prisma.visualEffect.create({
     data: {
-      choiceValueId: frameWalnut.id,
-      modelTargetId: frameTarget.id,
+      choiceValueId: colorBlack.id,
+      modelTargetId: seatTarget.id,
       operation: VisualOperation.SET_MATERIAL,
-      value: { materialAssetId: walnutMaterial.id },
+      value: { materialAssetId: blackMaterial.id },
     },
   });
   await prisma.visualEffect.create({
     data: {
-      choiceValueId: colorBlack.id,
-      modelTargetId: bodyTarget.id,
+      choiceValueId: colorWhite.id,
+      modelTargetId: seatTarget.id,
       operation: VisualOperation.SET_MATERIAL,
-      value: { materialAssetId: blackMaterial.id },
+      value: { materialAssetId: whiteMaterial.id },
     },
   });
 

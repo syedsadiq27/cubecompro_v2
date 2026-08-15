@@ -15,14 +15,29 @@ import type {
   ConfigSelection,
   ProductConfiguration,
 } from './configuration';
-import type { GraphDetail, GraphSessionAuth } from '@repo/product-graph';
-import { defaultPreviewSelections } from './preview-configuration';
+import type {
+  GraphDetail,
+  GraphSessionAuth,
+} from '@repo/product-graph';
 import { ENVIRONMENT_MAP_URL } from './constants';
 import { disposeModelLoaders, loadModel } from './load-model';
 import {
   applyConfigMaterialsToObject,
   type ParsedModelMaterials,
 } from './materials';
+import {
+  bindingSemanticKey,
+  captureVisualBaseline,
+  documentsMatchForSaveProof,
+  normalizeVisualDocumentFromGraphDetail,
+  persistVisualDocument,
+  replayVisualDocument,
+  type VisualBaseline,
+  type VisualBinding,
+  type VisualDocument,
+  type VisualSelection,
+} from './visual';
+import type { Material } from 'three';
 
 export type EditorIds = {
   projectId?: string;
@@ -114,6 +129,10 @@ type EditorState = EditorIds & {
   graphAuth: GraphSessionAuth | null;
   userName: string | null;
   graphDetail: GraphDetail | null;
+  visualDocument: VisualDocument | null;
+  visualBaseline: VisualBaseline | null;
+  visualSelection: VisualSelection;
+  visualMaterialCache: Map<string, Material>;
   previewSelections: Record<string, string>;
   activeWorkspace: EditorWorkspace;
   drawer: DrawerId;
@@ -154,6 +173,25 @@ type EditorState = EditorIds & {
   setGraphAuth: (graphAuth: GraphSessionAuth | null) => void;
   setUserName: (userName: string | null) => void;
   setGraphDetail: (graphDetail: GraphDetail | null) => void;
+  setVisualDocument: (visualDocument: VisualDocument | null) => void;
+  hydrateVisualReplay: (options: {
+    detail: GraphDetail;
+    productModelId?: string | null;
+  }) => Promise<void>;
+  updateVisualBinding: (
+    key: {
+      choiceKey: string;
+      valueKey: string;
+      targetKey: string;
+      operation: VisualBinding['operation'];
+    },
+    patch: { materialAssetId?: string; visible?: boolean }
+  ) => void;
+  saveVisualDocument: () => Promise<void>;
+  setVisualSelection: (choiceKey: string, valueKey: string) => void;
+  clearVisualSelection: () => void;
+  resetVisualSelection: () => void;
+  replayActiveVisual: () => Promise<void>;
   setPreviewSelection: (attributeId: string, valueId: string) => void;
   resetPreviewSelections: () => void;
   openDrawer: (drawer: DrawerId) => void;
@@ -186,6 +224,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   graphAuth: null,
   userName: null,
   graphDetail: null,
+  visualDocument: null,
+  visualBaseline: null,
+  visualSelection: {},
+  visualMaterialCache: new Map(),
   previewSelections: {},
   activeWorkspace: 'scene',
   drawer: null,
@@ -344,8 +386,203 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setGraphDetail: (graphDetail) =>
     set({
       graphDetail,
-      previewSelections: defaultPreviewSelections(graphDetail),
+      visualSelection: {},
+      visualDocument: null,
+      visualBaseline: null,
+      visualMaterialCache: new Map(),
     }),
+  setVisualDocument: (visualDocument) => set({ visualDocument }),
+  hydrateVisualReplay: async ({ detail, productModelId }) => {
+    const runtime = get().runtime;
+    if (!runtime) {
+      throw new Error('Editor runtime is not attached');
+    }
+    const document = normalizeVisualDocumentFromGraphDetail(
+      detail,
+      productModelId
+    );
+    const materialCache = new Map<string, Material>();
+    set({
+      graphDetail: detail,
+      visualDocument: document,
+      visualBaseline: null,
+      visualSelection: {},
+      visualMaterialCache: materialCache,
+      activeWorkspace: 'preview',
+    });
+
+    const baseline = captureVisualBaseline(runtime.productRoot, document);
+    set({ visualBaseline: baseline });
+    await replayVisualDocument({
+      root: runtime.productRoot,
+      document,
+      baseline,
+      selection: {},
+      auth: get().graphAuth,
+      materialCache,
+      productRevisionId: detail.id,
+    });
+    set({ loadError: null });
+    runtime.render();
+  },
+  updateVisualBinding: (key, patch) => {
+    const semantic = bindingSemanticKey(key);
+    set((state) => {
+      if (!state.visualDocument) return state;
+      const bindings = state.visualDocument.bindings.map((binding) => {
+        if (bindingSemanticKey(binding) !== semantic) return binding;
+        if (
+          binding.operation === 'SET_MATERIAL' &&
+          typeof patch.materialAssetId === 'string'
+        ) {
+          return { ...binding, materialAssetId: patch.materialAssetId };
+        }
+        if (
+          binding.operation === 'SET_VISIBILITY' &&
+          typeof patch.visible === 'boolean'
+        ) {
+          return { ...binding, visible: patch.visible };
+        }
+        return binding;
+      });
+      return {
+        visualDocument: { ...state.visualDocument, bindings },
+        dirty: true,
+      };
+    });
+    void get()
+      .replayActiveVisual()
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : 'Visual replay failed';
+        set({ loadError: message, statusMessage: message });
+      });
+  },
+  saveVisualDocument: async () => {
+    const {
+      graphAuth,
+      productId,
+      document,
+      graphDetail,
+      visualDocument,
+    } = get();
+    if (!graphAuth || !productId || !graphDetail || !visualDocument) {
+      throw new Error('Load a product revision before saving bindings');
+    }
+    const productModelId =
+      visualDocument.productModelId || document?.modelId || '';
+    if (!productModelId) {
+      throw new Error('Missing product model for visual save');
+    }
+
+    set({ loading: true, statusMessage: 'Saving visual bindings…' });
+    try {
+      const desired = visualDocument;
+      const result = await persistVisualDocument({
+        auth: graphAuth,
+        productId,
+        productModelId,
+        detail: graphDetail,
+        desired,
+      });
+
+      if (!documentsMatchForSaveProof(desired, result.document)) {
+        throw new Error(
+          'Save proof failed: reloaded VisualDocument does not match'
+        );
+      }
+
+      await get().hydrateVisualReplay({
+        detail: result.detail,
+        productModelId: result.document.productModelId,
+      });
+
+      const nextAuth: GraphSessionAuth = {
+        ...graphAuth,
+        productRevisionId: result.detail.id,
+        graphVersionId: result.detail.id,
+      };
+      const currentDoc = get().document;
+      set({
+        graphAuth: nextAuth,
+        dirty: false,
+        loading: false,
+        statusMessage:
+          result.opsApplied === 0
+            ? 'Visual bindings already up to date.'
+            : `Saved ${result.opsApplied} visual change(s).`,
+        document: currentDoc
+          ? {
+              ...currentDoc,
+              modelId: result.document.productModelId,
+              ruleCount: result.detail.visualEffects.length,
+            }
+          : currentDoc,
+        modelId: result.document.productModelId,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to save visual bindings';
+      set({ loading: false, loadError: message, statusMessage: message });
+      throw error;
+    }
+  },
+  setVisualSelection: (choiceKey, valueKey) => {
+    set((state) => ({
+      visualSelection: {
+        ...state.visualSelection,
+        [choiceKey]: valueKey,
+      },
+    }));
+    void get()
+      .replayActiveVisual()
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : 'Visual replay failed';
+        set({ loadError: message, statusMessage: message });
+      });
+  },
+  clearVisualSelection: () => {
+    set({ visualSelection: {} });
+    void get()
+      .replayActiveVisual()
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : 'Visual replay failed';
+        set({ loadError: message, statusMessage: message });
+      });
+  },
+  resetVisualSelection: () => {
+    get().clearVisualSelection();
+  },
+  replayActiveVisual: async () => {
+    const {
+      runtime,
+      visualDocument,
+      visualBaseline,
+      visualSelection,
+      visualMaterialCache,
+      graphAuth,
+      graphDetail,
+    } = get();
+    if (!runtime || !visualDocument || !graphDetail) {
+      return;
+    }
+    if (!visualBaseline) {
+      throw new Error('Visual baseline missing — reload the product');
+    }
+    await replayVisualDocument({
+      root: runtime.productRoot,
+      document: visualDocument,
+      baseline: visualBaseline,
+      selection: visualSelection,
+      auth: graphAuth,
+      materialCache: visualMaterialCache,
+      productRevisionId: graphDetail.id,
+    });
+    set({ loadError: null });
+    runtime.render();
+  },
   setPreviewSelection: (attributeId, valueId) =>
     set((state) => ({
       previewSelections: {
@@ -354,9 +591,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       },
     })),
   resetPreviewSelections: () =>
-    set((state) => ({
-      previewSelections: defaultPreviewSelections(state.graphDetail),
-    })),
+    set({
+      previewSelections: {},
+    }),
   openDrawer: (drawer) => set({ drawer }),
   closeDrawer: () => set({ drawer: null }),
   openModal: (modal) => set({ modal }),
@@ -379,6 +616,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       returnTo: undefined,
       inspectorStepId: null,
       previewSelections: {},
+      visualDocument: null,
+      visualBaseline: null,
+      visualSelection: {},
+      visualMaterialCache: new Map(),
     }),
 }));
 
