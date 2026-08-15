@@ -31,7 +31,7 @@ export default async function ProductModelEditorPage({
         product: { id: string };
       }>(PRODUCT_QUERY, { id }, project.projectToken),
       graphRequest<{
-        productGraphVersions: Array<{ id: string; status: string }>;
+        productRevisions: Array<{ id: string; status: string }>;
       }>(
         PRODUCT_GRAPH_VERSIONS_QUERY,
         { productId: id },
@@ -40,8 +40,8 @@ export default async function ProductModelEditorPage({
     ]);
 
     void productData;
-    const graphVersionId = pickGraphVersionId(
-      versionsData.productGraphVersions
+    const productRevisionId = pickGraphVersionId(
+      versionsData.productRevisions
     );
 
     return (
@@ -52,7 +52,7 @@ export default async function ProductModelEditorPage({
         returnTo={`/${projectId}/products/${id}?tab=3d`}
         accessToken={project.projectToken}
         apiUrl={getApiBaseUrl()}
-        graphVersionId={graphVersionId}
+        productRevisionId={productRevisionId}
         userName={userName}
       />
     );

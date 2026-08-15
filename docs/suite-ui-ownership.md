@@ -17,7 +17,7 @@ Extend `@repo/ui` only when a real consumer needs missing behavior. Do not open 
 5. ~~Suite UI standardization pass~~ ✅ (2026-08-15) — standards doc + control/focus/radius alignment + IconButton / Radio / Separator; chrome widths aligned (sidebar 220, inspector 330–350, top bar h-12)
 6. ~~Suite chrome parity~~ ✅ (2026-08-15) — collapsible dark sidebar, product badges (`admin` / `backoffice` / `editor`), shared `TopBar` layout, editor auth footer
 
-**Status: ready to stop.** No further convergence architecture phase. Remaining work is domain features only.
+**Visual chrome: stop.** Behavior / wiring inventory: [`suite-functionality-ownership.md`](./suite-functionality-ownership.md) — restore **Class C** there before claiming shell-complete.
 
 ## Suite list-page composition (2026-08-15)
 

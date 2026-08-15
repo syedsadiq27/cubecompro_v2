@@ -25,7 +25,7 @@ export class ResolveResolver {
 
     const resolved = await this.resolveService.resolve({
       productId: input.productId,
-      graphVersionId: input.graphVersionId,
+      productRevisionId: input.productRevisionId,
       selections,
     });
 
@@ -33,6 +33,9 @@ export class ResolveResolver {
       valid: resolved.valid,
       violations: resolved.violations,
       selectionsJson: JSON.stringify(resolved.selections),
+      availabilityJson: resolved.availability
+        ? JSON.stringify(resolved.availability)
+        : null,
       threeD: {
         modelId: resolved.threeD.modelId,
         effects: resolved.threeD.effects.map((effect) => ({
@@ -54,7 +57,7 @@ export class ResolveResolver {
           ? JSON.stringify(resolved.commerce.cartPayload)
           : null,
       },
-      graphVersionId: resolved.graphVersionId,
+      productRevisionId: resolved.productRevisionId,
       graphVersion: resolved.graphVersion,
     };
   }

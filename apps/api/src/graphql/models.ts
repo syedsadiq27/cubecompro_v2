@@ -87,11 +87,11 @@ export class ProductModel {
   status: ProductStatus;
 
   @Field(() => ID, { nullable: true })
-  activeGraphVersionId?: string | null;
+  activeRevisionId?: string | null;
 }
 
 @ObjectType()
-export class ProductGraphVersionModel {
+export class ProductRevisionModel {
   @Field(() => ID)
   id: string;
 
@@ -118,12 +118,12 @@ export class ProductGraphVersionModel {
 }
 
 @ObjectType()
-export class AttributeValueModel {
+export class ChoiceValueModel {
   @Field(() => ID)
   id: string;
 
   @Field()
-  attributeId: string;
+  choiceId: string;
 
   @Field()
   key: string;
@@ -139,12 +139,12 @@ export class AttributeValueModel {
 }
 
 @ObjectType()
-export class ProductAttributeModel {
+export class ChoiceModel {
   @Field(() => ID)
   id: string;
 
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   key: string;
@@ -164,8 +164,8 @@ export class ProductAttributeModel {
   @Field(() => ID, { nullable: true })
   defaultValueId?: string | null;
 
-  @Field(() => [AttributeValueModel], { nullable: true })
-  values?: AttributeValueModel[];
+  @Field(() => [ChoiceValueModel], { nullable: true })
+  values?: ChoiceValueModel[];
 }
 
 @ObjectType()
@@ -174,13 +174,40 @@ export class ConfigurationRuleModel {
   id: string;
 
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   conditionJson: string;
 
   @Field()
   effectJson: string;
+}
+
+@ObjectType()
+export class ConstraintTermModel {
+  @Field()
+  constraintId: string;
+
+  @Field()
+  choiceValueId: string;
+
+  @Field(() => String, { nullable: true })
+  choiceKey?: string | null;
+
+  @Field(() => String, { nullable: true })
+  choiceValueKey?: string | null;
+}
+
+@ObjectType()
+export class ConstraintModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  productRevisionId: string;
+
+  @Field(() => [ConstraintTermModel])
+  terms: ConstraintTermModel[];
 }
 
 @ObjectType()
@@ -210,7 +237,7 @@ export class ProductModelAssetModel {
   id: string;
 
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   assetId: string;
@@ -231,7 +258,7 @@ export class VisualEffectModel {
   id: string;
 
   @Field()
-  attributeValueId: string;
+  choiceValueId: string;
 
   @Field()
   modelTargetId: string;
@@ -252,10 +279,10 @@ export class VariantSelectionModel {
   variantId: string;
 
   @Field()
-  attributeId: string;
+  choiceId: string;
 
   @Field()
-  attributeValueId: string;
+  choiceValueId: string;
 }
 
 @ObjectType()
@@ -264,7 +291,7 @@ export class ProductVariantModel {
   id: string;
 
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   provider: string;
@@ -280,12 +307,15 @@ export class ProductVariantModel {
 }
 
 @ObjectType()
-export class ProductGraphVersionDetailModel extends ProductGraphVersionModel {
-  @Field(() => [ProductAttributeModel])
-  attributes: ProductAttributeModel[];
+export class ProductRevisionDetailModel extends ProductRevisionModel {
+  @Field(() => [ChoiceModel])
+  choices: ChoiceModel[];
 
   @Field(() => [ConfigurationRuleModel])
   rules: ConfigurationRuleModel[];
+
+  @Field(() => [ConstraintModel])
+  constraints: ConstraintModel[];
 
   @Field(() => [ProductModelAssetModel])
   models: ProductModelAssetModel[];
@@ -533,6 +563,9 @@ export class ResolvedConfigurationModel {
   @Field()
   selectionsJson: string;
 
+  @Field(() => String, { nullable: true })
+  availabilityJson?: string | null;
+
   @Field(() => Resolved3DStateModel)
   threeD: Resolved3DStateModel;
 
@@ -540,7 +573,7 @@ export class ResolvedConfigurationModel {
   commerce: ResolvedCommerceStateModel;
 
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   graphVersion: number;
@@ -561,7 +594,7 @@ export class SavedConfigurationModel {
   productId: string;
 
   @Field()
-  productGraphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   stateUri: string;
@@ -640,9 +673,9 @@ export class UpdateProfileInput {
 }
 
 @InputType()
-export class CreateProductAttributeInput {
+export class CreateChoiceInput {
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   key: string;
@@ -650,8 +683,11 @@ export class CreateProductAttributeInput {
   @Field()
   name: string;
 
-  @Field(() => AttributeType)
-  type: AttributeType;
+  @Field(() => AttributeType, {
+    nullable: true,
+    description: 'Kernel authoring accepts SELECT only; defaults to SELECT.',
+  })
+  type?: AttributeType;
 
   @Field(() => Boolean, { nullable: true })
   required?: boolean;
@@ -661,9 +697,27 @@ export class CreateProductAttributeInput {
 }
 
 @InputType()
-export class CreateAttributeValueInput {
+export class SetChoiceDefaultInput {
   @Field()
-  attributeId: string;
+  choiceId: string;
+
+  @Field(() => ID, { nullable: true })
+  defaultValueId?: string | null;
+}
+
+@InputType()
+export class CreateConstraintInput {
+  @Field()
+  productRevisionId: string;
+
+  @Field(() => [String])
+  choiceValueIds: string[];
+}
+
+@InputType()
+export class CreateChoiceValueInput {
+  @Field()
+  choiceId: string;
 
   @Field()
   key: string;
@@ -681,7 +735,7 @@ export class CreateAttributeValueInput {
 @InputType()
 export class CreateConfigurationRuleInput {
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   conditionJson: string;
@@ -693,7 +747,7 @@ export class CreateConfigurationRuleInput {
 @InputType()
 export class CreateProductModelInput {
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   assetId: string;
@@ -726,7 +780,7 @@ export class CreateModelTargetInput {
 @InputType()
 export class CreateVisualEffectInput {
   @Field()
-  attributeValueId: string;
+  choiceValueId: string;
 
   @Field()
   modelTargetId: string;
@@ -741,7 +795,7 @@ export class CreateVisualEffectInput {
 @InputType()
 export class CreateProductVariantInput {
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field()
   provider: string;
@@ -759,10 +813,10 @@ export class CreateVariantSelectionInput {
   variantId: string;
 
   @Field()
-  attributeId: string;
+  choiceId: string;
 
   @Field()
-  attributeValueId: string;
+  choiceValueId: string;
 }
 
 @InputType()
@@ -873,7 +927,7 @@ export class ConfigurationStateInput {
   productId: string;
 
   @Field(() => String, { nullable: true })
-  graphVersionId?: string;
+  productRevisionId?: string;
 
   @Field(() => String)
   selectionsJson: string;
@@ -885,7 +939,7 @@ export class SaveConfigurationInput {
   productId: string;
 
   @Field()
-  graphVersionId: string;
+  productRevisionId: string;
 
   @Field(() => String)
   selectionsJson: string;

@@ -44,14 +44,16 @@ export function EditorPageClient({ ids }: EditorPageClientProps) {
       if ((data as { type?: string }).type !== EDITOR_EMBED.AUTH) return;
       const token = (data as { token?: string }).token;
       const apiUrl = (data as { apiUrl?: string }).apiUrl;
-      const graphVersionId = (data as { graphVersionId?: string })
-        .graphVersionId;
+      const productRevisionId =
+        (data as { productRevisionId?: string }).productRevisionId ??
+        (data as { graphVersionId?: string }).graphVersionId;
       const userName = (data as { userName?: string }).userName;
       if (!token || !apiUrl) return;
       setGraphAuth({
         token,
         apiUrl,
-        graphVersionId: graphVersionId ?? '',
+        productRevisionId: productRevisionId ?? '',
+        graphVersionId: productRevisionId ?? '',
       });
       setUserName(userName?.trim() || 'Studio User');
     };

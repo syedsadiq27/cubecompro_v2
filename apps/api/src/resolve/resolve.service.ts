@@ -3,14 +3,22 @@ import {
   AttributeType,
   GraphVersionStatus,
   VisualOperation,
-  type AttributeValue,
-  type ProductAttribute,
+  type ChoiceValue,
+  type Choice,
 } from '@prisma/client';
+import {
+  deriveAvailability,
+  formatValidationIssues,
+  validateSelection,
+  type KernelChoice,
+  type KernelConstraint,
+  type Selection,
+} from '../product/kernel-runtime';
 import { ProductService } from '../product/product.service';
 
 export type ConfigurationState = {
   productId: string;
-  graphVersionId?: string;
+  productRevisionId?: string;
   selections: Record<string, unknown>;
 };
 
@@ -18,6 +26,7 @@ export type ResolvedConfiguration = {
   valid: boolean;
   violations: string[];
   selections: Record<string, unknown>;
+  availability?: Record<string, Record<string, boolean>>;
   threeD: {
     modelId: string | null;
     effects: Array<{
@@ -37,18 +46,9 @@ export type ResolvedConfiguration = {
     sku: string | null;
     cartPayload: Record<string, unknown> | null;
   };
-  graphVersionId: string;
+  productRevisionId: string;
   graphVersion: number;
 };
-
-type Clause = { attr: string; eq: unknown };
-type Condition =
-  | { all: Clause[] }
-  | { any: Clause[] }
-  | Clause;
-type Effect =
-  | { require: Clause }
-  | { forbid: Clause };
 
 @Injectable()
 export class ResolveService {
@@ -57,46 +57,33 @@ export class ResolveService {
   async resolve(state: ConfigurationState): Promise<ResolvedConfiguration> {
     const versionMeta = await this.products.getActiveOrVersion(
       state.productId,
-      state.graphVersionId
+      state.productRevisionId
     );
 
     if (
-      !state.graphVersionId &&
+      !state.productRevisionId &&
       versionMeta.status !== GraphVersionStatus.PUBLISHED
     ) {
       return emptyUnresolved(
         versionMeta.id,
         versionMeta.version,
         state.selections,
-        ['Active graph version is not published']
+        ['Active product revision is not published']
       );
     }
 
     const detail = await this.products.getGraphVersionDetail(versionMeta.id);
-    const attributes = detail.attributes;
-    const violations: string[] = [];
+    const choicesData = detail.choices;
+    const { selection, choices, constraints, legacyViolations } =
+      buildKernelInputs(state.selections, choicesData, detail.constraints);
 
-    const normalized = normalizeSelections(state.selections, attributes, violations);
-
-    for (const attribute of attributes) {
-      if (
-        attribute.required &&
-        (normalized[attribute.key] === undefined ||
-          normalized[attribute.key] === null ||
-          normalized[attribute.key] === '')
-      ) {
-        violations.push(`Missing required attribute ${attribute.key}`);
-      }
-    }
-
-    for (const rule of detail.rules) {
-      const condition = rule.condition as Condition;
-      const effect = rule.effect as Effect;
-      if (matchesCondition(condition, normalized)) {
-        applyEffect(effect, normalized, violations);
-      }
-    }
-
+    const validation = validateSelection(selection, choices, constraints);
+    const violations = [
+      ...legacyViolations,
+      ...formatValidationIssues(validation.issues),
+    ];
+    const normalized: Record<string, unknown> = { ...selection };
+    const availability = deriveAvailability(selection, choices, constraints);
     const valid = violations.length === 0;
 
     const threeD = {
@@ -114,24 +101,14 @@ export class ResolveService {
 
     if (valid) {
       const selectedValueIds = new Set<string>();
-      for (const attribute of attributes) {
-        if (
-          attribute.type !== AttributeType.SELECT &&
-          attribute.type !== AttributeType.MULTI_SELECT
-        ) {
+      for (const attribute of choicesData) {
+        if (attribute.type !== AttributeType.SELECT) {
           continue;
         }
-        const selected = normalized[attribute.key];
+        const selected = selection[attribute.key];
         if (typeof selected === 'string') {
           const value = attribute.values.find((entry) => entry.key === selected);
           if (value) selectedValueIds.add(value.id);
-        }
-        if (Array.isArray(selected)) {
-          for (const key of selected) {
-            if (typeof key !== 'string') continue;
-            const value = attribute.values.find((entry) => entry.key === key);
-            if (value) selectedValueIds.add(value.id);
-          }
         }
       }
 
@@ -142,7 +119,7 @@ export class ResolveService {
       );
 
       for (const effect of detail.visualEffects) {
-        if (!selectedValueIds.has(effect.attributeValueId)) continue;
+        if (!selectedValueIds.has(effect.choiceValueId)) continue;
         const target = targetById.get(effect.modelTargetId);
         if (!target) continue;
 
@@ -174,16 +151,16 @@ export class ResolveService {
 
       const matched = detail.variants.find((variant) => {
         if (variant.selections.length === 0) return false;
-        return variant.selections.every((selection) => {
-          const attribute = attributes.find(
-            (entry) => entry.id === selection.attributeId
+        return variant.selections.every((variantSelection) => {
+          const attribute = choicesData.find(
+            (entry) => entry.id === variantSelection.choiceId
           );
           if (!attribute) return false;
           const value = attribute.values.find(
-            (entry) => entry.id === selection.attributeValueId
+            (entry) => entry.id === variantSelection.choiceValueId
           );
           if (!value) return false;
-          return normalized[attribute.key] === value.key;
+          return selection[attribute.key] === value.key;
         });
       });
 
@@ -197,8 +174,6 @@ export class ResolveService {
           provider: matched.provider,
           externalId: matched.externalId,
           selections: normalized,
-          graphVersionId: versionMeta.id,
-          graphVersion: versionMeta.version,
         };
       }
     }
@@ -207,37 +182,87 @@ export class ResolveService {
       valid,
       violations,
       selections: normalized,
+      availability,
       threeD,
       commerce,
-      graphVersionId: versionMeta.id,
-      graphVersion: versionMeta.version,
+      productRevisionId: detail.id,
+      graphVersion: detail.version,
     };
   }
 }
 
-function publicMaterialUrl(id: string) {
-  const base =
-    process.env.API_PUBLIC_URL ??
-    process.env.NEXT_PUBLIC_PRODUCT_GRAPH_URL ??
-    'http://localhost:3005';
-  return `${base.replace(/\/$/, '')}/documents/materials/${id}`;
-}
+function buildKernelInputs(
+  selections: Record<string, unknown>,
+  choicesData: Array<Choice & { values: ChoiceValue[] }>,
+  constraints: Array<{
+    id: string;
+    terms: Array<{
+      choiceValue?: {
+        key: string;
+        choice?: { key: string } | null;
+      } | null;
+    }>;
+  }>
+) {
+  const legacyViolations: string[] = [];
+  const choices: KernelChoice[] = choicesData
+    .filter((choice) => choice.type === AttributeType.SELECT)
+    .map((choice) => ({
+      key: choice.key,
+      required: choice.required,
+      values: choice.values.map((value) => ({ key: value.key })),
+    }));
 
-function readMaterialAssetId(value: unknown): string | null {
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    typeof (value as { materialAssetId?: unknown }).materialAssetId === 'string'
-  ) {
-    const id = (value as { materialAssetId: string }).materialAssetId.trim();
-    return id || null;
+  const selection: Selection = {};
+
+  for (const [key, raw] of Object.entries(selections)) {
+    const attribute = choicesData.find((entry) => entry.key === key);
+    if (!attribute) {
+      if (typeof raw === 'string') {
+        selection[key] = raw;
+      }
+      continue;
+    }
+    if (attribute.type === AttributeType.SELECT) {
+      if (typeof raw === 'string') {
+        selection[key] = raw;
+      } else {
+        legacyViolations.push(`Attribute ${key} expects a string value key`);
+      }
+      continue;
+    }
+    legacyViolations.push(
+      `Legacy attribute type ${attribute.type} is outside kernel Selection`
+    );
   }
-  return null;
+
+  const kernelConstraints: KernelConstraint[] = constraints.map(
+    (constraint) => ({
+      id: constraint.id,
+      terms: constraint.terms
+        .map((term) => {
+          const choiceKey = term.choiceValue?.choice?.key;
+          const choiceValueKey = term.choiceValue?.key;
+          if (!choiceKey || !choiceValueKey) return null;
+          return { choiceKey, choiceValueKey };
+        })
+        .filter(
+          (term): term is { choiceKey: string; choiceValueKey: string } =>
+            Boolean(term)
+        ),
+    })
+  );
+
+  return {
+    selection,
+    choices,
+    constraints: kernelConstraints,
+    legacyViolations,
+  };
 }
 
 function emptyUnresolved(
-  graphVersionId: string,
+  productRevisionId: string,
   graphVersion: number,
   selections: Record<string, unknown>,
   violations: string[]
@@ -246,7 +271,10 @@ function emptyUnresolved(
     valid: false,
     violations,
     selections,
-    threeD: { modelId: null, effects: [] },
+    threeD: {
+      modelId: null,
+      effects: [],
+    },
     commerce: {
       provider: null,
       productReference: null,
@@ -254,112 +282,23 @@ function emptyUnresolved(
       sku: null,
       cartPayload: null,
     },
-    graphVersionId,
+    productRevisionId,
     graphVersion,
   };
 }
 
-function normalizeSelections(
-  selections: Record<string, unknown>,
-  attributes: Array<
-    ProductAttribute & { values: AttributeValue[] }
-  >,
-  violations: string[]
-): Record<string, unknown> {
-  const normalized: Record<string, unknown> = { ...selections };
-  const byKey = new Map(attributes.map((attribute) => [attribute.key, attribute]));
-
-  for (const [key, raw] of Object.entries(selections)) {
-    const attribute = byKey.get(key);
-    if (!attribute) {
-      violations.push(`Unknown attribute ${key}`);
-      continue;
-    }
-
-    if (
-      attribute.type === AttributeType.SELECT ||
-      attribute.type === AttributeType.MULTI_SELECT
-    ) {
-      if (attribute.type === AttributeType.SELECT) {
-        if (typeof raw !== 'string') {
-          violations.push(`Attribute ${key} expects a string value key`);
-          continue;
-        }
-        if (!attribute.values.some((value) => value.key === raw)) {
-          violations.push(`Invalid value ${String(raw)} for attribute ${key}`);
-        }
-      } else if (!Array.isArray(raw)) {
-        violations.push(`Attribute ${key} expects an array of value keys`);
-      } else {
-        for (const entry of raw) {
-          if (
-            typeof entry !== 'string' ||
-            !attribute.values.some((value) => value.key === entry)
-          ) {
-            violations.push(
-              `Invalid value ${String(entry)} for attribute ${key}`
-            );
-          }
-        }
-      }
-    } else if (attribute.type === AttributeType.BOOLEAN) {
-      if (typeof raw !== 'boolean') {
-        violations.push(`Attribute ${key} expects a boolean`);
-      }
-    } else if (attribute.type === AttributeType.NUMBER) {
-      if (typeof raw !== 'number' || Number.isNaN(raw)) {
-        violations.push(`Attribute ${key} expects a number`);
-      }
-    } else if (attribute.type === AttributeType.TEXT) {
-      if (typeof raw !== 'string') {
-        violations.push(`Attribute ${key} expects text`);
-      }
-    }
+function readMaterialAssetId(value: unknown): string | null {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'materialAssetId' in value &&
+    typeof (value as { materialAssetId: unknown }).materialAssetId === 'string'
+  ) {
+    return (value as { materialAssetId: string }).materialAssetId;
   }
-
-  return normalized;
+  return null;
 }
 
-function matchesCondition(
-  condition: Condition,
-  selections: Record<string, unknown>
-): boolean {
-  if ('all' in condition) {
-    return condition.all.every((clause) => matchesClause(clause, selections));
-  }
-  if ('any' in condition) {
-    return condition.any.some((clause) => matchesClause(clause, selections));
-  }
-  return matchesClause(condition, selections);
-}
-
-function matchesClause(
-  clause: Clause,
-  selections: Record<string, unknown>
-): boolean {
-  return selections[clause.attr] === clause.eq;
-}
-
-function applyEffect(
-  effect: Effect,
-  selections: Record<string, unknown>,
-  violations: string[]
-) {
-  if ('require' in effect) {
-    const clause = effect.require;
-    if (!matchesClause(clause, selections)) {
-      violations.push(
-        `Rule requires ${clause.attr}=${String(clause.eq)}`
-      );
-    }
-    return;
-  }
-  if ('forbid' in effect) {
-    const clause = effect.forbid;
-    if (matchesClause(clause, selections)) {
-      violations.push(
-        `Rule forbids ${clause.attr}=${String(clause.eq)}`
-      );
-    }
-  }
+function publicMaterialUrl(materialAssetId: string): string {
+  return `/documents/materials/${materialAssetId}`;
 }

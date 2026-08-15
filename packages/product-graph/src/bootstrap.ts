@@ -1,9 +1,9 @@
 import { graphRequest } from './client.js';
 import { objectDocumentUrl } from './documents.js';
 import {
-  PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
-  PRODUCT_GRAPH_VERSIONS_QUERY,
   PRODUCT_QUERY,
+  PRODUCT_REVISION_DETAIL_QUERY,
+  PRODUCT_REVISIONS_QUERY,
 } from './operations.js';
 import type {
   GraphDetail,
@@ -30,11 +30,12 @@ export async function resolveGraphVersionId(
   auth: GraphSessionAuth,
   productId: string
 ): Promise<string> {
+  if (auth.productRevisionId) return auth.productRevisionId;
   if (auth.graphVersionId) return auth.graphVersionId;
   const data = await graphRequest<{
-    productGraphVersions: GraphVersionSummary[];
-  }>(PRODUCT_GRAPH_VERSIONS_QUERY, { productId }, auth.token, auth.apiUrl);
-  return pickGraphVersionId(data.productGraphVersions);
+    productRevisions: GraphVersionSummary[];
+  }>(PRODUCT_REVISIONS_QUERY, { productId }, auth.token, auth.apiUrl);
+  return pickGraphVersionId(data.productRevisions);
 }
 
 export type ProductEditorBootstrap = {
@@ -56,22 +57,22 @@ export async function bootstrapProductEditor({
   productId: string;
   modelId?: string;
 }): Promise<ProductEditorBootstrap> {
-  const graphVersionId = await resolveGraphVersionId(auth, productId);
+  const productRevisionId = await resolveGraphVersionId(auth, productId);
   const [productData, detailData] = await Promise.all([
     graphRequest<{
       product: { id: string; name: string; key: string };
     }>(PRODUCT_QUERY, { id: productId }, auth.token, auth.apiUrl),
     graphRequest<{
-      productGraphVersionDetail: GraphDetail;
+      productRevisionDetail: GraphDetail;
     }>(
-      PRODUCT_GRAPH_VERSION_DETAIL_QUERY,
-      { id: graphVersionId },
+      PRODUCT_REVISION_DETAIL_QUERY,
+      { id: productRevisionId },
       auth.token,
       auth.apiUrl
     ),
   ]);
 
-  const detail = detailData.productGraphVersionDetail;
+  const detail = detailData.productRevisionDetail;
   const productModel =
     detail.models.find((model) => model.id === modelId) ?? detail.models[0];
   if (!productModel) {
@@ -97,7 +98,7 @@ export async function bootstrapProductEditor({
     product: productData.product,
     detail: {
       ...detail,
-      id: graphVersionId,
+      id: productRevisionId,
     },
     assets,
     modelUrl,

@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { applyMigrations } from './apply-migrations';
+import { prepareEnvironment } from './prepare-environment';
 
 async function bootstrap() {
-  await applyMigrations();
+  await prepareEnvironment();
   const app = await NestFactory.create(AppModule);
   app.enableCors({
     origin: true,

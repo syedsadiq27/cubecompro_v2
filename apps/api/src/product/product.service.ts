@@ -12,22 +12,40 @@ import {
 } from '@prisma/client';
 import { DocumentStoreService } from '../documents/document-store.service';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  assertDefaultValueBelongsToAttribute,
+  assertDescriptiveAttributeValueMetadata,
+  assertKernelAuthoringAttributeType,
+} from './kernel-authoring';
+import { ConstraintService } from './constraint.service';
 
 const graphDetailInclude = {
-  attributes: {
+  choices: {
     include: { values: { orderBy: { sortOrder: 'asc' as const } } },
     orderBy: { sortOrder: 'asc' as const },
   },
   rules: true,
+  constraints: {
+    include: {
+      terms: {
+        include: {
+          choiceValue: {
+            include: { choice: true },
+          },
+        },
+      },
+    },
+  },
   models: { include: { targets: true } },
   variants: { include: { selections: true } },
-} satisfies Prisma.ProductGraphVersionInclude;
+} satisfies Prisma.ProductRevisionInclude;
 
 @Injectable()
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly documents: DocumentStoreService
+    private readonly documents: DocumentStoreService,
+    private readonly constraints: ConstraintService
   ) {}
 
   async create(input: {
@@ -59,7 +77,7 @@ export class ProductService {
         },
       });
 
-      await tx.productGraphVersion.create({
+      await tx.productRevision.create({
         data: {
           organizationId: input.organizationId,
           productId: product.id,
@@ -112,7 +130,7 @@ export class ProductService {
     await this.getById(id);
     await this.prisma.product.update({
       where: { id },
-      data: { activeGraphVersionId: null },
+      data: { activeRevisionId: null },
     });
     await this.prisma.product.delete({ where: { id } });
     return true;
@@ -120,7 +138,7 @@ export class ProductService {
 
   async discardDraftGraphVersion(productId: string) {
     await this.getById(productId);
-    const draft = await this.prisma.productGraphVersion.findFirst({
+    const draft = await this.prisma.productRevision.findFirst({
       where: { productId, status: GraphVersionStatus.DRAFT },
     });
     if (!draft) {
@@ -128,14 +146,14 @@ export class ProductService {
     }
 
     const product = await this.getById(productId);
-    if (product.activeGraphVersionId === draft.id) {
+    if (product.activeRevisionId === draft.id) {
       await this.prisma.product.update({
         where: { id: productId },
-        data: { activeGraphVersionId: null },
+        data: { activeRevisionId: null },
       });
     }
 
-    await this.prisma.productGraphVersion.delete({ where: { id: draft.id } });
+    await this.prisma.productRevision.delete({ where: { id: draft.id } });
     return true;
   }
 
@@ -145,13 +163,13 @@ export class ProductService {
   ) {
     const product = await this.getById(productId);
 
-    const existingDraft = await this.prisma.productGraphVersion.findFirst({
+    const existingDraft = await this.prisma.productRevision.findFirst({
       where: { productId, status: GraphVersionStatus.DRAFT },
     });
 
     if (existingDraft) {
-      const attributeCount = await this.prisma.productAttribute.count({
-        where: { graphVersionId: existingDraft.id },
+      const attributeCount = await this.prisma.choice.count({
+        where: { productRevisionId: existingDraft.id },
       });
       if (attributeCount > 0 && !sourceGraphVersionId) {
         return existingDraft;
@@ -165,25 +183,25 @@ export class ProductService {
 
     let source =
       sourceGraphVersionId != null
-        ? await this.prisma.productGraphVersion.findFirst({
+        ? await this.prisma.productRevision.findFirst({
             where: { id: sourceGraphVersionId, productId },
             include: graphDetailInclude,
           })
         : null;
 
     if (sourceGraphVersionId && !source) {
-      throw new NotFoundException('Source graph version not found for product');
+      throw new NotFoundException('Source product revision not found for product');
     }
 
     if (!source) {
       source =
-        (product.activeGraphVersionId
-          ? await this.prisma.productGraphVersion.findUnique({
-              where: { id: product.activeGraphVersionId },
+        (product.activeRevisionId
+          ? await this.prisma.productRevision.findUnique({
+              where: { id: product.activeRevisionId },
               include: graphDetailInclude,
             })
           : null) ??
-        (await this.prisma.productGraphVersion.findFirst({
+        (await this.prisma.productRevision.findFirst({
           where: { productId, status: GraphVersionStatus.PUBLISHED },
           orderBy: { version: 'desc' },
           include: graphDetailInclude,
@@ -199,21 +217,21 @@ export class ProductService {
     const sourceEffects = source
       ? await this.prisma.visualEffect.findMany({
           where: {
-            attributeValue: {
-              attribute: { graphVersionId: source.id },
+            choiceValue: {
+              choice: { productRevisionId: source.id },
             },
           },
         })
       : [];
 
-    const count = await this.prisma.productGraphVersion.count({
+    const count = await this.prisma.productRevision.count({
       where: { productId },
     });
 
     return this.prisma.$transaction(async (tx) => {
       const draft =
         existingDraft ??
-        (await tx.productGraphVersion.create({
+        (await tx.productRevision.create({
           data: {
             organizationId: product.organizationId,
             productId,
@@ -226,27 +244,27 @@ export class ProductService {
         return draft;
       }
 
-      const attributeIdMap = new Map<string, string>();
+      const choiceIdMap = new Map<string, string>();
       const valueIdMap = new Map<string, string>();
       const targetIdMap = new Map<string, string>();
 
-      for (const attribute of source.attributes) {
-        const created = await tx.productAttribute.create({
+      for (const choice of source.choices) {
+        const created = await tx.choice.create({
           data: {
-            graphVersionId: draft.id,
-            key: attribute.key,
-            name: attribute.name,
-            type: attribute.type,
-            required: attribute.required,
-            sortOrder: attribute.sortOrder,
+            productRevisionId: draft.id,
+            key: choice.key,
+            name: choice.name,
+            type: choice.type,
+            required: choice.required,
+            sortOrder: choice.sortOrder,
           },
         });
-        attributeIdMap.set(attribute.id, created.id);
+        choiceIdMap.set(choice.id, created.id);
 
-        for (const value of attribute.values) {
-          const createdValue = await tx.attributeValue.create({
+        for (const value of choice.values) {
+          const createdValue = await tx.choiceValue.create({
             data: {
-              attributeId: created.id,
+              choiceId: created.id,
               key: value.key,
               name: value.name,
               sortOrder: value.sortOrder,
@@ -256,10 +274,10 @@ export class ProductService {
           valueIdMap.set(value.id, createdValue.id);
         }
 
-        if (attribute.defaultValueId) {
-          const mappedDefault = valueIdMap.get(attribute.defaultValueId);
+        if (choice.defaultValueId) {
+          const mappedDefault = valueIdMap.get(choice.defaultValueId);
           if (mappedDefault) {
-            await tx.productAttribute.update({
+            await tx.choice.update({
               where: { id: created.id },
               data: { defaultValueId: mappedDefault },
             });
@@ -270,9 +288,26 @@ export class ProductService {
       for (const rule of source.rules) {
         await tx.configurationRule.create({
           data: {
-            graphVersionId: draft.id,
+            productRevisionId: draft.id,
             condition: rule.condition as Prisma.InputJsonValue,
             effect: rule.effect as Prisma.InputJsonValue,
+          },
+        });
+      }
+
+      for (const constraint of source.constraints) {
+        const termValueIds = constraint.terms
+          .map((term) => valueIdMap.get(term.choiceValueId))
+          .filter((id): id is string => Boolean(id));
+        if (termValueIds.length < 2) continue;
+        await tx.constraint.create({
+          data: {
+            productRevisionId: draft.id,
+            terms: {
+              create: termValueIds.map((choiceValueId) => ({
+                choiceValueId,
+              })),
+            },
           },
         });
       }
@@ -280,7 +315,7 @@ export class ProductService {
       for (const model of source.models) {
         const createdModel = await tx.productModel.create({
           data: {
-            graphVersionId: draft.id,
+            productRevisionId: draft.id,
             assetId: model.assetId,
             key: model.key,
             name: model.name,
@@ -303,12 +338,12 @@ export class ProductService {
       }
 
       for (const effect of sourceEffects) {
-        const attributeValueId = valueIdMap.get(effect.attributeValueId);
+        const choiceValueId = valueIdMap.get(effect.choiceValueId);
         const modelTargetId = targetIdMap.get(effect.modelTargetId);
-        if (!attributeValueId || !modelTargetId) continue;
+        if (!choiceValueId || !modelTargetId) continue;
         await tx.visualEffect.create({
           data: {
-            attributeValueId,
+            choiceValueId,
             modelTargetId,
             operation: effect.operation,
             value: effect.value as Prisma.InputJsonValue,
@@ -319,7 +354,7 @@ export class ProductService {
       for (const variant of source.variants) {
         const createdVariant = await tx.productVariant.create({
           data: {
-            graphVersionId: draft.id,
+            productRevisionId: draft.id,
             provider: variant.provider,
             externalId: variant.externalId,
             sku: variant.sku,
@@ -327,14 +362,14 @@ export class ProductService {
         });
 
         for (const selection of variant.selections) {
-          const attributeId = attributeIdMap.get(selection.attributeId);
-          const attributeValueId = valueIdMap.get(selection.attributeValueId);
-          if (!attributeId || !attributeValueId) continue;
+          const choiceId = choiceIdMap.get(selection.choiceId);
+          const choiceValueId = valueIdMap.get(selection.choiceValueId);
+          if (!choiceId || !choiceValueId) continue;
           await tx.variantSelection.create({
             data: {
               variantId: createdVariant.id,
-              attributeId,
-              attributeValueId,
+              choiceId,
+              choiceValueId,
             },
           });
         }
@@ -345,46 +380,46 @@ export class ProductService {
   }
 
   async getGraphVersion(id: string) {
-    const version = await this.prisma.productGraphVersion.findUnique({
+    const version = await this.prisma.productRevision.findUnique({
       where: { id },
     });
     if (!version) {
-      throw new NotFoundException(`Graph version ${id} not found`);
+      throw new NotFoundException(`Product revision ${id} not found`);
     }
     return version;
   }
 
-  async getActiveOrVersion(productId: string, graphVersionId?: string) {
-    if (graphVersionId) {
-      const version = await this.prisma.productGraphVersion.findFirst({
-        where: { id: graphVersionId, productId },
+  async getActiveOrVersion(productId: string, productRevisionId?: string) {
+    if (productRevisionId) {
+      const version = await this.prisma.productRevision.findFirst({
+        where: { id: productRevisionId, productId },
       });
       if (!version) {
-        throw new NotFoundException('Graph version not found for product');
+        throw new NotFoundException('Product revision not found for product');
       }
       return version;
     }
 
     const product = await this.getById(productId);
-    if (!product.activeGraphVersionId) {
-      throw new NotFoundException('Product has no active published graph');
+    if (!product.activeRevisionId) {
+      throw new NotFoundException('Product has no active published revision');
     }
-    return this.getGraphVersion(product.activeGraphVersionId);
+    return this.getGraphVersion(product.activeRevisionId);
   }
 
   async getGraphVersionDetail(id: string) {
-    const version = await this.prisma.productGraphVersion.findUnique({
+    const version = await this.prisma.productRevision.findUnique({
       where: { id },
       include: graphDetailInclude,
     });
     if (!version) {
-      throw new NotFoundException(`Graph version ${id} not found`);
+      throw new NotFoundException(`Product revision ${id} not found`);
     }
 
     const visualEffects = await this.prisma.visualEffect.findMany({
       where: {
-        attributeValue: {
-          attribute: { graphVersionId: id },
+        choiceValue: {
+          choice: { productRevisionId: id },
         },
       },
     });
@@ -392,29 +427,31 @@ export class ProductService {
     return { ...version, visualEffects };
   }
 
-  private async assertDraft(graphVersionId: string) {
-    const version = await this.getGraphVersion(graphVersionId);
+  private async assertDraft(productRevisionId: string) {
+    const version = await this.getGraphVersion(productRevisionId);
     if (version.status !== GraphVersionStatus.DRAFT) {
-      throw new BadRequestException('Only DRAFT graph versions are editable');
+      throw new BadRequestException('Only DRAFT product revisions are editable');
     }
     return version;
   }
 
   async createAttribute(input: {
-    graphVersionId: string;
+    productRevisionId: string;
     key: string;
     name: string;
-    type: AttributeType;
+    type?: AttributeType;
     required?: boolean;
     sortOrder?: number;
   }) {
-    await this.assertDraft(input.graphVersionId);
-    return this.prisma.productAttribute.create({
+    await this.assertDraft(input.productRevisionId);
+    const type = input.type ?? AttributeType.SELECT;
+    assertKernelAuthoringAttributeType(type);
+    return this.prisma.choice.create({
       data: {
-        graphVersionId: input.graphVersionId,
+        productRevisionId: input.productRevisionId,
         key: input.key,
         name: input.name,
-        type: input.type,
+        type,
         required: input.required ?? true,
         sortOrder: input.sortOrder ?? 0,
       },
@@ -422,19 +459,19 @@ export class ProductService {
   }
 
   async createAttributeValue(input: {
-    attributeId: string;
+    choiceId: string;
     key: string;
     name: string;
     sortOrder?: number;
     metadataJson?: string;
   }) {
-    const attribute = await this.prisma.productAttribute.findUnique({
-      where: { id: input.attributeId },
+    const choice = await this.prisma.choice.findUnique({
+      where: { id: input.choiceId },
     });
-    if (!attribute) {
-      throw new NotFoundException('Attribute not found');
+    if (!choice) {
+      throw new NotFoundException('Choice not found');
     }
-    await this.assertDraft(attribute.graphVersionId);
+    await this.assertDraft(choice.productRevisionId);
 
     let metadata: Prisma.InputJsonValue | undefined;
     if (input.metadataJson) {
@@ -443,11 +480,12 @@ export class ProductService {
       } catch {
         throw new BadRequestException('metadataJson must be valid JSON');
       }
+      assertDescriptiveAttributeValueMetadata(metadata);
     }
 
-    return this.prisma.attributeValue.create({
+    return this.prisma.choiceValue.create({
       data: {
-        attributeId: input.attributeId,
+        choiceId: input.choiceId,
         key: input.key,
         name: input.name,
         sortOrder: input.sortOrder ?? 0,
@@ -456,38 +494,74 @@ export class ProductService {
     });
   }
 
-  async createRule(input: {
-    graphVersionId: string;
-    conditionJson: string;
-    effectJson: string;
-  }) {
-    await this.assertDraft(input.graphVersionId);
-    let condition: Prisma.InputJsonValue;
-    let effect: Prisma.InputJsonValue;
-    try {
-      condition = JSON.parse(input.conditionJson) as Prisma.InputJsonValue;
-      effect = JSON.parse(input.effectJson) as Prisma.InputJsonValue;
-    } catch {
-      throw new BadRequestException(
-        'conditionJson and effectJson must be valid JSON'
-      );
+  async deleteAttributeValue(id: string) {
+    const value = await this.prisma.choiceValue.findUnique({
+      where: { id },
+      include: { choice: true },
+    });
+    if (!value) {
+      throw new NotFoundException('Choice value not found');
     }
-    return this.prisma.configurationRule.create({
-      data: {
-        graphVersionId: input.graphVersionId,
-        condition,
-        effect,
-      },
+    await this.assertDraft(value.choice.productRevisionId);
+    await this.constraints.assertChoiceValueNotReferenced(id);
+    await this.prisma.choiceValue.delete({ where: { id } });
+    return true;
+  }
+
+  async setAttributeDefaultValue(input: {
+    choiceId: string;
+    defaultValueId: string | null;
+  }) {
+    const choice = await this.prisma.choice.findUnique({
+      where: { id: input.choiceId },
+    });
+    if (!choice) {
+      throw new NotFoundException('Choice not found');
+    }
+    await this.assertDraft(choice.productRevisionId);
+
+    if (input.defaultValueId == null) {
+      return this.prisma.choice.update({
+        where: { id: input.choiceId },
+        data: { defaultValueId: null },
+      });
+    }
+
+    const value = await this.prisma.choiceValue.findUnique({
+      where: { id: input.defaultValueId },
+    });
+    if (!value) {
+      throw new NotFoundException('Choice value not found');
+    }
+    assertDefaultValueBelongsToAttribute({
+      attributeId: choice.id,
+      valueAttributeId: value.choiceId,
+      valueId: value.id,
+    });
+
+    return this.prisma.choice.update({
+      where: { id: input.choiceId },
+      data: { defaultValueId: value.id },
     });
   }
 
+  async createRule(_input: {
+    productRevisionId: string;
+    conditionJson: string;
+    effectJson: string;
+  }): Promise<never> {
+    throw new BadRequestException(
+      'ConfigurationRule writes are blocked. Use createConstraint with ChoiceValue ids.'
+    );
+  }
+
   async createProductModel(input: {
-    graphVersionId: string;
+    productRevisionId: string;
     assetId: string;
     key: string;
     name: string;
   }) {
-    await this.assertDraft(input.graphVersionId);
+    await this.assertDraft(input.productRevisionId);
     const asset = await this.prisma.objectAsset.findUnique({
       where: { id: input.assetId },
     });
@@ -496,7 +570,7 @@ export class ProductService {
     }
     return this.prisma.productModel.create({
       data: {
-        graphVersionId: input.graphVersionId,
+        productRevisionId: input.productRevisionId,
         assetId: input.assetId,
         key: input.key,
         name: input.name,
@@ -517,7 +591,7 @@ export class ProductService {
     if (!model) {
       throw new NotFoundException('Product model not found');
     }
-    await this.assertDraft(model.graphVersionId);
+    await this.assertDraft(model.productRevisionId);
     return this.prisma.modelTarget.create({
       data: {
         productModelId: input.productModelId,
@@ -530,19 +604,19 @@ export class ProductService {
   }
 
   async createVisualEffect(input: {
-    attributeValueId: string;
+    choiceValueId: string;
     modelTargetId: string;
     operation: VisualOperation;
     valueJson: string;
   }) {
-    const value = await this.prisma.attributeValue.findUnique({
-      where: { id: input.attributeValueId },
-      include: { attribute: true },
+    const value = await this.prisma.choiceValue.findUnique({
+      where: { id: input.choiceValueId },
+      include: { choice: true },
     });
     if (!value) {
-      throw new NotFoundException('Attribute value not found');
+      throw new NotFoundException('Choice value not found');
     }
-    await this.assertDraft(value.attribute.graphVersionId);
+    await this.assertDraft(value.choice.productRevisionId);
 
     const target = await this.prisma.modelTarget.findUnique({
       where: { id: input.modelTargetId },
@@ -551,9 +625,9 @@ export class ProductService {
     if (!target) {
       throw new NotFoundException('Model target not found');
     }
-    if (target.productModel.graphVersionId !== value.attribute.graphVersionId) {
+    if (target.productModel.productRevisionId !== value.choice.productRevisionId) {
       throw new BadRequestException(
-        'Attribute value and target must share a graph version'
+        'Choice value and target must share a product revision'
       );
     }
 
@@ -579,19 +653,19 @@ export class ProductService {
         );
       }
 
-      const graphVersion = await this.prisma.productGraphVersion.findUnique({
-        where: { id: value.attribute.graphVersionId },
+      const revision = await this.prisma.productRevision.findUnique({
+        where: { id: value.choice.productRevisionId },
         include: { product: true },
       });
-      if (!graphVersion) {
-        throw new NotFoundException('Graph version not found');
+      if (!revision) {
+        throw new NotFoundException('Product revision not found');
       }
 
       const material = await this.prisma.materialAsset.findFirst({
         where: {
           id: materialAssetId,
-          organizationId: graphVersion.organizationId,
-          projectId: graphVersion.product.projectId,
+          organizationId: revision.organizationId,
+          projectId: revision.product.projectId,
         },
       });
       if (!material) {
@@ -605,7 +679,7 @@ export class ProductService {
 
     return this.prisma.visualEffect.create({
       data: {
-        attributeValueId: input.attributeValueId,
+        choiceValueId: input.choiceValueId,
         modelTargetId: input.modelTargetId,
         operation: input.operation,
         value: parsed,
@@ -614,15 +688,15 @@ export class ProductService {
   }
 
   async createVariant(input: {
-    graphVersionId: string;
+    productRevisionId: string;
     provider: string;
     externalId: string;
     sku?: string;
   }) {
-    await this.assertDraft(input.graphVersionId);
+    await this.assertDraft(input.productRevisionId);
     return this.prisma.productVariant.create({
       data: {
-        graphVersionId: input.graphVersionId,
+        productRevisionId: input.productRevisionId,
         provider: input.provider,
         externalId: input.externalId,
         sku: input.sku,
@@ -632,8 +706,8 @@ export class ProductService {
 
   async createVariantSelection(input: {
     variantId: string;
-    attributeId: string;
-    attributeValueId: string;
+    choiceId: string;
+    choiceValueId: string;
   }) {
     const variant = await this.prisma.productVariant.findUnique({
       where: { id: input.variantId },
@@ -641,12 +715,12 @@ export class ProductService {
     if (!variant) {
       throw new NotFoundException('Variant not found');
     }
-    await this.assertDraft(variant.graphVersionId);
+    await this.assertDraft(variant.productRevisionId);
     return this.prisma.variantSelection.create({
       data: {
         variantId: input.variantId,
-        attributeId: input.attributeId,
-        attributeValueId: input.attributeValueId,
+        choiceId: input.choiceId,
+        choiceValueId: input.choiceValueId,
       },
     });
   }
@@ -660,15 +734,15 @@ export class ProductService {
     const snapshot = {
       productId: detail.productId,
       version: detail.version,
-      attributes: detail.attributes.map((attribute) => ({
-        id: attribute.id,
-        key: attribute.key,
-        name: attribute.name,
-        type: attribute.type,
-        required: attribute.required,
-        sortOrder: attribute.sortOrder,
-        defaultValueId: attribute.defaultValueId,
-        values: attribute.values.map((value) => ({
+      choices: detail.choices.map((choice) => ({
+        id: choice.id,
+        key: choice.key,
+        name: choice.name,
+        type: choice.type,
+        required: choice.required,
+        sortOrder: choice.sortOrder,
+        defaultValueId: choice.defaultValueId,
+        values: choice.values.map((value) => ({
           id: value.id,
           key: value.key,
           name: value.name,
@@ -680,6 +754,13 @@ export class ProductService {
         id: rule.id,
         condition: rule.condition,
         effect: rule.effect,
+      })),
+      constraints: detail.constraints.map((constraint) => ({
+        id: constraint.id,
+        productRevisionId: constraint.productRevisionId,
+        terms: constraint.terms.map((term) => ({
+          choiceValueId: term.choiceValueId,
+        })),
       })),
       models: detail.models.map((model) => ({
         id: model.id,
@@ -697,7 +778,7 @@ export class ProductService {
       })),
       visualEffects: detail.visualEffects.map((effect) => ({
         id: effect.id,
-        attributeValueId: effect.attributeValueId,
+        choiceValueId: effect.choiceValueId,
         modelTargetId: effect.modelTargetId,
         operation: effect.operation,
         value: effect.value,
@@ -709,8 +790,8 @@ export class ProductService {
         sku: variant.sku,
         selections: variant.selections.map((selection) => ({
           id: selection.id,
-          attributeId: selection.attributeId,
-          attributeValueId: selection.attributeValueId,
+          choiceId: selection.choiceId,
+          choiceValueId: selection.choiceValueId,
         })),
       })),
     };
@@ -722,7 +803,7 @@ export class ProductService {
     );
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.productGraphVersion.updateMany({
+      await tx.productRevision.updateMany({
         where: {
           productId: detail.productId,
           status: GraphVersionStatus.PUBLISHED,
@@ -731,7 +812,7 @@ export class ProductService {
         data: { status: GraphVersionStatus.ARCHIVED },
       });
 
-      const published = await tx.productGraphVersion.update({
+      const published = await tx.productRevision.update({
         where: { id },
         data: {
           status: GraphVersionStatus.PUBLISHED,
@@ -744,7 +825,7 @@ export class ProductService {
       await tx.product.update({
         where: { id: detail.productId },
         data: {
-          activeGraphVersionId: published.id,
+          activeRevisionId: published.id,
           status: ProductStatus.ACTIVE,
         },
       });
@@ -754,7 +835,7 @@ export class ProductService {
   }
 
   listGraphVersions(productId: string) {
-    return this.prisma.productGraphVersion.findMany({
+    return this.prisma.productRevision.findMany({
       where: { productId },
       orderBy: { version: 'asc' },
     });

@@ -67,7 +67,7 @@ export function parseWorkspaceTab(value?: string | null): WorkspaceTab {
 
 export function countValues(detail: GraphDetail | null): number {
   if (!detail) return 0;
-  return detail.attributes.reduce(
+  return detail.choices.reduce(
     (sum, attribute) => sum + attribute.values.length,
     0
   );
@@ -179,9 +179,9 @@ export function variantConfigurationLabel(
     attributes.map((attribute) => [attribute.id, attribute])
   );
   const parts = (variant.selections ?? []).map((selection) => {
-    const attribute = attrById.get(selection.attributeId);
+    const attribute = attrById.get(selection.choiceId);
     const value = attribute?.values?.find(
-      (entry) => entry.id === selection.attributeValueId
+      (entry) => entry.id === selection.choiceValueId
     );
     return value?.name ?? value?.key ?? '—';
   });

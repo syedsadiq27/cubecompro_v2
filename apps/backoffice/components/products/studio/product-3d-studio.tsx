@@ -69,7 +69,7 @@ export function Product3DStudio({
 
   const targets = primaryModel?.targets ?? [];
   const values =
-    detail?.attributes.flatMap((attribute) =>
+    detail?.choices.flatMap((attribute) =>
       (attribute.values ?? []).map((value) => ({
         id: value.id,
         label: `${attribute.name}: ${value.name}`,
@@ -79,7 +79,7 @@ export function Product3DStudio({
   const mappings = useMemo(() => {
     if (!detail) return [];
     const valueById = new Map(
-      detail.attributes.flatMap((attribute) =>
+      detail.choices.flatMap((attribute) =>
         (attribute.values ?? []).map(
           (value) => [value.id, { attribute, value }] as const
         )
@@ -97,7 +97,7 @@ export function Product3DStudio({
     >();
 
     for (const effect of detail.visualEffects) {
-      const valueMeta = valueById.get(effect.attributeValueId);
+      const valueMeta = valueById.get(effect.choiceValueId);
       const target = targetById.get(effect.modelTargetId);
       if (!valueMeta || !target) continue;
       const list = byAttribute.get(valueMeta.attribute.name) ?? [];
@@ -212,7 +212,7 @@ export function Product3DStudio({
                   >
                     <input
                       type="hidden"
-                      name="graphVersionId"
+                      name="productRevisionId"
                       value={detail.id}
                     />
                     <input type="hidden" name="key" value="primary" />
@@ -502,7 +502,7 @@ export function Product3DStudio({
                             }
                             onClick={() => {
                               const formData = new FormData();
-                              formData.set('attributeValueId', mapValueId);
+                              formData.set('choiceValueId', mapValueId);
                               formData.set('modelTargetId', mapTargetId);
                               if (mapAction === 'material') {
                                 formData.set('operation', 'SET_MATERIAL');

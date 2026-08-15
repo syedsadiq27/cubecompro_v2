@@ -8,6 +8,8 @@ export type EditorEmbedAuthMessage = {
   type: typeof EDITOR_EMBED.AUTH;
   token: string;
   apiUrl: string;
+  productRevisionId?: string;
+  /** @deprecated Use productRevisionId */
   graphVersionId?: string;
   userName?: string;
 };

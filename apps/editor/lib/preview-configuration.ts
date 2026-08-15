@@ -15,7 +15,7 @@ export function defaultPreviewSelections(
 ): PreviewSelections {
   if (!detail) return {};
   const next: PreviewSelections = {};
-  for (const attribute of detail.attributes) {
+  for (const attribute of detail.choices) {
     const first = attribute.values[0];
     if (first) next[attribute.id] = first.id;
   }
@@ -51,12 +51,12 @@ export async function applyPreviewConfiguration(
     const target = targetsById.get(effect.modelTargetId);
     if (!target?.nodePath) continue;
 
-    const attribute = detail.attributes.find((entry) =>
-      entry.values.some((value) => value.id === effect.attributeValueId)
+    const attribute = detail.choices.find((entry) =>
+      entry.values.some((value) => value.id === effect.choiceValueId)
     );
     if (!attribute) continue;
     const selectedValueId = selections[attribute.id];
-    if (selectedValueId !== effect.attributeValueId) continue;
+    if (selectedValueId !== effect.choiceValueId) continue;
 
     if (effect.operation === 'SET_VISIBILITY') {
       const node = findNodeByPath(root, target.nodePath);

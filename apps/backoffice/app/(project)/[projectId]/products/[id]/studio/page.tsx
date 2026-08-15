@@ -18,16 +18,16 @@ export default async function Product3DStudioRedirectPage({
   if (!project) return null;
 
   const versionsData = await graphRequest<{
-    productGraphVersions: Array<{ id: string; status: string }>;
+    productRevisions: Array<{ id: string; status: string }>;
   }>(PRODUCT_GRAPH_VERSIONS_QUERY, { productId: id }, project.projectToken);
 
-  if (versionsData.productGraphVersions.length === 0) {
+  if (versionsData.productRevisions.length === 0) {
     redirect(`/${projectId}/products/${id}?tab=3d`);
   }
-  const selectedId = pickGraphVersionId(versionsData.productGraphVersions);
+  const selectedId = pickGraphVersionId(versionsData.productRevisions);
 
   const detailData = await graphRequest<{
-    productGraphVersionDetail: {
+    productRevisionDetail: {
       models: Array<{ id: string }>;
     };
   }>(
@@ -35,7 +35,7 @@ export default async function Product3DStudioRedirectPage({
     { id: selectedId },
     project.projectToken
   );
-  const modelId = detailData.productGraphVersionDetail.models[0]?.id;
+  const modelId = detailData.productRevisionDetail.models[0]?.id;
   if (!modelId) {
     redirect(`/${projectId}/products/${id}?tab=3d`);
   }

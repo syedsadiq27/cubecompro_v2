@@ -50,21 +50,21 @@ function revalidateProduct(projectId: string, productId: string) {
 export async function createDraftGraphVersionAction(
   projectId: string,
   productId: string,
-  sourceGraphVersionId?: string
+  sourceProductRevisionId?: string
 ): Promise<GraphMutationResult> {
   return withProject(projectId, async (token) => {
     const data = await graphRequest<{
-      createDraftGraphVersion: { id: string };
+      createDraftProductRevision: { id: string };
     }>(
       CREATE_DRAFT_GRAPH_VERSION_MUTATION,
       {
         productId,
-        ...(sourceGraphVersionId ? { sourceGraphVersionId } : {}),
+        ...(sourceProductRevisionId ? { sourceProductRevisionId } : {}),
       },
       token
     );
     revalidateProduct(projectId, productId);
-    return { ok: true, id: data.createDraftGraphVersion.id };
+    return { ok: true, id: data.createDraftProductRevision.id };
   });
 }
 
@@ -86,7 +86,7 @@ export async function discardDraftGraphVersionAction(
 export async function recreateDraftFromVersionAction(
   projectId: string,
   productId: string,
-  sourceGraphVersionId: string
+  sourceProductRevisionId: string
 ): Promise<GraphMutationResult> {
   return withProject(projectId, async (token) => {
     try {
@@ -99,14 +99,14 @@ export async function recreateDraftFromVersionAction(
       // no draft to discard
     }
     const data = await graphRequest<{
-      createDraftGraphVersion: { id: string };
+      createDraftProductRevision: { id: string };
     }>(
       CREATE_DRAFT_GRAPH_VERSION_MUTATION,
-      { productId, sourceGraphVersionId },
+      { productId, sourceProductRevisionId },
       token
     );
     revalidateProduct(projectId, productId);
-    return { ok: true, id: data.createDraftGraphVersion.id };
+    return { ok: true, id: data.createDraftProductRevision.id };
   });
 }
 
@@ -133,15 +133,19 @@ export async function createAttributeAction(
 ): Promise<GraphMutationResult> {
   return withProject(projectId, async (token) => {
     const data = await graphRequest<{
-      createProductAttribute: { id: string };
+      createChoice: { id: string };
     }>(
       CREATE_PRODUCT_ATTRIBUTE_MUTATION,
       {
         input: {
-          graphVersionId: String(formData.get('graphVersionId') ?? ''),
+          productRevisionId: String(
+            formData.get('productRevisionId') ??
+              formData.get('graphVersionId') ??
+              ''
+          ),
           key: String(formData.get('key') ?? '').trim(),
           name: String(formData.get('name') ?? '').trim(),
-          type: String(formData.get('type') ?? 'SELECT'),
+          type: 'SELECT',
           required: formData.get('required') === 'on',
           sortOrder: Number(formData.get('sortOrder') ?? 0),
         },
@@ -149,7 +153,7 @@ export async function createAttributeAction(
       token
     );
     revalidateProduct(projectId, productId);
-    return { ok: true, id: data.createProductAttribute.id };
+    return { ok: true, id: data.createChoice.id };
   });
 }
 
@@ -160,12 +164,14 @@ export async function createAttributeValueAction(
 ): Promise<GraphMutationResult> {
   return withProject(projectId, async (token) => {
     const data = await graphRequest<{
-      createAttributeValue: { id: string };
+      createChoiceValue: { id: string };
     }>(
       CREATE_ATTRIBUTE_VALUE_MUTATION,
       {
         input: {
-          attributeId: String(formData.get('attributeId') ?? ''),
+          choiceId: String(
+            formData.get('choiceId') ?? formData.get('attributeId') ?? ''
+          ),
           key: String(formData.get('key') ?? '').trim(),
           name: String(formData.get('name') ?? '').trim(),
           sortOrder: Number(formData.get('sortOrder') ?? 0),
@@ -174,7 +180,7 @@ export async function createAttributeValueAction(
       token
     );
     revalidateProduct(projectId, productId);
-    return { ok: true, id: data.createAttributeValue.id };
+    return { ok: true, id: data.createChoiceValue.id };
   });
 }
 
@@ -202,7 +208,11 @@ export async function createRuleAction(
       CREATE_CONFIGURATION_RULE_MUTATION,
       {
         input: {
-          graphVersionId: String(formData.get('graphVersionId') ?? ''),
+          productRevisionId: String(
+            formData.get('productRevisionId') ??
+              formData.get('graphVersionId') ??
+              ''
+          ),
           conditionJson: JSON.stringify(condition),
           effectJson: JSON.stringify(effect),
         },
@@ -226,7 +236,11 @@ export async function createProductModelAction(
       CREATE_PRODUCT_MODEL_MUTATION,
       {
         input: {
-          graphVersionId: String(formData.get('graphVersionId') ?? ''),
+          productRevisionId: String(
+            formData.get('productRevisionId') ??
+              formData.get('graphVersionId') ??
+              ''
+          ),
           assetId: String(formData.get('assetId') ?? ''),
           key: String(formData.get('key') ?? '').trim(),
           name: String(formData.get('name') ?? '').trim(),
@@ -299,7 +313,11 @@ export async function createVisualEffectAction(
       CREATE_VISUAL_EFFECT_MUTATION,
       {
         input: {
-          attributeValueId: String(formData.get('attributeValueId') ?? ''),
+          choiceValueId: String(
+            formData.get('choiceValueId') ??
+              formData.get('attributeValueId') ??
+              ''
+          ),
           modelTargetId: String(formData.get('modelTargetId') ?? ''),
           operation,
           valueJson,
@@ -324,7 +342,11 @@ export async function createVariantAction(
       CREATE_PRODUCT_VARIANT_MUTATION,
       {
         input: {
-          graphVersionId: String(formData.get('graphVersionId') ?? ''),
+          productRevisionId: String(
+            formData.get('productRevisionId') ??
+              formData.get('graphVersionId') ??
+              ''
+          ),
           provider: String(formData.get('provider') ?? 'generic').trim(),
           externalId: String(formData.get('externalId') ?? '').trim(),
           sku: String(formData.get('sku') ?? '').trim() || undefined,
@@ -350,8 +372,14 @@ export async function createVariantSelectionAction(
       {
         input: {
           variantId: String(formData.get('variantId') ?? ''),
-          attributeId: String(formData.get('attributeId') ?? ''),
-          attributeValueId: String(formData.get('attributeValueId') ?? ''),
+          choiceId: String(
+            formData.get('choiceId') ?? formData.get('attributeId') ?? ''
+          ),
+          choiceValueId: String(
+            formData.get('choiceValueId') ??
+              formData.get('attributeValueId') ??
+              ''
+          ),
         },
       },
       token

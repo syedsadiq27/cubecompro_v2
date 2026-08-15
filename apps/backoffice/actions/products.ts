@@ -157,13 +157,13 @@ export async function publishProductGraphAction(
 
   try {
     const versions = await graphRequest<{
-      productGraphVersions: Array<{ id: string; status: string }>;
+      productRevisions: Array<{ id: string; status: string }>;
     }>(
       PRODUCT_GRAPH_VERSIONS_QUERY,
       { productId },
       project.projectToken
     );
-    const draft = versions.productGraphVersions.find(
+    const draft = versions.productRevisions.find(
       (version) => version.status === 'DRAFT'
     );
     if (!draft) {
