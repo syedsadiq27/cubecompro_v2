@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Typography } from '@repo/ui';
+import { Button, Card, DescriptionList, Typography } from '@repo/ui';
 import { FABRICS, FRAMES, LEGS } from '@/components/demo/sofa/catalog';
 import { SofaCanvas } from '@/components/demo/sofa/SofaCanvas';
 import { useSofaConfigurator } from '@/components/demo/sofa/useSofaConfigurator';
@@ -88,12 +88,9 @@ function SofaSeoEmbed() {
             onChange={setLegs}
           />
 
-          <Link
-            href="/demo"
-            className="inline-flex self-start rounded-lg bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white"
-          >
+          <Button as={Link} href="/demo" variant="primary" size="md" className="self-start">
             Open full sofa demo
-          </Link>
+          </Button>
         </div>
       </div>
     </div>
@@ -160,12 +157,15 @@ function TshirtSeoEmbed() {
             onChange={setSize}
           />
 
-          <Link
+          <Button
+            as={Link}
             href="/demo/tshirt"
-            className="inline-flex self-start rounded-lg bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-white"
+            variant="primary"
+            size="md"
+            className="self-start"
           >
             Open full tee demo
-          </Link>
+          </Button>
         </div>
       </div>
     </div>
@@ -182,25 +182,40 @@ function ResolvedCommerce({
   inventory: number;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--canvas)] px-3 py-3">
+    <Card
+      tone="canvas"
+      padding="xs"
+      radius="md"
+      className="border-[var(--border-strong)] !px-3"
+    >
       <Typography variant="label">Commerce resolve</Typography>
-      <dl className="mt-2.5 space-y-2 font-mono text-sm">
+      <DescriptionList gap="xs" className="mt-2.5">
         <div className="flex justify-between gap-3">
-          <dt className="text-[var(--text-muted)]">SKU</dt>
-          <dd className="text-[var(--ink)]">{sku}</dd>
+          <Typography as="dt" variant="meta" tone="muted">
+            SKU
+          </Typography>
+          <Typography as="dd" variant="code" className="normal-case tracking-normal">
+            {sku}
+          </Typography>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-[var(--text-muted)]">Price</dt>
-          <dd className="text-[var(--ink)]">{formatPrice(price)}</dd>
+          <Typography as="dt" variant="meta" tone="muted">
+            Price
+          </Typography>
+          <Typography as="dd" variant="bodyStrong">
+            {formatPrice(price)}
+          </Typography>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-[var(--text-muted)]">Inventory</dt>
-          <dd className="text-[var(--ink)]">
+          <Typography as="dt" variant="meta" tone="muted">
+            Inventory
+          </Typography>
+          <Typography as="dd" variant="bodyStrong">
             {inventory > 0 ? `${inventory} in stock` : 'Out of stock'}
-          </dd>
+          </Typography>
         </div>
-      </dl>
-    </div>
+      </DescriptionList>
+    </Card>
   );
 }
 

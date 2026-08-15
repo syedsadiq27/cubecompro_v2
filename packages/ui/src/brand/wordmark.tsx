@@ -22,7 +22,7 @@ export function Wordmark({
       ? 'ui:h-[0.72em] ui:w-[0.72em]'
       : 'ui:h-[0.7em] ui:w-[0.7em]';
   const mark =
-    tone === 'inverse' ? 'ui:text-[#f2f1ed]' : 'ui:text-current';
+    tone === 'inverse' ? 'ui:text-[var(--canvas)]' : 'ui:text-current';
   const pro =
     tone === 'inverse'
       ? 'ui:text-white/45'

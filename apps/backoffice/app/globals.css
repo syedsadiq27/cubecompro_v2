@@ -2,38 +2,38 @@
 @import "@repo/tailwind-config";
 
 :root {
-  --stage-bg: #f2f1ed;
-  --stage-ink: #101010;
-  --stage-violet: #5f57f7;
-  --stage-violet-light: #a69fff;
+  --stage-bg: #F5F3EE;
+  --stage-ink: #0E0F12;
+  --stage-violet: #665CFF;
+  --stage-violet-light: #A8A0FF;
   --stage-shadow:
-    0 24px 48px rgba(16, 16, 16, 0.08), 0 8px 16px rgba(16, 16, 16, 0.04);
+    0 24px 48px rgba(14, 15, 18, 0.08), 0 8px 16px rgba(14, 15, 18, 0.04);
 
-  --ink: #101010;
-  --canvas: #f2f1ed;
-  --surface: #f7f6f3;
+  --ink: #0E0F12;
+  --canvas: #F5F3EE;
+  --surface: #ECE9E2;
   --surface-pure: #ffffff;
 
-  --line: #e4e3de;
+  --line: #D8D5CE;
   --text: var(--ink);
-  --text-secondary: #5c5c59;
-  --text-muted: #8a8a84;
+  --text-secondary: #52504C;
+  --text-muted: #73716C;
 
-  --success: #167a5b;
-  --success-soft: #e7f5ef;
-  --warning: #a76712;
-  --warning-soft: #fbf1df;
-  --danger: #c44848;
-  --danger-soft: #fceaea;
-  --info: #3d68c9;
-  --info-soft: #eaf0fd;
+  --success: #34A853;
+  --success-soft: #E6F4EA;
+  --warning: #B06000;
+  --warning-soft: #FEF7E0;
+  --danger: #D93025;
+  --danger-soft: #FCE8E6;
+  --info: #1A73E8;
+  --info-soft: #E8F0FE;
 
   --background: var(--canvas);
   --border: var(--line);
-  --border-strong: #d2d1cb;
+  --border-strong: #C4C0B6;
   --brand: var(--stage-violet);
-  --brand-hover: #4e47d4;
-  --brand-soft: #eeedff;
+  --brand-hover: #5247E6;
+  --brand-soft: #E8E6FF;
   --shadow: var(--stage-shadow);
 
   --font-display:

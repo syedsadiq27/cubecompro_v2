@@ -1,6 +1,6 @@
 'use client';
 
-import { Typography, Wordmark } from '@repo/ui';
+import { Container, List, ListItem, Typography, Wordmark } from '@repo/ui';
 import Link from 'next/link';
 
 import {
@@ -15,15 +15,28 @@ import {
 function FooterLink({ item }: { item: NavLink }) {
   if (item.external) {
     return (
-      <a href={item.href} className="hover:text-white" rel="noopener noreferrer">
+      <Typography
+        as="a"
+        href={item.href}
+        variant="support"
+        tone="inverse"
+        className="hover:text-white"
+        rel="noopener noreferrer"
+      >
         {item.label}
-      </a>
+      </Typography>
     );
   }
   return (
-    <Link href={item.href} className="hover:text-white">
+    <Typography
+      as={Link}
+      href={item.href}
+      variant="support"
+      tone="inverse"
+      className="hover:text-white"
+    >
       {item.label}
-    </Link>
+    </Typography>
   );
 }
 
@@ -37,36 +50,44 @@ function FooterGroup({
   return (
     <details className="footer-nav-group group border-b border-white/10 md:border-0">
       <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 text-[11px] font-medium tracking-[0.12em] text-white/40 uppercase md:pointer-events-none md:cursor-default md:py-0 [&::-webkit-details-marker]:hidden">
-        <span>{title}</span>
-        <span
-          className="font-mono text-white/35 transition group-open:rotate-45 md:hidden"
+        <Typography as="span" variant="label" tone="inverse">
+          {title}
+        </Typography>
+        <Typography
+          as="span"
+          variant="mono"
+          tone="inverse"
+          className="text-white/35 transition group-open:rotate-45 md:hidden"
           aria-hidden
         >
           +
-        </span>
+        </Typography>
       </summary>
-      <ul className="space-y-2.5 pb-4 text-[15px] leading-snug text-white/65 md:mt-4 md:pb-0 md:text-sm">
+      <List
+        gap="sm"
+        className="pb-4 text-[15px] leading-snug text-white/65 md:mt-4 md:pb-0 md:text-sm"
+      >
         {items.map((item) => (
-          <li key={`${item.href}-${item.label}`}>
+          <ListItem key={`${item.href}-${item.label}`}>
             <FooterLink item={item} />
-          </li>
+          </ListItem>
         ))}
-      </ul>
+      </List>
     </details>
   );
 }
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
-      <div className="mx-auto max-w-[90rem] px-5 py-10 md:px-8 md:py-14">
+    <footer
+      data-surface-tone="ink"
+      className="border-t border-[var(--ink)] bg-[var(--ink)]"
+    >
+      <Container padding="none" className="py-10 md:py-14">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-16">
           <div>
             <Wordmark size="lg" showPro tone="inverse" />
-            <Typography
-              variant="body"
-              className="mt-4 max-w-xs text-white/55 md:text-sm"
-            >
+            <Typography variant="body" className="mt-4 max-w-xs md:text-sm">
               Product configuration infrastructure for visual commerce.
             </Typography>
           </div>
@@ -80,16 +101,18 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} CubeCom Pro</p>
-          <ul className="flex flex-wrap gap-x-5 gap-y-2">
+          <Typography as="p" variant="meta" tone="inverse">
+            © {new Date().getFullYear()} CubeCom Pro
+          </Typography>
+          <List direction="row" gap="md" wrap className="gap-x-5 gap-y-2">
             {footerLegal.map((item) => (
-              <li key={item.href}>
+              <ListItem key={item.href}>
                 <FooterLink item={item} />
-              </li>
+              </ListItem>
             ))}
-          </ul>
+          </List>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

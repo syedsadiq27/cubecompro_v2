@@ -1,15 +1,15 @@
-import { Grid, Section, Typography } from '@repo/ui';
+import { Grid, ListItem, Section, Typography } from '@repo/ui';
 import Link from 'next/link';
 import type { SeoPageDef } from '@/lib/seo-pages';
 
 export function SeoRelated({ page }: { page: SeoPageDef }) {
   return (
-    <Section tone="muted" spacing="default">
+    <Section tone="soft" spacing="default">
       <Section.Header title="Related CubeCom pages" />
-      <Section.Body gap="loose">
+      <Section.Body gap="lg">
         <Grid as="ul" cols="md-3" gap="xl">
           {page.related.map((item) => (
-            <li
+            <ListItem
               key={item.href}
               className="border-t border-[var(--border-strong)] pt-5"
             >
@@ -24,7 +24,7 @@ export function SeoRelated({ page }: { page: SeoPageDef }) {
               <Typography variant="support" className="mt-2">
                 {item.blurb}
               </Typography>
-            </li>
+            </ListItem>
           ))}
         </Grid>
       </Section.Body>

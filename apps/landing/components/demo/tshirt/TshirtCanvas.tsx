@@ -12,9 +12,14 @@ const TshirtScene = dynamic(
 type TshirtCanvasProps = {
   materials: ResolvedMaterials;
   fitScale: number;
+  viewKey?: number;
 };
 
-export function TshirtCanvas({ materials, fitScale }: TshirtCanvasProps) {
+export function TshirtCanvas({
+  materials,
+  fitScale,
+  viewKey = 0,
+}: TshirtCanvasProps) {
   const [mounted, setMounted] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const recovering = useRef(false);
@@ -45,7 +50,7 @@ export function TshirtCanvas({ materials, fitScale }: TshirtCanvasProps) {
   return (
     <div className="absolute inset-0 h-full w-full">
       <TshirtScene
-        key={resetKey}
+        key={`${viewKey}-${resetKey}`}
         materials={materials}
         fitScale={fitScale}
         onContextLost={handleContextLost}

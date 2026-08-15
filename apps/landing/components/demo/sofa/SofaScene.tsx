@@ -18,6 +18,7 @@ import type { ResolvedMaterials } from './types';
 
 type SofaSceneProps = {
   materials: ResolvedMaterials;
+  viewIndex?: number;
   enableStudioEnv?: boolean;
   onContextLost?: () => void;
 };
@@ -28,7 +29,7 @@ function RendererTuning({ onContextLost }: { onContextLost?: () => void }) {
 
   useEffect(() => {
     gl.toneMapping = ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1.05;
+    gl.toneMappingExposure = 1.02;
     gl.outputColorSpace = SRGBColorSpace;
     invalidate();
 
@@ -58,22 +59,27 @@ function SoftShadow() {
     <group>
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.014, 0.06]}
-        scale={[3.1, 1.85, 1]}
-      >
-        <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial map={texture} transparent depthWrite={false} />
-      </mesh>
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.013, 0.1]}
-        scale={[4.4, 2.6, 1]}
+        position={[0, 0.012, 0.04]}
+        scale={[2.8, 1.65, 1]}
       >
         <planeGeometry args={[1, 1]} />
         <meshBasicMaterial
           map={texture}
           transparent
-          opacity={0.45}
+          opacity={0.85}
+          depthWrite={false}
+        />
+      </mesh>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.011, 0.08]}
+        scale={[3.8, 2.2, 1]}
+      >
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial
+          map={texture}
+          transparent
+          opacity={0.28}
           depthWrite={false}
         />
       </mesh>
@@ -95,30 +101,30 @@ function StudioSet() {
         <planeGeometry args={[18, 18]} />
         <meshStandardMaterial
           map={floorMap ?? undefined}
-          color={floorMap ? '#ffffff' : '#d8d4cc'}
-          roughness={0.78}
-          metalness={0.04}
-        />
-      </mesh>
-
-      <mesh position={[0, 2.4, -0.2]}>
-        <cylinderGeometry
-          args={[7.2, 7.2, 5.2, 48, 1, true, Math.PI * 0.15, Math.PI * 0.7]}
-        />
-        <meshStandardMaterial
-          side={BackSide}
-          map={wallMap ?? undefined}
-          color={wallMap ? '#ffffff' : '#f2f1ed'}
+          color={floorMap ? '#ffffff' : '#ECE9E2'}
           roughness={0.92}
           metalness={0}
         />
       </mesh>
 
-      <mesh position={[0, 5.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[7.4, 48]} />
+      <mesh position={[0, 2.2, -0.35]}>
+        <cylinderGeometry
+          args={[6.4, 6.4, 4.8, 48, 1, true, Math.PI * 0.18, Math.PI * 0.64]}
+        />
         <meshStandardMaterial
           side={BackSide}
-          color="#f7f6f3"
+          map={wallMap ?? undefined}
+          color={wallMap ? '#ffffff' : '#F5F3EE'}
+          roughness={0.96}
+          metalness={0}
+        />
+      </mesh>
+
+      <mesh position={[0, 4.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[6.6, 48]} />
+        <meshStandardMaterial
+          side={BackSide}
+          color="#F5F3EE"
           roughness={1}
           metalness={0}
         />
@@ -129,27 +135,34 @@ function StudioSet() {
 
 function StageEnv() {
   return (
-    <Environment resolution={32} frames={1} environmentIntensity={0.55}>
+    <Environment resolution={64} frames={1} environmentIntensity={0.58}>
       <Lightformer
         form="rect"
         intensity={2.8}
-        color="#fff4e4"
-        position={[3.5, 4.8, 2.5]}
-        scale={[7, 3.5, 1]}
+        color="#fff8ee"
+        position={[2.6, 4.6, 2.4]}
+        scale={[7, 3.6, 1]}
       />
       <Lightformer
         form="rect"
-        intensity={1.1}
-        color="#a69fff"
-        position={[-4.5, 3.2, -1.5]}
-        scale={[5, 3, 1]}
+        intensity={0.7}
+        color="#E8E6FF"
+        position={[-3.8, 3.0, -0.8]}
+        scale={[4.8, 3.2, 1]}
       />
       <Lightformer
         form="ring"
-        intensity={0.7}
+        intensity={0.85}
         color="#ffffff"
-        position={[0, 4.8, 0]}
+        position={[0, 4.6, 0.4]}
         scale={6}
+      />
+      <Lightformer
+        form="rect"
+        intensity={0.55}
+        color="#ffffff"
+        position={[0, 1.2, 4.5]}
+        scale={[5, 2, 1]}
       />
     </Environment>
   );
@@ -174,40 +187,42 @@ function SceneContent({
     <>
       <RendererTuning onContextLost={onContextLost} />
       <InvalidateOnChange materials={materials} />
-      <color attach="background" args={['#f2f1ed']} />
-      <fog attach="fog" args={['#f2f1ed', 10, 22]} />
+      <color attach="background" args={['#F5F3EE']} />
+      <fog attach="fog" args={['#F5F3EE', 9, 20]} />
 
-      <hemisphereLight args={['#ffffff', '#b8b5ad', 0.4]} />
+      <hemisphereLight args={['#fffdf9', '#D8D5CE', 0.55]} />
       <directionalLight
-        position={[4.2, 7.2, 3.4]}
-        intensity={1.2}
-        color="#ffffff"
+        position={[3.4, 6.8, 3.0]}
+        intensity={1.15}
+        color="#fff9f2"
       />
       <directionalLight
-        position={[-5, 3.5, -2]}
-        intensity={0.4}
-        color="#a69fff"
+        position={[-3.8, 3.2, -1.4]}
+        intensity={0.28}
+        color="#E8E6FF"
       />
       <directionalLight
-        position={[0.2, 2.8, 5]}
-        intensity={0.24}
+        position={[0.2, 2.6, 4.6]}
+        intensity={0.32}
         color="#ffffff"
       />
 
       {enableStudioEnv ? <StageEnv /> : null}
 
-      <StudioSet />
-      <SoftShadow />
-      <SofaMesh materials={materials} />
+      <group>
+        <StudioSet />
+        <SoftShadow />
+        <SofaMesh materials={materials} />
+      </group>
 
       <OrbitControls
         makeDefault
         enablePan={false}
-        minPolarAngle={Math.PI / 3.2}
-        maxPolarAngle={Math.PI / 2.08}
-        minDistance={3.2}
-        maxDistance={7}
-        target={[0, 0.45, 0]}
+        minPolarAngle={Math.PI / 2.75}
+        maxPolarAngle={Math.PI / 2.12}
+        minDistance={2.55}
+        maxDistance={4.8}
+        target={[0, 0.48, 0]}
       />
     </>
   );
@@ -215,6 +230,7 @@ function SceneContent({
 
 export function SofaScene({
   materials,
+  viewIndex = 0,
   enableStudioEnv = true,
   onContextLost,
 }: SofaSceneProps) {
@@ -235,21 +251,34 @@ export function SofaScene({
 
   if (!ready) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-[var(--surface)] text-sm tracking-wide text-[var(--text-muted)]">
+      <div className="flex h-full w-full items-center justify-center bg-[var(--canvas)] text-sm tracking-wide text-[var(--text-muted)]">
         Loading showroom…
       </div>
     );
   }
 
+  const cameraPositions: [number, number, number][] = [
+    [2.35, 1.35, 2.65],
+    [-2.45, 1.15, 1.9],
+    [0.1, 1.2, 2.55],
+    [2.6, 0.78, 1.65],
+  ];
+  const cameraPosition = cameraPositions[viewIndex] ?? cameraPositions[0]!;
+
   return (
     <Canvas
-      camera={{ position: [3.35, 2.05, 3.75], fov: 34, near: 0.1, far: 100 }}
-      dpr={[1, 1.5]}
+      camera={{
+        position: cameraPosition,
+        fov: 28,
+        near: 0.1,
+        far: 100,
+      }}
+      dpr={[1, 2]}
       frameloop="demand"
       gl={{
         antialias: true,
         alpha: false,
-        powerPreference: 'low-power',
+        powerPreference: 'high-performance',
         stencil: false,
         depth: true,
         preserveDrawingBuffer: false,

@@ -2,21 +2,21 @@
 @import "@repo/tailwind-config";
 
 :root {
-  --stage-bg: #f2f1ed;
-  --stage-ink: #101010;
-  --stage-violet: #5f57f7;
-  --stage-violet-light: #a69fff;
+  --stage-bg: #F5F3EE;
+  --stage-ink: #0E0F12;
+  --stage-violet: #665CFF;
+  --stage-violet-light: #A8A0FF;
   --stage-shadow:
-    0 24px 48px rgba(16, 16, 16, 0.08), 0 8px 16px rgba(16, 16, 16, 0.04);
+    0 24px 48px rgba(14, 15, 18, 0.08), 0 8px 16px rgba(14, 15, 18, 0.04);
 
-  --ink: #101010;
-  --canvas: #f2f1ed;
-  --surface: #f7f6f3;
+  --ink: #0E0F12;
+  --canvas: #F5F3EE;
+  --surface: #ECE9E2;
   --surface-pure: #ffffff;
-  --line: #e4e3de;
-  --text-secondary: #5c5c59;
-  --text-muted: #8a8a84;
-  --border-strong: #d2d1cb;
+  --line: #D8D5CE;
+  --text-secondary: #52504C;
+  --text-muted: #73716C;
+  --border-strong: #C4C0B6;
 
   --font-display:
     var(--font-inter-tight), "Inter Tight", ui-sans-serif, system-ui,

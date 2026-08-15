@@ -60,6 +60,11 @@ export const pricingNav: NavLink = {
   label: 'Pricing',
 };
 
+export const aboutNav: NavLink = {
+  href: '/about',
+  label: 'About',
+};
+
 export const docsNav: NavLink = {
   href: '/docs',
   label: 'Docs',
@@ -97,6 +102,7 @@ export const footerDevelopers: NavLink[] = [
 ];
 
 export const footerCompany: NavLink[] = [
+  { href: '/about', label: 'About' },
   { href: '/pricing', label: 'Pricing' },
   bookSessionCta,
   { href: '/#contact', label: 'Contact' },

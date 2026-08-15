@@ -4,10 +4,12 @@ import type {
   ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import type { TextTone } from '../lib/tone';
 
 export type TypographyVariant =
   | 'body'
   | 'bodyStrong'
+  | 'prose'
   | 'support'
   | 'meta'
   | 'label'
@@ -17,14 +19,7 @@ export type TypographyVariant =
   | 'titleSm'
   | 'titleLg';
 
-export type TypographyTone =
-  | 'default'
-  | 'secondary'
-  | 'muted'
-  | 'strong'
-  | 'accent'
-  | 'ink'
-  | 'inherit';
+export type TypographyTone = TextTone;
 
 type TypographyOwnProps<T extends ElementType> = {
   as?: T;
@@ -59,14 +54,14 @@ function resolveTypographyClassName({
   className?: string;
 }): string {
   return cn(
-    variant === 'body' &&
-      'ui:text-[15px] ui:leading-relaxed',
+    variant === 'body' && 'ui:text-[15px] ui:leading-relaxed',
     variant === 'bodyStrong' &&
       'ui:text-[15px] ui:leading-relaxed ui:font-medium',
-    variant === 'support' &&
-      'ui:text-sm ui:leading-relaxed',
+    variant === 'prose' &&
+      'ui:max-w-[34rem] ui:text-[14px] ui:leading-[1.55]',
+    variant === 'support' && 'ui:text-sm ui:leading-relaxed',
     variant === 'meta' &&
-      'ui:text-xs ui:leading-snug',
+      'ui:text-[12px] ui:font-[450] ui:leading-[1.4]',
     variant === 'label' &&
       'ui:text-[11px] ui:font-medium ui:tracking-[0.1em] ui:uppercase',
     variant === 'mono' &&
@@ -81,23 +76,23 @@ function resolveTypographyClassName({
       'ui:font-[family-name:var(--font-display)] ui:text-[19px] ui:font-semibold ui:leading-snug ui:tracking-[-0.02em] ui:md:text-[20px]',
     tone === 'default' &&
       (variant === 'label' || variant === 'mono' || variant === 'meta'
-        ? 'ui:text-[var(--text-muted)]'
+        ? 'ui:text-[var(--ui-text-muted)]'
         : variant === 'title' ||
             variant === 'titleSm' ||
             variant === 'titleLg' ||
             variant === 'bodyStrong' ||
             variant === 'code'
-          ? 'ui:text-[var(--ink)]'
-          : 'ui:text-[var(--text-secondary)]'),
-    tone === 'secondary' && 'ui:text-[var(--text-secondary)]',
-    tone === 'muted' && 'ui:text-[var(--text-muted)]',
-    tone === 'strong' && 'ui:text-[var(--ink)]',
-    tone === 'accent' && 'ui:text-[var(--stage-violet)]',
-    tone === 'ink' &&
-      (variant === 'label' || variant === 'mono' || variant === 'meta' || variant === 'code'
+          ? 'ui:text-[var(--ui-text-strong)]'
+          : 'ui:text-[var(--ui-text)]'),
+    tone === 'muted' && 'ui:text-[var(--ui-text-muted)]',
+    tone === 'inverse' &&
+      (variant === 'label' ||
+      variant === 'mono' ||
+      variant === 'meta' ||
+      variant === 'code'
         ? 'ui:text-white/45'
         : 'ui:text-white'),
-    tone === 'inherit' && 'ui:text-inherit',
+    tone === 'accent' && 'ui:text-[var(--stage-violet)]',
     className
   );
 }
@@ -118,37 +113,16 @@ export function Typography<T extends ElementType = 'p'>({
   );
 }
 
-export function Display({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<'h1'>) {
-  return <h1 className={cn('ui-type-display', className)} {...props} />;
-}
-
-export function PageTitle({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<'h1'>) {
-  return <h1 className={cn('ui-type-page', className)} {...props} />;
-}
-
-export function TextSectionTitle({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<'h2'>) {
-  return <h2 className={cn('ui-type-section', className)} {...props} />;
-}
-
 export function Body({
   className,
   ...props
 }: ComponentPropsWithoutRef<'p'>) {
-  return <p className={cn('ui-type-body', className)} {...props} />;
+  return <Typography variant="prose" className={className} {...props} />;
 }
 
 export function Meta({
   className,
   ...props
 }: ComponentPropsWithoutRef<'p'>) {
-  return <p className={cn('ui-type-meta', className)} {...props} />;
+  return <Typography variant="meta" className={className} {...props} />;
 }

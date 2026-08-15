@@ -1,29 +1,80 @@
-import { Card, Typography } from '@repo/ui';
+import { EditorialColumns } from '@/components/patterns/editorial-columns';
+import { FullWidthVisual } from '@/components/patterns/full-width-visual';
+import { OutcomeGrid } from '@/components/patterns/outcome-grid';
+import { ProblemCompare } from '@/components/patterns/problem-compare';
+import { SignatureMechanism } from '@/components/patterns/signature-mechanism';
 import { SeoCta } from '@/components/seo/seo-cta';
 import { SeoFaq } from '@/components/seo/seo-faq';
 import { SeoJsonLd } from '@/components/seo/seo-json-ld';
 import { getSeoBody } from '@/lib/seo-bodies';
 import { getSeoPage } from '@/lib/seo-pages';
 import { SolutionBridge } from './solution-bridge';
-import { SolutionCompare } from './solution-compare';
 import { SolutionHero } from './solution-hero';
-import { SolutionSection } from './solution-section';
 import { ThreeDHeroDemo } from './three-d-hero-demo';
+import { Section } from '@repo/ui';
+import Image from 'next/image';
 
 const PATH = '/3d-product-configurator';
 
-const WITHOUT = [
-  'Material swaps without a sellable state',
-  'Looks the cart cannot fulfill',
-  'A WebGL viewer with no commerce contract',
-  'Shopper confidence that dies at checkout',
+const MECHANISM_STEPS = [
+  {
+    label: 'Visual Choice',
+    detail: 'Shoppers customize materials, colors, and parts directly in the 3D scene.',
+  },
+  {
+    label: 'Valid Scene State',
+    detail: 'Rules engine verifies legal combinations and blocks unmanufacturable looks in-scene.',
+    accent: true,
+  },
+  {
+    label: 'Commerce Lock',
+    detail: 'The scene state projects to an exact purchasable line item SKU, price, and inventory.',
+  },
 ];
 
-const WITH = [
-  'Real-time materials, parts, and geometry',
-  'Invalid visual combinations blocked in-scene',
-  'Scene state synchronized with commerce state',
-  'What they see is what they can buy',
+const CAPABILITIES = [
+  {
+    number: '01',
+    tag: 'REAL-TIME PBR',
+    title: 'Real-time materials and finishes',
+    body: 'Photoreal lighting, physically-based shaders, and accurate microtextures update instantly with zero reload latency.',
+  },
+  {
+    number: '02',
+    tag: 'GEOMETRY & PARTS',
+    title: 'Dynamic modular assembly',
+    body: 'Swap legs, add modules, or alter spatial dimensions while maintaining geometric constraint integrity.',
+  },
+  {
+    number: '03',
+    tag: 'RULE ENFORCEMENT',
+    title: 'In-scene invalid combination blocking',
+    body: 'Combinations you cannot manufacture are blocked before they render as an unfulfillable commercial promise.',
+  },
+  {
+    number: '04',
+    tag: 'COMMERCE ALIGNMENT',
+    title: 'Visual state equals cart state',
+    body: 'Every visual state resolves directly to SKU, price tier, and inventory. What shoppers see is what they buy.',
+  },
+];
+
+const OUTCOMES = [
+  {
+    tag: 'PURCHASE CERTAINTY',
+    title: 'Eliminate visual-to-cart disconnect',
+    description: 'Shoppers inspect every detail in 3D, knowing the exact configuration in the viewer is the physical item shipped.',
+  },
+  {
+    tag: 'OPERATIONAL CLARITY',
+    title: 'Prevent unfulfillable custom orders',
+    description: 'Rules engine guardrails prevent shoppers from assembling combinations your manufacturing line cannot produce.',
+  },
+  {
+    tag: 'UNIFIED ASSETS',
+    title: 'One 3D model across all surfaces',
+    description: 'Reuse the same 3D assets for interactive PDPs, spatial room placement, and headless visual commerce applications.',
+  },
 ];
 
 export function ThreeDProductConfiguratorPage() {
@@ -33,208 +84,107 @@ export function ThreeDProductConfiguratorPage() {
   return (
     <>
       <SeoJsonLd page={page} faqs={body.faqs} />
+
+      {/* 1. Position / Hero */}
       <SolutionHero
         eyebrow={page.eyebrow}
         title="Configure in 3D. Buy what you see."
-        lead="Let shoppers change materials, parts, and options in real time while every visual state stays tied to a valid SKU, price, inventory, and cart."
+        lead="Let shoppers customize materials, parts, and options in real time while every visual state stays locked to a valid SKU, price, inventory, and cart."
         primaryCta={{ href: '/demo', label: 'Open live demo' }}
         secondaryCta={{ href: '/#contact', label: 'Book a solution session' }}
+        visualPriority
       >
-        <ThreeDHeroDemo />
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[var(--ink)]/15 bg-[var(--surface-pure)] shadow-[0_24px_56px_-16px_rgba(14,15,18,0.2)]">
+          <Image
+            src="/images/three-d-configurator-hero-v2.jpg"
+            alt="A resolved modular sofa with physical material and component choices connected to its validated visual state"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 55vw"
+            className="object-cover select-none"
+          />
+        </div>
       </SolutionHero>
 
-      <SolutionSection
-        title="Shoppers need confidence. Viewers only give orbit."
-        description="A 3D viewer shows the product. A 3D product configurator makes every visual choice sellable."
-        tone="muted"
-      >
-        <div className="grid gap-3 md:grid-cols-3">
-          {[
-            {
-              title: 'Pretty, not sellable',
-              body: 'Materials look right in the scene while checkout still picks a default variant.',
-            },
-            {
-              title: 'Invalid looks ship',
-              body: 'Shoppers assemble combinations you cannot manufacture — and only find out later.',
-            },
-            {
-              title: 'Confidence breaks at cart',
-              body: 'If the bag does not match the look, the 3D experience was decoration.',
-            },
-          ].map((item) => (
-            <Card
-              as="article"
-              key={item.title}
-              variant="soft"
-              padding="tight"
-            >
-              <Typography variant="titleSm">{item.title}</Typography>
-              <Typography variant="support" className="mt-2">
-                {item.body}
-              </Typography>
-            </Card>
-          ))}
-        </div>
-      </SolutionSection>
-
-      <SolutionSection
-        title="Every visual choice should remain buyable."
-        description="When the shopper changes the product, CubeCom updates the scene and the sellable state together."
-      >
-        <ol className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
-          {[
-            'Visual Choice',
-            'Scene Update',
-            'Purchasable Identity',
-          ].map((step, index, all) => (
-            <li key={step} className="flex flex-col items-stretch md:flex-row md:items-center md:gap-2">
-              <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-center text-[15px] font-medium text-[var(--ink)] md:min-w-[9rem]">
-                {step}
-              </div>
-              {index < all.length - 1 ? (
-                <span className="py-1 text-center text-[var(--text-muted)] md:py-0" aria-hidden>
-                  <span className="md:hidden">↓</span>
-                  <span className="hidden md:inline">→</span>
-                </span>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {['SKU', 'Price', 'Inventory', 'Cart'].map((item) => (
-            <div
-              key={item}
-              className="rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] px-3 py-2.5 text-center font-mono text-xs text-[var(--ink)]"
-            >
-              {item}
-            </div>
-          ))}
-        </div>
-        <ol className="mt-8 grid gap-3 md:grid-cols-3">
-          {[
-            {
-              step: '01',
-              title: 'Real-time scene change',
-              body: 'Materials, colors, geometry, and parts update as shoppers configure — invalid looks are blocked before they render as a sellable promise.',
-            },
-            {
-              step: '02',
-              title: 'Scene state stays honest',
-              body: 'What appears in the viewer is the same configuration identity that will resolve to commerce — not a decorative fork.',
-            },
-            {
-              step: '03',
-              title: 'Cart matches the look',
-              body: 'SKU, price, and inventory follow the visual state so checkout is the product they configured.',
-            },
-          ].map((item) => (
-            <Card
-              as="li"
-              key={item.step}
-              variant="surface"
-              padding="tight"
-            >
-              <Typography variant="code" tone="strong">
-                {item.step}
-              </Typography>
-              <Typography variant="titleSm" className="mt-2">
-                {item.title}
-              </Typography>
-              <Typography variant="support" className="mt-2">
-                {item.body}
-              </Typography>
-            </Card>
-          ))}
-        </ol>
-      </SolutionSection>
-
-      <SolutionSection
-        title="Change the product. The commerce state follows."
-        description="Selecting Brass updates the legs in 3D — and the sellable state follows."
-        tone="muted"
-      >
-        <div className="grid gap-3 lg:grid-cols-3">
-          {[
-            {
-              label: 'Visual change',
-              body: 'Legs material updates in the scene immediately.',
-            },
-            {
-              label: 'Scene state',
-              body: 'Configuration identity stays tied to what is on screen.',
-            },
-            {
-              label: 'Commerce follow',
-              body: 'SKU, price, and inventory resolve for that look.',
-            },
-          ].map((col) => (
-            <Card
-              as="article"
-              key={col.label}
-              variant="soft"
-              padding="tight"
-            >
-              <Typography variant="label">{col.label}</Typography>
-              <Typography variant="bodyStrong" className="mt-3">
-                {col.body}
-              </Typography>
-            </Card>
-          ))}
-        </div>
-      </SolutionSection>
-
-      <SolutionSection
-        title="A viewer shows the product. A configurator sells it."
-        tone="ink"
-      >
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-xl border border-white/15 bg-white/5 p-5">
-            <Typography variant="label" tone="ink">
-              Ordinary 3D viewer
-            </Typography>
-            <ul className="mt-4 space-y-2 text-sm text-white/70">
-              <li>Orbit and material swap</li>
-              <li>No guaranteed sellable state</li>
-              <li>Cart still guesses a variant</li>
-            </ul>
-          </div>
-          <div className="rounded-xl border border-white/25 bg-white/10 p-5">
-            <Typography variant="label" tone="ink">
-              CubeCom 3D configurator
-            </Typography>
-            <ul className="mt-4 space-y-2 text-sm text-white">
-              <li>Visual configuration with blocked invalid looks</li>
-              <li>Scene state synchronized with commerce state</li>
-              <li>Cart handoff for the identity on screen</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-6 max-w-2xl text-sm text-white/55">
-          Rules and catalog modeling live in the Product Configurator engine.
-          This page is the shopper-facing visual solution powered by that
-          engine.
-        </p>
-      </SolutionSection>
-
-      <SolutionCompare
-        without={WITHOUT}
-        withItems={WITH}
-        title="3D without commerce is still just visualization."
+      {/* 2. Problem / Tension */}
+      <ProblemCompare
+        eyebrow="The 3D Disconnect"
+        title="A 3D viewer shows the product. A 3D configurator sells it."
+        description="Traditional 3D viewers let shoppers orbit a model without tying the visuals to a sellable commerce state."
+        traditionalLabel="Standard 3D Viewer"
+        traditionalTitle="Without CubeCom"
+        traditionalBody="Material swaps look impressive in the browser, but the cart still guesses a default SKU. Unfulfillable visual combinations slip through, leading to customer disappointment at checkout."
+        cubecomLabel="Visual Commerce Stage"
+        cubecomTitle="With CubeCom"
+        cubecomBody="Every material swap and geometry change resolves through the configuration engine. What the shopper sees is guaranteed to match the exact SKU, price, and inventory passed to checkout."
+        tone="soft"
       />
 
+      {/* 3. Full-width Visual (Explanatory System Graphic) */}
+      <FullWidthVisual
+        src="/images/three-d-configurator-architecture-v2.jpg"
+        alt="Material and component choices passing through one validated 3D scene into product identity, price, inventory, and cart outputs"
+        eyebrow="Visual Architecture"
+        title="Interactive 3D geometry backed by singular rules truth."
+        description="Render real-time materials and modular dimensions while maintaining strict commerce synchronization."
+        tone="canvas"
+      />
+
+      {/* 4. Mechanism (Dark Signature Section) */}
+      <SignatureMechanism
+        eyebrow="Core Transformation"
+        title="From visual customization to guaranteed commerce handoff."
+        description="CubeCom connects WebGL shader state directly to rules resolution and line item projection."
+        steps={MECHANISM_STEPS}
+      />
+
+      {/* 5. Capabilities (Editorial Columns) */}
+      <EditorialColumns
+        eyebrow="3D Engine Capabilities"
+        title="Engineered for high-fidelity visual commerce."
+        description="Deliver fast, interactive 3D experiences across mobile and desktop without sacrificing catalog precision."
+        items={CAPABILITIES}
+        tone="canvas"
+      />
+
+      {/* 6. Real Product Proof */}
+      <Section tone="soft" spacing="default">
+        <Section.Header
+          eyebrow="Interactive Proof"
+          title="Test real-time 3D state synchronization."
+          description="Switch upholstery and wood finishes in the live WebGL scene below — notice how the SKU, price, and inventory update deterministically."
+        />
+        <Section.Body>
+          <div className="mx-auto max-w-5xl">
+            <ThreeDHeroDemo />
+          </div>
+        </Section.Body>
+      </Section>
+
+      {/* 7. Commercial & Operational Outcomes */}
+      <OutcomeGrid
+        eyebrow="Business Outcomes"
+        title="The impact of verified 3D visual commerce."
+        description="Improve customer certainty and eliminate custom manufacturing errors."
+        items={OUTCOMES}
+        tone="canvas"
+      />
+
+      {/* 8. Decision Support */}
       <SolutionBridge
         title="3D is one surface. The underlying rules and commerce state come from the Product Configurator."
         href="/product-configurator"
         label="Product Configurator"
+        tone="soft"
       />
-
       <SeoFaq
         items={body.faqs}
         title={body.faqTitle}
         description={body.faqDescription}
         compact
       />
+
+      {/* 9. Final CTA */}
       <SeoCta {...body.cta} />
     </>
   );

@@ -1,21 +1,18 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { spaceBodyOffsetClass, type Space } from '../lib/space';
+import type { SurfaceTone } from '../lib/tone';
 import { Container, type ContainerPadding } from './container';
 import {
   Eyebrow,
   Heading,
   Lede,
+  type HeadingSpacing,
 } from './heading';
 
-export type SectionTone = 'canvas' | 'muted' | 'ink';
+export type SectionTone = Exclude<SurfaceTone, 'surface'>;
 export type SectionSpacing = 'default' | 'compact' | 'cta' | 'softTop';
-export type SectionBodyGap =
-  | 'default'
-  | 'loose'
-  | 'spacious'
-  | 'tight'
-  | 'compare'
-  | 'none';
+export type SectionBodyGap = Space;
 
 function spacingToPadding(spacing: SectionSpacing): ContainerPadding {
   if (spacing === 'compact') return 'sectionCompact';
@@ -24,7 +21,7 @@ function spacingToPadding(spacing: SectionSpacing): ContainerPadding {
   return 'section';
 }
 
-export function sectionClassName({
+function resolveSectionClassName({
   tone = 'canvas',
   bordered = true,
   className,
@@ -32,21 +29,19 @@ export function sectionClassName({
   tone?: SectionTone;
   bordered?: boolean;
   className?: string;
-} = {}): string {
+}): string {
   return cn(
     bordered &&
       tone === 'ink' &&
-      'ui:border-t ui:border-[var(--ink)] ui:bg-[var(--ink)] ui:text-[var(--canvas)]',
+      'ui:border-t ui:border-[var(--ink)] ui:bg-[var(--ink)]',
     bordered &&
-      tone === 'muted' &&
+      tone === 'soft' &&
       'ui:border-t ui:border-[var(--line)] ui:bg-[var(--surface)]',
     bordered &&
       tone === 'canvas' &&
       'ui:border-t ui:border-[var(--line)] ui:bg-[var(--canvas)]',
-    !bordered &&
-      tone === 'ink' &&
-      'ui:bg-[var(--ink)] ui:text-[var(--canvas)]',
-    !bordered && tone === 'muted' && 'ui:bg-[var(--surface)]',
+    !bordered && tone === 'ink' && 'ui:bg-[var(--ink)]',
+    !bordered && tone === 'soft' && 'ui:bg-[var(--surface)]',
     !bordered && tone === 'canvas' && 'ui:bg-[var(--canvas)]',
     className
   );
@@ -70,8 +65,8 @@ function SectionRoot({
   return (
     <section
       id={id}
-      data-section-tone={tone}
-      className={sectionClassName({ tone, bordered, className })}
+      data-surface-tone={tone}
+      className={resolveSectionClassName({ tone, bordered, className })}
       {...props}
     >
       <Container
@@ -92,11 +87,20 @@ export function SectionEyebrow({
 }
 
 export function SectionTitle({
+  spacing = 'none',
   className,
   ...props
-}: HTMLAttributes<HTMLHeadingElement>) {
+}: HTMLAttributes<HTMLHeadingElement> & {
+  spacing?: HeadingSpacing;
+}) {
   return (
-    <Heading as="h2" variant="section" className={className} {...props} />
+    <Heading
+      as="h2"
+      variant="section"
+      spacing={spacing}
+      className={className}
+      {...props}
+    />
   );
 }
 
@@ -131,7 +135,7 @@ export function SectionHeader({
     <div className={className} {...props}>
       {eyebrow ? <SectionEyebrow>{eyebrow}</SectionEyebrow> : null}
       {title ? (
-        <SectionTitle className={eyebrow ? 'ui:mt-3' : undefined}>
+        <SectionTitle spacing={eyebrow ? 'eyebrow' : 'none'}>
           {title}
         </SectionTitle>
       ) : null}
@@ -142,23 +146,16 @@ export function SectionHeader({
   );
 }
 
-function bodyGapClass(gap: SectionBodyGap): string {
-  if (gap === 'loose') return 'ui:mt-10';
-  if (gap === 'spacious') return 'ui:mt-12';
-  if (gap === 'tight') return 'ui:mt-6 ui:md:mt-8';
-  if (gap === 'compare') return 'ui:mt-8 ui:md:mt-12';
-  if (gap === 'none') return 'ui:mt-0';
-  return 'ui:mt-8 ui:md:mt-10';
-}
-
 export function SectionBody({
-  gap = 'default',
+  gap = 'md',
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement> & {
   gap?: SectionBodyGap;
 }) {
-  return <div className={cn(bodyGapClass(gap), className)} {...props} />;
+  return (
+    <div className={cn(spaceBodyOffsetClass(gap), className)} {...props} />
+  );
 }
 
 export const Section = Object.assign(SectionRoot, {

@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { radiusClass } from '../lib/radius';
 
 export function Frame({
   className,
@@ -9,7 +10,8 @@ export function Frame({
   return (
     <div
       className={cn(
-        'ui:overflow-hidden ui:rounded-2xl ui:border ui:border-[var(--border-strong)]',
+        'ui:overflow-hidden ui:border ui:border-[var(--border-strong)]',
+        radiusClass('card'),
         className
       )}
       {...props}

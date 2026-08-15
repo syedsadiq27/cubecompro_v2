@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, Card, Section, Typography } from '@repo/ui';
+import {
+  Button,
+  Card,
+  DescriptionList,
+  Section,
+  Stack,
+  Typography,
+} from '@repo/ui';
 import Link from 'next/link';
 
 import { FABRICS, FRAMES, LEGS } from '../demo/sofa/catalog';
@@ -96,38 +103,78 @@ export function Proof() {
 
   const activeRules = PRODUCT_RULES.filter((rule) => rule.isActive(state));
   const featuredRule = activeRules[0] ?? null;
+
   return (
     <Section id="proof" tone="canvas" spacing="default">
       <Section.Header
+        eyebrow="Live proof"
         title="Change the product. Watch the sellable state follow."
-        description="Configure the sofa. Rules, scene, SKU, price, and inventory stay on one valid state."
+        description="Configure the sofa in real time. Rules, visual scene, SKU, price, and inventory stay locked on one valid state."
       />
 
-      <Section.Body gap="spacious">
-        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch lg:gap-6">
-          <Card className="relative min-h-[480px] overflow-hidden lg:min-h-[580px]">
-            <div className="cube-stage absolute inset-0" aria-hidden>
-              <div className="cube-stage-field" />
-            </div>
-            <div className="relative h-full min-h-[480px] lg:min-h-[580px]">
+      <Section.Body gap="xl">
+        <div className="grid gap-6 lg:grid-cols-12 lg:items-stretch lg:gap-8">
+          <div className="relative flex min-h-[480px] flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--canvas)] shadow-[0_20px_48px_-20px_rgba(14,15,18,0.18)] lg:col-span-7 lg:min-h-[580px]">
+            <Stack
+              direction="row"
+              align="center"
+              justify="between"
+              className="relative z-10 border-b border-[var(--line)] bg-[var(--surface-pure)]/70 px-5 py-3.5 backdrop-blur-md"
+            >
+              <Stack direction="row" align="center" gap="sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--stage-violet)] opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--stage-violet)]" />
+                </span>
+                <Typography variant="mono" className="font-semibold tracking-wider text-[var(--ink)]">
+                  Live Showroom Viewport
+                </Typography>
+              </Stack>
+              <Typography
+                as="span"
+                variant="meta"
+                tone="muted"
+                className="hidden sm:inline"
+              >
+                Drag to orbit · Pinch to zoom
+              </Typography>
+            </Stack>
+
+            <div className="relative min-h-[400px] flex-1 lg:min-h-[500px]">
               <SofaCanvas materials={resolved.materials} />
             </div>
-          </Card>
 
-          <div className="flex flex-col gap-4">
-            <Card
-              padding="md"
-              className="flex flex-1 flex-col"
+            <Stack
+              direction="row"
+              align="center"
+              justify="between"
+              className="relative z-10 border-t border-[var(--line)] bg-[var(--surface-pure)]/80 px-5 py-2.5 backdrop-blur-md"
             >
-              <Typography variant="mono" tone="secondary">
-                Configure
+              <Typography as="span" variant="code" className="normal-case tracking-normal text-[var(--text-secondary)]">
+                {resolved.labels.frame} · {resolved.labels.fabric} · {resolved.labels.legs}
+              </Typography>
+              <Typography as="span" variant="code" tone="accent" className="font-semibold normal-case tracking-normal">
+                {resolved.sku}
+              </Typography>
+            </Stack>
+          </div>
+
+          <Stack gap="md" className="lg:col-span-5">
+            <Card padding="md" className="flex flex-1 flex-col border-[var(--border-strong)]">
+              <Typography variant="mono" tone="accent" className="font-bold">
+                Configuration Selector
               </Typography>
 
               <div className="mt-5 space-y-4">
                 <div>
-                  <p className="text-[13px] font-medium text-[var(--ink)]">
-                    Frame
-                  </p>
+                  <Stack direction="row" align="center" justify="between">
+                    <Typography as="span" variant="bodyStrong" className="text-[13px]">
+                      Frame Material
+                    </Typography>
+                    <Typography as="span" variant="meta" tone="muted">
+                      {resolved.labels.frame}
+                    </Typography>
+                  </Stack>
                   <div className="mt-2.5 flex flex-wrap gap-2.5">
                     {FRAMES.map((frame) => (
                       <SwatchButton
@@ -143,9 +190,14 @@ export function Proof() {
                 </div>
 
                 <div className="border-t border-[var(--line)] pt-4">
-                  <p className="text-[13px] font-medium text-[var(--ink)]">
-                    Fabric
-                  </p>
+                  <Stack direction="row" align="center" justify="between">
+                    <Typography as="span" variant="bodyStrong" className="text-[13px]">
+                      Upholstery Fabric
+                    </Typography>
+                    <Typography as="span" variant="meta" tone="muted">
+                      {resolved.labels.fabric}
+                    </Typography>
+                  </Stack>
                   <div className="mt-2.5 flex flex-wrap gap-2.5">
                     {FABRICS.map((fabric) => (
                       <SwatchButton
@@ -161,9 +213,14 @@ export function Proof() {
                 </div>
 
                 <div className="border-t border-[var(--line)] pt-4">
-                  <p className="text-[13px] font-medium text-[var(--ink)]">
-                    Legs
-                  </p>
+                  <Stack direction="row" align="center" justify="between">
+                    <Typography as="span" variant="bodyStrong" className="text-[13px]">
+                      Leg Finish
+                    </Typography>
+                    <Typography as="span" variant="meta" tone="muted">
+                      {resolved.labels.legs}
+                    </Typography>
+                  </Stack>
                   <div className="mt-2.5 flex flex-wrap gap-2.5">
                     {LEGS.map((leg) => (
                       <SwatchButton
@@ -179,72 +236,76 @@ export function Proof() {
                 </div>
               </div>
 
-              <p className="mt-5 text-sm text-[var(--text-secondary)]">
-                {resolved.labels.frame} · {resolved.labels.fabric} ·{' '}
-                {resolved.labels.legs}
-              </p>
               <div className="mt-auto pt-6">
-                <Button as={Link} href="/demo" variant="primary" size="lg" className="w-fit">
-                  Open full demo
+                <Button as={Link} href="/demo" variant="primary" size="lg" className="w-full">
+                  Open full configurator demo →
                 </Button>
               </div>
             </Card>
 
-            <Card padding="sm">
-              <Typography variant="mono" tone="secondary">
-                Rules
+            <Card padding="sm" className="border-[var(--border-strong)]">
+              <Typography variant="mono" tone="muted">
+                Active Constraint Rules
               </Typography>
               {featuredRule ? (
-                <p className="mt-3 text-[14px] leading-snug text-[var(--ink)]">
-                  <span className="font-medium">{featuredRule.when}</span>
-                  <span className="text-[var(--text-muted)]"> → </span>
-                  <span>{featuredRule.then}</span>
-                </p>
+                <Typography variant="prose" className="mt-2.5 max-w-none leading-snug text-[var(--ink)]">
+                  <Typography as="span" variant="bodyStrong" tone="accent">
+                    {featuredRule.when}
+                  </Typography>
+                  <Typography as="span" variant="meta" tone="muted">
+                    {' '}
+                    →{' '}
+                  </Typography>
+                  <Typography as="span" variant="body">
+                    {featuredRule.then}
+                  </Typography>
+                </Typography>
               ) : (
-                <p className="mt-3 text-[14px] leading-snug text-[var(--text-secondary)]">
-                  All current options are compatible.
-                </p>
+                <Typography variant="prose" className="mt-2.5 max-w-none leading-snug">
+                  All current options are compatible and valid.
+                </Typography>
               )}
-              <p className="mt-2 text-[12px] text-[var(--text-muted)]">
-                {featuredRule
-                  ? `${PRODUCT_RULES.length - 1} more constraints`
-                  : `${PRODUCT_RULES.length} constraints on this product`}
-              </p>
             </Card>
-            <Card variant="ink" padding="sm" className="md:py-4">
-              <Typography variant="mono" tone="ink">
-                Sellable state
-              </Typography>
-              <dl className="mt-3 grid gap-3 sm:grid-cols-3 sm:gap-4">
+
+            <Card tone="ink" padding="sm" className="border-white/10 md:py-4">
+              <Stack direction="row" align="center" justify="between">
+                <Typography variant="mono" tone="accent" className="text-[var(--stage-violet-light)]">
+                  Resolved Commerce State
+                </Typography>
+                <Typography as="span" variant="mono" tone="inverse" className="text-[10px]">
+                  Synced
+                </Typography>
+              </Stack>
+              <DescriptionList gap="sm" className="mt-3 sm:grid-cols-3 sm:gap-4">
                 <div>
-                  <dt className="font-mono text-[10px] tracking-[0.08em] text-white/40 uppercase">
+                  <Typography as="dt" variant="mono" tone="inverse" className="text-[10px]">
                     SKU
-                  </dt>
-                  <dd className="mt-1 font-mono text-[13px] text-white">
+                  </Typography>
+                  <Typography as="dd" variant="code" tone="inverse" className="mt-1 text-[13px] normal-case tracking-normal">
                     {resolved.sku}
-                  </dd>
+                  </Typography>
                 </div>
                 <div>
-                  <dt className="font-mono text-[10px] tracking-[0.08em] text-white/40 uppercase">
+                  <Typography as="dt" variant="mono" tone="inverse" className="text-[10px]">
                     Price
-                  </dt>
-                  <dd className="mt-1 text-[17px] font-semibold tracking-tight text-white">
+                  </Typography>
+                  <Typography as="dd" variant="title" tone="inverse" className="mt-1 text-[17px]">
                     {formatPrice(resolved.price)}
-                  </dd>
+                  </Typography>
                 </div>
                 <div>
-                  <dt className="font-mono text-[10px] tracking-[0.08em] text-white/40 uppercase">
+                  <Typography as="dt" variant="mono" tone="inverse" className="text-[10px]">
                     Inventory
-                  </dt>
-                  <dd className="mt-1 text-[15px] font-medium text-white">
+                  </Typography>
+                  <Typography as="dd" variant="bodyStrong" tone="inverse" className="mt-1">
                     {resolved.inventory > 0
-                      ? `${resolved.inventory} available`
+                      ? `${resolved.inventory} in stock`
                       : 'Out of stock'}
-                  </dd>
+                  </Typography>
                 </div>
-              </dl>
+              </DescriptionList>
             </Card>
-          </div>
+          </Stack>
         </div>
       </Section.Body>
     </Section>

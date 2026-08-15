@@ -10,6 +10,14 @@ type SofaMeshProps = {
 export function SofaMesh({ materials }: SofaMeshProps) {
   const isLeather = materials.fabric.roughness < 0.55;
   const isMetalLegs = materials.legs.metalness > 0.5;
+  const fabricRoughness = Math.min(
+    1,
+    materials.fabric.roughness + (isLeather ? 0.02 : 0.04)
+  );
+  const frameRoughness = Math.min(1, materials.frame.roughness + 0.02);
+  const fabricSheen = isLeather ? 0.15 : 0.7;
+  const fabricClearcoat = isLeather ? 0.55 : 0.08;
+  const fabricClearcoatRoughness = isLeather ? 0.28 : 0.72;
 
   return (
     <group position={[0, 0.15, 0]}>
@@ -21,7 +29,7 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.frame.color}
-          roughness={materials.frame.roughness}
+          roughness={frameRoughness}
           metalness={materials.frame.metalness}
           clearcoat={0.35}
           clearcoatRoughness={0.45}
@@ -36,7 +44,7 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.frame.color}
-          roughness={materials.frame.roughness}
+          roughness={frameRoughness}
           metalness={materials.frame.metalness}
           clearcoat={0.3}
           clearcoatRoughness={0.5}
@@ -51,7 +59,7 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.frame.color}
-          roughness={materials.frame.roughness}
+          roughness={frameRoughness}
           metalness={materials.frame.metalness}
           clearcoat={0.3}
           clearcoatRoughness={0.5}
@@ -66,7 +74,7 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.frame.color}
-          roughness={materials.frame.roughness}
+          roughness={frameRoughness}
           metalness={materials.frame.metalness}
           clearcoat={0.3}
           clearcoatRoughness={0.5}
@@ -81,13 +89,13 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.fabric.color}
-          roughness={materials.fabric.roughness}
+          roughness={fabricRoughness}
           metalness={materials.fabric.metalness}
-          sheen={isLeather ? 0 : 0.55}
-          sheenRoughness={0.75}
+          sheen={fabricSheen}
+          sheenRoughness={0.7}
           sheenColor={materials.fabric.color}
-          clearcoat={isLeather ? 0.45 : 0.05}
-          clearcoatRoughness={isLeather ? 0.35 : 0.8}
+          clearcoat={fabricClearcoat}
+          clearcoatRoughness={fabricClearcoatRoughness}
         />
       </RoundedBox>
 
@@ -99,13 +107,13 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.fabric.color}
-          roughness={materials.fabric.roughness}
+          roughness={fabricRoughness}
           metalness={materials.fabric.metalness}
-          sheen={isLeather ? 0 : 0.55}
-          sheenRoughness={0.75}
+          sheen={fabricSheen}
+          sheenRoughness={0.7}
           sheenColor={materials.fabric.color}
-          clearcoat={isLeather ? 0.45 : 0.05}
-          clearcoatRoughness={isLeather ? 0.35 : 0.8}
+          clearcoat={fabricClearcoat}
+          clearcoatRoughness={fabricClearcoatRoughness}
         />
       </RoundedBox>
 
@@ -117,13 +125,13 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.fabric.color}
-          roughness={materials.fabric.roughness}
+          roughness={fabricRoughness}
           metalness={materials.fabric.metalness}
-          sheen={isLeather ? 0 : 0.55}
-          sheenRoughness={0.75}
+          sheen={fabricSheen}
+          sheenRoughness={0.7}
           sheenColor={materials.fabric.color}
-          clearcoat={isLeather ? 0.45 : 0.05}
-          clearcoatRoughness={isLeather ? 0.35 : 0.8}
+          clearcoat={fabricClearcoat}
+          clearcoatRoughness={fabricClearcoatRoughness}
         />
       </RoundedBox>
 
@@ -135,13 +143,13 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.fabric.color}
-          roughness={materials.fabric.roughness}
+          roughness={fabricRoughness}
           metalness={materials.fabric.metalness}
-          sheen={isLeather ? 0 : 0.55}
-          sheenRoughness={0.75}
+          sheen={fabricSheen}
+          sheenRoughness={0.7}
           sheenColor={materials.fabric.color}
-          clearcoat={isLeather ? 0.45 : 0.05}
-          clearcoatRoughness={isLeather ? 0.35 : 0.8}
+          clearcoat={fabricClearcoat}
+          clearcoatRoughness={fabricClearcoatRoughness}
         />
       </RoundedBox>
 
@@ -153,10 +161,10 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.fabric.color}
-          roughness={materials.fabric.roughness}
+          roughness={fabricRoughness}
           metalness={materials.fabric.metalness}
-          sheen={isLeather ? 0 : 0.4}
-          sheenRoughness={0.8}
+          sheen={isLeather ? 0.1 : 0.55}
+          sheenRoughness={0.78}
           sheenColor={materials.fabric.color}
         />
       </RoundedBox>
@@ -169,10 +177,10 @@ export function SofaMesh({ materials }: SofaMeshProps) {
       >
         <meshPhysicalMaterial
           color={materials.fabric.color}
-          roughness={materials.fabric.roughness}
+          roughness={fabricRoughness}
           metalness={materials.fabric.metalness}
-          sheen={isLeather ? 0 : 0.4}
-          sheenRoughness={0.8}
+          sheen={isLeather ? 0.1 : 0.55}
+          sheenRoughness={0.78}
           sheenColor={materials.fabric.color}
         />
       </RoundedBox>

@@ -14,7 +14,7 @@ export default function OpenGraphImage() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: '#f2f1ed',
+          background: '#F5F3EE',
           padding: '64px',
           fontFamily: 'ui-sans-serif, system-ui, sans-serif',
         }}
@@ -24,7 +24,7 @@ export default function OpenGraphImage() {
             position: 'absolute',
             inset: 0,
             background:
-              'radial-gradient(65% 50% at 78% 35%, rgba(95,87,247,0.2) 0%, transparent 55%)',
+              'radial-gradient(65% 50% at 78% 35%, rgba(102,92,255,0.18) 0%, transparent 55%)',
           }}
         />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -33,12 +33,12 @@ export default function OpenGraphImage() {
               fontSize: 26,
               fontWeight: 600,
               letterSpacing: '-0.04em',
-              color: '#101010',
+              color: '#0E0F12',
             }}
           >
             cubec○m Pro
           </div>
-          <div style={{ fontSize: 16, color: '#8a8a84' }}>
+          <div style={{ fontSize: 16, color: '#73716C' }}>
             Product Configurator Software
           </div>
         </div>
@@ -49,7 +49,7 @@ export default function OpenGraphImage() {
               fontWeight: 700,
               lineHeight: 1.02,
               letterSpacing: '-0.045em',
-              color: '#101010',
+              color: '#0E0F12',
               maxWidth: 920,
             }}
           >
@@ -61,12 +61,12 @@ export default function OpenGraphImage() {
               gap: 10,
               flexWrap: 'wrap',
               fontSize: 18,
-              color: '#5c5c59',
+              color: '#52504C',
             }}
           >
             <span
               style={{
-                border: '1px solid #d2d1cb',
+                border: '1px solid #D8D5CE',
                 borderRadius: 999,
                 padding: '8px 14px',
                 background: '#fff',
@@ -77,7 +77,7 @@ export default function OpenGraphImage() {
             <span style={{ padding: '8px 4px' }}>→</span>
             <span
               style={{
-                border: '1px solid #d2d1cb',
+                border: '1px solid #D8D5CE',
                 borderRadius: 999,
                 padding: '8px 14px',
                 background: '#fff',
@@ -88,7 +88,7 @@ export default function OpenGraphImage() {
             <span style={{ padding: '8px 4px' }}>→</span>
             <span
               style={{
-                border: '1px solid #d2d1cb',
+                border: '1px solid #D8D5CE',
                 borderRadius: 999,
                 padding: '8px 14px',
                 background: '#fff',
@@ -99,11 +99,11 @@ export default function OpenGraphImage() {
             <span style={{ padding: '8px 4px' }}>→</span>
             <span
               style={{
-                border: '1px solid #101010',
+                border: '1px solid #0E0F12',
                 borderRadius: 999,
                 padding: '8px 14px',
-                background: '#101010',
-                color: '#f2f1ed',
+                background: '#0E0F12',
+                color: '#F5F3EE',
               }}
             >
               Commerce

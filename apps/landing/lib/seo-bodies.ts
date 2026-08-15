@@ -6,7 +6,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       bullets: string[];
     }
   | {
@@ -14,7 +14,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       columns: Array<{ title: string; items: string[] }>;
     }
   | {
@@ -22,7 +22,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       links: Array<{ href: string; label: string }>;
     }
   | {
@@ -30,7 +30,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       paragraphs: string[];
     }
   | {
@@ -38,7 +38,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       steps: Array<{ title: string; body: string }>;
     }
   | {
@@ -46,7 +46,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       configuration: Array<{ label: string; value: string }>;
       resolved: Array<{ label: string; value: string }>;
       note?: string;
@@ -56,7 +56,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       equation: string;
       left: { title: string; items: string[] };
       right: { title: string; items: string[] };
@@ -66,7 +66,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       caption?: string;
       code: string;
     }
@@ -75,7 +75,7 @@ export type SeoSectionBody =
       eyebrow?: string;
       title: string;
       description?: string;
-      tone?: 'default' | 'muted';
+      tone?: 'default' | 'soft';
       product?: 'sofa' | 'tshirt';
     };
 
@@ -261,28 +261,7 @@ export const seoBodies: SeoBody[] = [
   },
   {
     path: '/integrations/shopify',
-    sections: [
-      {
-        kind: 'prose',
-        eyebrow: 'Integration preview',
-        title: 'Shopify keeps checkout. CubeCom resolves the product decision.',
-        paragraphs: [
-          'This page describes the intended Shopify pattern: configure beside the PDP, resolve to a sellable Shopify variant or line item, keep cart and checkout on Shopify.',
-          'A first-party Shopify app (theme extension, metafields sync) is not shipping yet. Treat this as early access architecture — not an installable App Store listing.',
-        ],
-      },
-      {
-        kind: 'bullets',
-        eyebrow: 'What works today',
-        title: 'Ship the shopper loop before the App Store listing.',
-        bullets: [
-          'Model options and constraints in CubeCom',
-          'Resolve to a Shopify variant id / SKU you already sell',
-          'Hand off to Shopify cart AJAX or Storefront API from your theme or headless storefront',
-          'Use the sofa demo to validate the shopper loop before wiring catalog',
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'Is there a Shopify App Store listing?',
@@ -312,32 +291,7 @@ export const seoBodies: SeoBody[] = [
   },
   {
     path: '/integrations/commercetools',
-    sections: [
-      {
-        kind: 'prose',
-        eyebrow: 'Integration preview',
-        title: 'Configuration beside commercetools — not instead of it.',
-        paragraphs: [
-          'The intended pattern: commercetools remains catalog, cart, and checkout. CubeCom owns configuration rules and optional 3D, then hands a resolved SKU / variant into commercetools line items.',
-          'This is early access / architecture guidance for composable teams. Do not expect a turnkey marketplace connector yet.',
-        ],
-      },
-      {
-        kind: 'links',
-        eyebrow: 'Related',
-        title: 'Headless and API',
-        links: [
-          {
-            href: '/headless-product-configurator',
-            label: 'Headless model',
-          },
-          {
-            href: '/product-configuration-api',
-            label: 'Product Configuration API',
-          },
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'Is this a commercetools marketplace connector?',
@@ -362,82 +316,7 @@ export const seoBodies: SeoBody[] = [
   },
   {
     path: '/industries/furniture',
-    sections: [
-      {
-        kind: 'prose',
-        tone: 'muted',
-        eyebrow: 'Category depth',
-        title: 'Furniture catalogs explode. Photography does not scale.',
-        paragraphs: [
-          'The demo proves the loop on a sofa. Production furniture catalogs usually need the same graph thinking across sectionals, modular systems, chairs, tables, and case goods — with dimensions, fabrics, finishes, and dependency rules that photography cannot cover.',
-          'CubeCom is not “a sofa viewer.” It is configuration infrastructure for furniture brands that need every valid look to remain a fulfillable commerce state.',
-        ],
-      },
-      {
-        kind: 'columns',
-        eyebrow: 'Product types',
-        title: 'Upholstery, case goods, and fulfillment constraints.',
-        columns: [
-          {
-            title: 'Upholstery',
-            items: [
-              'Sectional sofas and modular seating',
-              'Frames, fabrics, legs, cushions',
-              'Fabric compatibility and grade rules',
-            ],
-          },
-          {
-            title: 'Case & tables',
-            items: [
-              'Chairs and dining sets',
-              'Tables with top / base combinations',
-              'Cabinets with finish and hardware options',
-            ],
-          },
-          {
-            title: 'Fulfillment concerns',
-            items: [
-              'Dimensions and packaging constraints',
-              'Component / BOM hints for ops',
-              'Custom order vs stocked variants',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'steps',
-        tone: 'muted',
-        eyebrow: 'Configuration flow',
-        title: 'Structure → materials → sellable state.',
-        steps: [
-          {
-            title: 'Choose structure',
-            body: 'Frame, size, or modular arrangement — invalid sizes never unlock incompatible finishes.',
-          },
-          {
-            title: 'Choose materials',
-            body: 'Fabrics and finishes update the scene and reprice only when the graph says the state is legal.',
-          },
-          {
-            title: 'Resolve & share',
-            body: 'SKU, price, and inventory update. Sales can reopen the same configuration from a link — including showroom follow-ups.',
-          },
-        ],
-      },
-      {
-        kind: 'bullets',
-        eyebrow: 'Also on the roadmap for furniture teams',
-        title: 'AR and custom orders still start from the same graph.',
-        description:
-          'AR placement and deep BOM/ERP sync vary by engagement. The product graph is designed so those surfaces consume the same configuration state.',
-        bullets: [
-          'AR placement on supported devices using the same configuration',
-          'Custom order workflows that still start from a valid graph state',
-          'Showroom + web parity via shareable configuration identity',
-          'Works beside Shopify or composable checkout',
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'Is CubeCom only for sofas?',
@@ -472,85 +351,7 @@ export const seoBodies: SeoBody[] = [
   },
   {
     path: '/industries/apparel',
-    sections: [
-      {
-        kind: 'proof',
-        tone: 'muted',
-        eyebrow: 'Resolved output',
-        title: 'Color + fit + size becomes a sellable state.',
-        configuration: [
-          { label: 'Color', value: 'Navy' },
-          { label: 'Fit', value: 'Regular' },
-          { label: 'Size', value: 'M' },
-        ],
-        resolved: [
-          { label: 'SKU', value: 'TEE-NAV-REG-M' },
-          { label: 'Price', value: '$32' },
-          { label: 'Inventory', value: '42 available' },
-          {
-            label: 'Cart payload',
-            value: '{ sku, price, qty: 1, configurationId }',
-          },
-        ],
-        note: 'Try oversized + size S in the demo — constraints rewrite the illegal combination before cart.',
-      },
-      {
-        kind: 'steps',
-        eyebrow: 'Apparel configuration flow',
-        title: 'From colorway to cart line',
-        steps: [
-          {
-            title: 'Choose merchandising options',
-            body: 'Colorways, fits, and sizes update the scene. Invalid pairs are blocked in the graph.',
-          },
-          {
-            title: 'Optional decoration',
-            body: 'Logo Editor can place artwork on the same product identity when decoration changes what you sell.',
-          },
-          {
-            title: 'Resolve commerce',
-            body: 'SKU, price, and inventory update so PDP, share links, and cart stay aligned.',
-          },
-        ],
-      },
-      {
-        kind: 'columns',
-        tone: 'muted',
-        eyebrow: 'Surfaces',
-        title: 'Soft goods need rules, not orphaned presets.',
-        columns: [
-          {
-            title: 'Configure',
-            items: [
-              'Colorways, fits, and sizes',
-              'Decoration placement rules',
-              'Availability constraints',
-            ],
-          },
-          {
-            title: 'Sell',
-            items: [
-              'Configurator embed on PDP',
-              'Shareable configuration links',
-              'Sellable cart handoff',
-            ],
-          },
-        ],
-      },
-      {
-        kind: 'links',
-        eyebrow: 'Try it',
-        title: 'Demos and related intents',
-        links: [
-          { href: '/demo/tshirt', label: 'Full tee demo' },
-          { href: '/demo', label: 'Sofa demo' },
-          {
-            href: '/product-configurator',
-            label: 'Rules & variants',
-          },
-        ],
-      },
-    ],
+    sections: [],
     faqs: [
       {
         question: 'Do you support logo and print placement?',

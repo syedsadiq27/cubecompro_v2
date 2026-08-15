@@ -56,9 +56,12 @@ export function PcOptionGraph({
       >
         <Typography variant="mono">Live option graph</Typography>
         {notice ? (
-          <p className="max-w-[18rem] truncate text-right text-[12px] leading-snug text-[var(--ink)] md:max-w-[22rem]">
+          <Typography
+            variant="meta"
+            className="max-w-[18rem] truncate text-right leading-snug text-[var(--ink)] md:max-w-[22rem]"
+          >
             {notice}
-          </p>
+          </Typography>
         ) : null}
       </div>
 
@@ -242,17 +245,18 @@ function Metric({
   return (
     <div className="rounded-lg border border-[var(--line)] bg-[var(--surface-pure)] px-3 py-2.5">
       <Typography variant="label">{label}</Typography>
-      <p
-        className={`mt-0.5 text-sm font-medium ${
+      <Typography
+        variant={mono ? 'code' : 'bodyStrong'}
+        className={`mt-0.5 ${
           tone === 'ok'
             ? 'text-[var(--success)]'
             : tone === 'bad'
               ? 'text-[var(--danger)]'
-              : 'text-[var(--ink)]'
-        } ${mono ? 'font-mono' : ''}`}
+              : ''
+        } ${mono ? 'normal-case tracking-normal' : ''}`}
       >
         {value}
-      </p>
+      </Typography>
     </div>
   );
 }

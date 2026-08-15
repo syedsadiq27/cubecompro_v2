@@ -1,6 +1,16 @@
 'use client';
 
-import { Button, Heading, Lede } from '@repo/ui';
+import {
+  Button,
+  Field,
+  Heading,
+  Input,
+  Lede,
+  Section,
+  Select,
+  Textarea,
+  Typography,
+} from '@repo/ui';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
 
@@ -104,26 +114,20 @@ function ContactForm() {
     }
   }
 
-  const fieldClass =
-    'mt-1.5 w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-pure)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--ink)]';
-
   return (
     <form onSubmit={onSubmit} className="grid gap-5 sm:grid-cols-2">
-      <label className="block text-sm text-[var(--text-secondary)]">
-        Name
-        <input
+      <Field label="Name">
+        <Input
           required
           name="name"
           value={form.name}
           onChange={(event) =>
             setForm((current) => ({ ...current, name: event.target.value }))
           }
-          className={fieldClass}
         />
-      </label>
-      <label className="block text-sm text-[var(--text-secondary)]">
-        Work email
-        <input
+      </Field>
+      <Field label="Work email">
+        <Input
           required
           type="email"
           name="email"
@@ -131,23 +135,19 @@ function ContactForm() {
           onChange={(event) =>
             setForm((current) => ({ ...current, email: event.target.value }))
           }
-          className={fieldClass}
         />
-      </label>
-      <label className="block text-sm text-[var(--text-secondary)] sm:col-span-2">
-        Company
-        <input
+      </Field>
+      <Field label="Company" className="sm:col-span-2">
+        <Input
           name="company"
           value={form.company}
           onChange={(event) =>
             setForm((current) => ({ ...current, company: event.target.value }))
           }
-          className={fieldClass}
         />
-      </label>
-      <label className="block text-sm text-[var(--text-secondary)] sm:col-span-2">
-        Interest
-        <select
+      </Field>
+      <Field label="Interest" className="sm:col-span-2">
+        <Select
           name="interest"
           value={form.interest}
           onChange={(event) =>
@@ -156,27 +156,24 @@ function ContactForm() {
               interest: event.target.value as Interest,
             }))
           }
-          className={fieldClass}
         >
           {Object.entries(interestLabels).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="block text-sm text-[var(--text-secondary)] sm:col-span-2">
-        Anything we should know
-        <textarea
+        </Select>
+      </Field>
+      <Field label="Anything we should know" className="sm:col-span-2">
+        <Textarea
           name="message"
           rows={4}
           value={form.message}
           onChange={(event) =>
             setForm((current) => ({ ...current, message: event.target.value }))
           }
-          className={fieldClass}
         />
-      </label>
+      </Field>
 
       <div className="sm:col-span-2">
         <Button
@@ -189,14 +186,14 @@ function ContactForm() {
           {status === 'sending' ? 'Sending…' : 'Request a session'}
         </Button>
         {status === 'sent' ? (
-          <p className="mt-3 text-sm text-[var(--success)]">
+          <Typography variant="support" className="mt-3 text-[var(--success)]">
             Thanks — we’ll follow up shortly.
-          </p>
+          </Typography>
         ) : null}
         {status === 'error' ? (
-          <p className="mt-3 text-sm text-[var(--danger)]">
+          <Typography variant="support" className="mt-3 text-[var(--danger)]">
             Something went wrong. Email us at {SITE_EMAIL}.
-          </p>
+          </Typography>
         ) : null}
       </div>
     </form>
@@ -205,11 +202,8 @@ function ContactForm() {
 
 export function Contact() {
   return (
-    <section
-      id="contact"
-      className="border-t border-[var(--line)] bg-[var(--canvas)]"
-    >
-      <div className="mx-auto grid max-w-[90rem] gap-12 px-5 py-14 md:px-8 md:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-16">
+    <Section id="contact" tone="canvas" spacing="default">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-16">
         <div className="max-w-lg">
           <Heading as="h2" variant="section">
             Thirty minutes on your product — not our slides.
@@ -229,6 +223,6 @@ export function Contact() {
           </div>
         </Suspense>
       </div>
-    </section>
+    </Section>
   );
 }

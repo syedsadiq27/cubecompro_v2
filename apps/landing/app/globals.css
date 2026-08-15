@@ -2,58 +2,25 @@
 @import "@repo/tailwind-config";
 
 :root {
-  --stage-bg: #f2f1ed;
-  --stage-ink: #101010;
-  --stage-violet: #5f57f7;
-  --stage-violet-light: #a69fff;
-  --stage-shadow:
-    0 28px 56px rgba(16, 16, 16, 0.09), 0 10px 20px rgba(16, 16, 16, 0.04);
-
-  --ink: #101010;
-  --canvas: #f2f1ed;
-  --surface: #f7f6f3;
-  --surface-pure: #ffffff;
-
-  --line: #e4e3de;
-  --text: var(--ink);
-  --text-secondary: #5c5c59;
-  --text-muted: #8a8a84;
-
-  --success: #167a5b;
-  --success-soft: #e7f5ef;
-  --warning: #a76712;
-  --warning-soft: #fbf1df;
-  --danger: #c44848;
-  --danger-soft: #fceaea;
-  --info: #3d68c9;
-  --info-soft: #eaf0fd;
-
-  --background: var(--canvas);
-  --border: var(--line);
-  --border-strong: #d2d1cb;
-  --brand: var(--stage-violet);
-  --brand-hover: #4e47d4;
-  --brand-soft: #eeedff;
-  --shadow: var(--stage-shadow);
-
   --font-display:
-    var(--font-inter-tight), "Inter Tight", ui-sans-serif, system-ui,
+    var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
     sans-serif;
-  --font-ui: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-ui:
+    var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui,
+    sans-serif;
   --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
 }
 
 html,
 body {
   height: 100%;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   color: var(--ink);
   background: var(--canvas);
-  font-family: var(--font-ui);
-  font-weight: 400;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -67,34 +34,22 @@ a {
 
 .type-hero {
   font-family: var(--font-display);
-  font-size: 56px;
-  line-height: 0.96;
-  font-weight: 700;
-  letter-spacing: -0.045em;
+  font-size: clamp(3rem, 4.6vw, 4.5rem);
 }
 
 .type-page {
   font-family: var(--font-display);
   font-size: 32px;
-  line-height: 1.05;
-  font-weight: 650;
-  letter-spacing: -0.03em;
 }
 
 .type-section {
   font-family: var(--font-display);
   font-size: 21px;
-  line-height: 1.15;
-  font-weight: 600;
-  letter-spacing: -0.02em;
 }
 
 .type-card {
   font-family: var(--font-display);
   font-size: 16px;
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: -0.015em;
 }
 
 .type-item {
@@ -110,7 +65,7 @@ a {
   font-size: 14px;
   line-height: 1.55;
   font-weight: 400;
-  color: #555555;
+  color: var(--text-secondary);
 }
 
 .type-desc {
@@ -118,7 +73,7 @@ a {
   font-size: 13.5px;
   line-height: 1.5;
   font-weight: 400;
-  color: #6b6b68;
+  color: var(--text-muted);
 }
 
 .type-meta {
@@ -162,7 +117,7 @@ a {
 .cube-stage {
   position: relative;
   overflow: hidden;
-  background: #f4f3ef;
+  background: var(--canvas);
 }
 
 .cube-stage-field {
@@ -171,16 +126,16 @@ a {
   background:
     radial-gradient(
       70% 55% at 50% 38%,
-      rgba(95, 87, 247, 0.18) 0%,
-      rgba(166, 159, 255, 0.08) 28%,
+      rgba(102, 92, 255, 0.16) 0%,
+      rgba(168, 160, 255, 0.06) 28%,
       transparent 58%
     ),
     radial-gradient(
       120% 70% at 50% 100%,
-      rgba(16, 16, 16, 0.05) 0%,
+      rgba(14, 15, 18, 0.04) 0%,
       transparent 55%
     ),
-    linear-gradient(180deg, #f8f7f4 0%, #f2f1ed 48%, #ebeae5 100%);
+    linear-gradient(180deg, #FAF8F5 0%, #F5F3EE 48%, #EDEAE3 100%);
   pointer-events: none;
 }
 
@@ -194,8 +149,8 @@ a {
   transform: translateX(-50%);
   background: radial-gradient(
     ellipse at center,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(95, 87, 247, 0.12) 35%,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(102, 92, 255, 0.12) 35%,
     transparent 70%
   );
   filter: blur(28px);
@@ -212,7 +167,7 @@ a {
   transform: translateX(-50%);
   background: radial-gradient(
     ellipse at center,
-    rgba(16, 16, 16, 0.16),
+    rgba(14, 15, 18, 0.14),
     transparent 72%
   );
   filter: blur(10px);
@@ -223,7 +178,7 @@ a {
   position: relative;
   overflow: hidden;
   background: var(--surface-pure);
-  border: 1px solid rgba(228, 227, 222, 0.7);
+  border: 1px solid var(--line);
   border-radius: 10px;
 }
 
@@ -236,7 +191,7 @@ a {
   height: 100%;
   background: radial-gradient(
     ellipse at 70% 20%,
-    rgba(95, 87, 247, 0.055),
+    rgba(102, 92, 255, 0.05),
     transparent 55%
   );
   pointer-events: none;
@@ -254,8 +209,8 @@ a {
   inset: 0 -4px 0 0;
   background: linear-gradient(
     90deg,
-    rgba(95, 87, 247, 0.1),
-    rgba(95, 87, 247, 0.03) 40%,
+    rgba(102, 92, 255, 0.1),
+    rgba(102, 92, 255, 0.03) 40%,
     transparent 78%
   );
   border-radius: 0 8px 8px 0;
@@ -272,11 +227,11 @@ a {
   border-radius: 1px;
   background: linear-gradient(
     180deg,
-    rgba(166, 159, 255, 0.2),
+    rgba(168, 160, 255, 0.2),
     var(--stage-violet),
-    rgba(166, 159, 255, 0.2)
+    rgba(168, 160, 255, 0.2)
   );
-  box-shadow: 0 0 12px rgba(95, 87, 247, 0.35);
+  box-shadow: 0 0 12px rgba(102, 92, 255, 0.35);
 }
 
 @keyframes landing-rise {
@@ -359,11 +314,11 @@ a {
 }
 
 .landing-footer-brand span {
-  color: #f2f1ed !important;
+  color: var(--canvas) !important;
 }
 
 .landing-footer-brand span span:last-child {
-  color: rgba(242, 241, 237, 0.45) !important;
+  color: rgba(245, 243, 238, 0.45) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

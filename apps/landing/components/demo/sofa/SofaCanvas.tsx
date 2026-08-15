@@ -11,10 +11,17 @@ const SofaScene = dynamic(
 
 type SofaCanvasProps = {
   materials: ResolvedMaterials;
+  viewKey?: number;
+  viewIndex?: number;
   className?: string;
 };
 
-export function SofaCanvas({ materials, className = '' }: SofaCanvasProps) {
+export function SofaCanvas({
+  materials,
+  viewKey = 0,
+  viewIndex = 0,
+  className = '',
+}: SofaCanvasProps) {
   const [mounted, setMounted] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [enableStudioEnv, setEnableStudioEnv] = useState(true);
@@ -39,7 +46,7 @@ export function SofaCanvas({ materials, className = '' }: SofaCanvasProps) {
   if (!mounted) {
     return (
       <div
-        className={`flex h-full min-h-[48vh] w-full items-center justify-center bg-[var(--surface)] text-sm tracking-wide text-[var(--text-muted)] lg:min-h-full ${className}`}
+        className={`flex h-full min-h-[48vh] w-full items-center justify-center bg-[var(--canvas)] text-sm tracking-wide text-[var(--text-muted)] lg:min-h-full ${className}`}
       >
         Loading showroom…
       </div>
@@ -49,8 +56,9 @@ export function SofaCanvas({ materials, className = '' }: SofaCanvasProps) {
   return (
     <div className={`absolute inset-0 h-full w-full ${className}`}>
       <SofaScene
-        key={`${resetKey}-${enableStudioEnv ? 'env' : 'basic'}`}
+        key={`${viewIndex}-${viewKey}-${resetKey}-${enableStudioEnv ? 'env' : 'basic'}`}
         materials={materials}
+        viewIndex={viewIndex}
         enableStudioEnv={enableStudioEnv}
         onContextLost={handleContextLost}
       />

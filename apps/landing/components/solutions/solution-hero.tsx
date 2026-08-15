@@ -45,7 +45,7 @@ export function SolutionHero({
   lead: string;
   primaryCta: { href: string; label: string };
   secondaryCta: { href: string; label: string };
-  children: ReactNode;
+  children?: ReactNode;
   visualPriority?: boolean;
 }) {
   return (
@@ -69,7 +69,7 @@ export function SolutionHero({
           </HeroCta>
         </PageHero.Actions>
       </PageHero.Copy>
-      <PageHero.Visual>{children}</PageHero.Visual>
+      {children ? <PageHero.Visual>{children}</PageHero.Visual> : null}
     </PageHero>
   );
 }

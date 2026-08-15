@@ -1,0 +1,39 @@
+---
+description: Integration landing pages (Shopify, commercetools) — golden depth with candid early-access framing
+globs: apps/landing/components/integrations/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Integration pages — layout language
+
+Applies to `/integrations/shopify` and `/integrations/commercetools`.
+
+Homepage, solutions, and industry pages have their own rules. Integrations reuse the same section rhythm and shared patterns, with two hard constraints:
+
+1. Keep the hero ownership split (`OwnershipDiagram`: platform keeps vs CubeCom adds).
+2. Stay candid about maturity — “early access”, “intended pattern”, “not an App Store / marketplace connector yet.” Do not visually imply a finished marketplace connector.
+
+## Canonical skeleton
+
+```text
+Hero + ownership split
+→ Problem / boundary
+→ Full-width integration visual
+→ Dark mechanism
+→ Capabilities
+→ Real integration proof
+→ Outcomes
+→ Bridge + FAQ
+→ Final CTA
+```
+
+## Proof type
+
+- **Shopify:** believable PDP configuration → Shopify cart line (candid handoff note).
+- **commercetools:** selection → resolve → commercetools cart projection (request/response / architecture proof). Prefer depth over packaging claims.
+
+## Shared primitives
+
+`SolutionHero`, `OwnershipDiagram`, `ProblemCompare`, `FullWidthVisual`, `SignatureMechanism`, `EditorialColumns`, proof components, `OutcomeGrid`, `SolutionBridge`, `SeoFaq`, `SeoCta`, `@repo/ui`.
+
+If a dedicated integration visual asset is missing, keep a blank `MediaSlot` via `FullWidthVisual` — never invent HTML/CSS marketplace chrome.

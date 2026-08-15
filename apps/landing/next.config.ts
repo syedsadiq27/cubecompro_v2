@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@repo/ui'],
+  devIndicators: false,
+  transpilePackages: ['@repo/ui', '@repo/fonts'],
   typescript: {
     ignoreBuildErrors: true,
   },

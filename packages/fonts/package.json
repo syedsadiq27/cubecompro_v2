@@ -1,0 +1,25 @@
+{
+  "name": "@repo/fonts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./instrument-sans/webfonts/InstrumentSans[wdth,wght].woff2": "./src/instrument-sans/webfonts/InstrumentSans[wdth,wght].woff2",
+    "./instrument-sans/webfonts/InstrumentSans-Italic[wdth,wght].woff2": "./src/instrument-sans/webfonts/InstrumentSans-Italic[wdth,wght].woff2"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

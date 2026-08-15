@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Button, Checkbox, EmptyState, Field, Input, Panel, Select, Spinner, Stage, StatusPill, Surface, Switch, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, Tooltip, Body, Display, Meta, PageTitle, TextSectionTitle } from '@repo/ui';
+import { Badge, Button, Checkbox, EmptyState, Field, Heading, Input, Panel, Select, Spinner, Stage, StatusPill, Surface, Switch, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, Tooltip, Typography, marketingHeadingTiers } from '@repo/ui';
 import { useState } from 'react';
 
 import { Callout, Section } from './docs-ui';
@@ -67,14 +67,31 @@ export function ComponentsGallery() {
 
       <Section title="Typography">
         <div className="space-y-6">
-          <Display className="!text-[40px] sm:!text-[56px]">Display</Display>
-          <PageTitle>Page title</PageTitle>
-          <TextSectionTitle>Section title</TextSectionTitle>
-          <Body>
-            Body text uses Inter at 14 / 1.55 with secondary color and a quiet
+          <Heading variant="display" className="!text-[40px] sm:!text-[56px]">
+            Display
+          </Heading>
+          <div className="space-y-4 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] p-4">
+            <p className="type-meta">Marketing H1 tiers</p>
+            {marketingHeadingTiers.map((tier) => (
+              <div key={tier.variant} className="space-y-1">
+                <p className="text-[12px] text-[var(--text-muted)]">
+                  {tier.variant} · {tier.role}
+                </p>
+                <Heading as="h2" variant={tier.variant}>
+                  {tier.variant}
+                </Heading>
+              </div>
+            ))}
+          </div>
+          <Heading variant="pageTitle">Page title</Heading>
+          <Heading variant="panel">Panel title</Heading>
+          <Typography variant="prose">
+            Prose uses Inter at 14 / 1.55 with secondary color and a quiet
             measure for reading.
-          </Body>
-          <Meta>Meta · SKU CFG-1042 · supporting detail</Meta>
+          </Typography>
+          <Typography variant="meta">
+            Meta · SKU CFG-1042 · supporting detail
+          </Typography>
         </div>
       </Section>
 
@@ -89,10 +106,10 @@ export function ComponentsGallery() {
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button variant="primary" size="lg">
-            Landing primary
+            Large primary
           </Button>
           <Button variant="secondary" size="lg">
-            Landing secondary
+            Large secondary
           </Button>
           <Button variant="primary" size="nav">
             Nav CTA
@@ -167,13 +184,19 @@ export function ComponentsGallery() {
             <TabsTrigger value="assets">Assets</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            <Body>Quiet underline active state — black, not violet pills.</Body>
+            <Typography variant="prose">
+              Quiet underline active state — black, not violet pills.
+            </Typography>
           </TabsContent>
           <TabsContent value="commerce">
-            <Body>Pricing and channel mapping content lives here.</Body>
+            <Typography variant="prose">
+              Pricing and channel mapping content lives here.
+            </Typography>
           </TabsContent>
           <TabsContent value="assets">
-            <Body>3D, logos, and media references.</Body>
+            <Typography variant="prose">
+              3D, logos, and media references.
+            </Typography>
           </TabsContent>
         </Tabs>
       </Section>

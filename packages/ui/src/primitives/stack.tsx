@@ -4,9 +4,10 @@ import type {
   ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import { spaceGapClass, type Space } from '../lib/space';
 
 export type StackDirection = 'col' | 'row';
-export type StackGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type StackGap = Space;
 export type StackAlign = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
 export type StackJustify =
   | 'start'
@@ -47,11 +48,7 @@ export function Stack<T extends ElementType = 'div'>({
         direction === 'col' && 'ui:flex-col',
         direction === 'row' && 'ui:flex-row',
         wrap && 'ui:flex-wrap',
-        gap === 'xs' && 'ui:gap-2',
-        gap === 'sm' && 'ui:gap-3',
-        gap === 'md' && 'ui:gap-4',
-        gap === 'lg' && 'ui:gap-5',
-        gap === 'xl' && 'ui:gap-8',
+        spaceGapClass(gap),
         align === 'start' && 'ui:items-start',
         align === 'center' && 'ui:items-center',
         align === 'end' && 'ui:items-end',

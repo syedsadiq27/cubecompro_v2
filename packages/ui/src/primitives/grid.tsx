@@ -4,6 +4,7 @@ import type {
   ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import { spaceGapClass, type Space } from '../lib/space';
 
 export type GridCols =
   | 1
@@ -19,7 +20,7 @@ export type GridCols =
   | 'sm-2-md-3'
   | 'md-2-lg-3';
 
-export type GridGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type GridGap = Space;
 
 type GridOwnProps<T extends ElementType> = {
   as?: T;
@@ -60,12 +61,7 @@ export function Grid<T extends ElementType = 'div'>({
           'ui:grid-cols-1 ui:sm:grid-cols-2 ui:md:grid-cols-3',
         cols === 'md-2-lg-3' &&
           'ui:grid-cols-1 ui:md:grid-cols-2 ui:lg:grid-cols-3',
-        gap === 'none' && 'ui:gap-0',
-        gap === 'xs' && 'ui:gap-2',
-        gap === 'sm' && 'ui:gap-3',
-        gap === 'md' && 'ui:gap-4',
-        gap === 'lg' && 'ui:gap-5',
-        gap === 'xl' && 'ui:gap-8',
+        spaceGapClass(gap),
         className
       )}
       {...props}

@@ -1,0 +1,3 @@
+Replace this file with the official Instrument Sans license text from the font distribution before shipping.
+
+Instrument Sans is typically released under the SIL Open Font License (OFL).

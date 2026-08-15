@@ -34,48 +34,45 @@ export function getStudioFloorTexture() {
   }
 
   const rand = mulberry32(42);
-  const base = ctx.createLinearGradient(0, 0, size, size);
-  base.addColorStop(0, '#cfc5b6');
-  base.addColorStop(0.5, '#d8d0c2');
-  base.addColorStop(1, '#c8bfb0');
+  const base = ctx.createRadialGradient(
+    size * 0.5,
+    size * 0.45,
+    size * 0.08,
+    size * 0.5,
+    size * 0.5,
+    size * 0.72
+  );
+  base.addColorStop(0, '#ECE9E2');
+  base.addColorStop(0.55, '#E2DDD4');
+  base.addColorStop(1, '#D8D5CE');
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, size, size);
 
-  for (let y = 0; y < size; y += 64) {
-    ctx.fillStyle = y % 128 === 0 ? '#c3b9a9' : '#d2caba';
-    ctx.fillRect(0, y, size, 64);
-    ctx.strokeStyle = 'rgba(90, 72, 52, 0.08)';
-    ctx.beginPath();
-    ctx.moveTo(0, y + 0.5);
-    ctx.lineTo(size, y + 0.5);
-    ctx.stroke();
-  }
-
-  for (let i = 0; i < 14000; i += 1) {
+  for (let i = 0; i < 9000; i += 1) {
     const x = rand() * size;
     const y = rand() * size;
-    const a = 0.015 + rand() * 0.04;
-    ctx.fillStyle = `rgba(70, 55, 40, ${a})`;
+    const a = 0.01 + rand() * 0.028;
+    ctx.fillStyle = `rgba(80, 70, 55, ${a})`;
     ctx.fillRect(x, y, 1, 1);
   }
 
   const sheen = ctx.createRadialGradient(
-    size * 0.35,
-    size * 0.3,
-    size * 0.05,
+    size * 0.42,
+    size * 0.38,
+    size * 0.04,
     size * 0.5,
     size * 0.5,
-    size * 0.65
+    size * 0.55
   );
-  sheen.addColorStop(0, 'rgba(255, 248, 235, 0.16)');
-  sheen.addColorStop(1, 'rgba(255, 248, 235, 0)');
+  sheen.addColorStop(0, 'rgba(255, 252, 246, 0.18)');
+  sheen.addColorStop(1, 'rgba(255, 252, 246, 0)');
   ctx.fillStyle = sheen;
   ctx.fillRect(0, 0, size, size);
 
   floorTexture = new CanvasTexture(canvas);
   floorTexture.wrapS = RepeatWrapping;
   floorTexture.wrapT = RepeatWrapping;
-  floorTexture.repeat.set(3.5, 3.5);
+  floorTexture.repeat.set(1.6, 1.6);
   floorTexture.colorSpace = SRGBColorSpace;
   floorTexture.minFilter = LinearFilter;
   floorTexture.magFilter = LinearFilter;
@@ -98,22 +95,22 @@ export function getStudioWallTexture() {
   }
 
   const gradient = ctx.createLinearGradient(0, 0, 0, size);
-  gradient.addColorStop(0, '#f3eee6');
-  gradient.addColorStop(0.45, '#ebe4d8');
-  gradient.addColorStop(1, '#d9d0c2');
+  gradient.addColorStop(0, '#F5F3EE');
+  gradient.addColorStop(0.5, '#ECE9E2');
+  gradient.addColorStop(1, '#E2DDD4');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, size, size);
 
   const vignette = ctx.createRadialGradient(
     size * 0.5,
-    size * 0.35,
-    size * 0.1,
+    size * 0.4,
+    size * 0.12,
     size * 0.5,
     size * 0.5,
-    size * 0.75
+    size * 0.78
   );
   vignette.addColorStop(0, 'rgba(255,255,255,0)');
-  vignette.addColorStop(1, 'rgba(120, 100, 80, 0.12)');
+  vignette.addColorStop(1, 'rgba(90, 85, 75, 0.08)');
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, size, size);
 

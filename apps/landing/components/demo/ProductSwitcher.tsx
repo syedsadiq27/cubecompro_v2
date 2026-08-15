@@ -8,7 +8,7 @@ type ProductSwitcherProps = {
 
 export function ProductSwitcher({ active }: ProductSwitcherProps) {
   return (
-    <div className="inline-flex rounded-lg border border-[var(--border-strong)] bg-[var(--surface-pure)] p-0.5 text-xs font-medium">
+    <div className="inline-flex rounded-lg border border-[var(--border-strong)] bg-[var(--surface-pure)] p-0.5 text-xs font-medium shadow-sm">
       <Link
         href="/demo"
         className={`rounded-md px-3 py-1.5 transition ${

@@ -1,22 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Inter_Tight } from 'next/font/google';
 import { GeistMono } from 'geist/font/mono';
 import { OrganizationJsonLd } from '@/components/seo/organization-json-ld';
+import { instrumentSans } from '@/lib/fonts';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import '@repo/ui/styles.css';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const interTight = Inter_Tight({
-  subsets: ['latin'],
-  variable: '--font-inter-tight',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -75,7 +63,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#f2f1ed',
+  themeColor: '#F5F3EE',
 };
 
 export default function RootLayout({
@@ -86,9 +74,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${GeistMono.variable}`}
+      className={`${instrumentSans.variable} ${GeistMono.variable}`}
     >
-      <body className={inter.className}>
+      <body className={`${instrumentSans.className} ui-type-body`}>
         <OrganizationJsonLd />
         {children}
       </body>

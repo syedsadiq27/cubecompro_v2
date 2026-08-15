@@ -1,4 +1,4 @@
-import { Card, Container, Grid, Heading, Stack, Typography } from '@repo/ui';
+import { Card, Grid, Section, Stack, Typography } from '@repo/ui';
 
 const SYSTEMS = [
   {
@@ -29,25 +29,20 @@ const SYSTEMS = [
 
 export function PcInfrastructure() {
   return (
-    <section className="border-t border-[var(--line)] bg-[var(--surface)]">
-      <Container padding="sectionCompact">
-        <Heading as="h2" variant="section">
-          Configuration belongs between the catalog and the cart.
-        </Heading>
-
-        <Grid cols={2} gap="sm" className="mt-8 md:mt-10 md:gap-4 lg:grid-cols-4">
+    <Section tone="soft" spacing="compact">
+      <Section.Header title="Configuration belongs between the catalog and the cart." />
+      <Section.Body gap="md">
+        <Grid cols={2} gap="sm" className="md:gap-4 lg:grid-cols-4">
           {SYSTEMS.map((system) => (
             <Card
               as="article"
               key={system.name}
-              variant="soft"
-              padding="tight"
+              tone="surface"
+              padding="sm"
               className="md:rounded-2xl md:p-5"
             >
               <Stack gap="sm">
-                <Typography variant="code" tone="strong">
-                  {system.tag}
-                </Typography>
+                <Typography variant="code">{system.tag}</Typography>
                 <Typography variant="titleSm">{system.name}</Typography>
                 <Typography variant="code" tone="muted">
                   {system.io}
@@ -57,7 +52,7 @@ export function PcInfrastructure() {
             </Card>
           ))}
         </Grid>
-      </Container>
-    </section>
+      </Section.Body>
+    </Section>
   );
 }

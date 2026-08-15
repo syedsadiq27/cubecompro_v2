@@ -87,7 +87,7 @@ function StudioSet() {
         <planeGeometry args={[18, 18]} />
         <meshStandardMaterial
           map={floorMap ?? undefined}
-          color={floorMap ? '#ffffff' : '#d2c8b8'}
+          color={floorMap ? '#ffffff' : '#ECE9E2'}
           roughness={0.78}
           metalness={0.04}
         />
@@ -99,7 +99,7 @@ function StudioSet() {
         <meshStandardMaterial
           side={BackSide}
           map={wallMap ?? undefined}
-          color={wallMap ? '#ffffff' : '#ebe4d8'}
+          color={wallMap ? '#ffffff' : '#F5F3EE'}
           roughness={0.92}
           metalness={0}
         />
@@ -108,7 +108,7 @@ function StudioSet() {
         <circleGeometry args={[7.4, 48]} />
         <meshStandardMaterial
           side={BackSide}
-          color="#f2ebe1"
+          color="#F5F3EE"
           roughness={1}
           metalness={0}
         />
@@ -131,10 +131,10 @@ function SceneContent({
   return (
     <>
       <RendererTuning onContextLost={onContextLost} />
-      <color attach="background" args={['#e4ddd2']} />
-      <fog attach="fog" args={['#e4ddd2', 10, 20]} />
+      <color attach="background" args={['#F5F3EE']} />
+      <fog attach="fog" args={['#F5F3EE', 10, 20]} />
 
-      <hemisphereLight args={['#fff8ef', '#9c9488', 1.05]} />
+      <hemisphereLight args={['#fffdf9', '#D8D5CE', 0.85]} />
       <directionalLight
         position={[4.5, 8, 2.5]}
         intensity={0.85}

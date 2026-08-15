@@ -17,7 +17,7 @@ export function SolutionCompare({
     <Section tone="canvas" spacing="default">
       <Section.Header title={title} />
 
-      <Section.Body gap="compare">
+      <Section.Body gap="none" className="mt-8 md:mt-12">
         <Compare
           left={{ label: withoutLabel, items: without }}
           right={{ label: withLabel, items: withItems }}

@@ -1,0 +1,44 @@
+---
+description: Industry landing pages (Furniture, Apparel) — flagship skeleton with live configurator proof
+globs: apps/landing/components/industries/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Industry pages — layout language
+
+Applies to `/industries/furniture` and `/industries/apparel`.
+
+Homepage and solutions depth pages are frozen separately. Industry pages may be restructured to this skeleton, but should reuse the same shared patterns and section rhythm.
+
+## Canonical skeleton
+
+```text
+Hero
+→ Industry problem / tension
+→ Full-width configurator proof
+→ Dark mechanism band
+→ 3–4 industry capabilities
+→ Operational / commercial outcomes
+→ Related solution bridge
+→ FAQ
+→ Final CTA
+```
+
+## Locked standards
+
+- **Hero:** `SolutionHero` + finished static visual (`Image` / `MediaSlot`). Do not put a second live WebGL embed in the hero when the mid-page proof is interactive.
+- **Problem:** editorial `ProblemCompare` — not card grids.
+- **Proof:** exactly one full-width live configurator (`FurnitureConfiguratorProof` / `ApparelConfiguratorProof`) after the problem section. Feels like a product experience, not a diagram. Light chrome; show resolved SKU / price / inventory and one visible rule.
+- **Mechanism:** exactly one `SignatureMechanism` ink band (furniture: structure → materials → sellable state; apparel: colorway → cart line).
+- **Capabilities:** unboxed `EditorialColumns` (3–4).
+- **Outcomes:** one `OutcomeGrid` section.
+- **Decision support:** `SolutionBridge` + `SeoFaq`.
+- **Final CTA:** `SeoCta`.
+
+## Density
+
+Prefer one product visual, one dark mechanism, one editorial capability grid, and one outcome section. Avoid stacks of small white SEO cards.
+
+## Shared primitives
+
+Compose with `@repo/ui` + landing patterns (`SolutionHero`, `ProblemCompare`, `SignatureMechanism`, `EditorialColumns`, `OutcomeGrid`, `SolutionBridge`, `SeoFaq`, `SeoCta`). Keep FAQs/CTAs in `getSeoBody`; page composition lives in `components/industries/*`.

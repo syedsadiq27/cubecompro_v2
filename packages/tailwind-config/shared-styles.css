@@ -1,7 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  --color-blue-1000: #2a8af6;
-  --color-purple-1000: #a853ba;
-  --color-red-1000: #e92a67;
+  --color-canvas: #F5F3EE;
+  --color-surface: #ECE9E2;
+  --color-surface-pure: #FFFFFF;
+  --color-ink: #0E0F12;
+  --color-muted: #73716C;
+  --color-line: #D8D5CE;
+  --color-brand: #665CFF;
+  --color-brand-hover: #5247E6;
+  --color-brand-soft: #E8E6FF;
+  --color-success: #34A853;
+  --color-success-soft: #E6F4EA;
+
+  --color-stage-bg: #F5F3EE;
+  --color-stage-ink: #0E0F12;
+  --color-stage-violet: #665CFF;
+  --color-stage-violet-light: #A8A0FF;
+
+  --color-border-strong: #C4C0B6;
+}
+
+:root {
+  --stage-bg: #F5F3EE;
+  --stage-ink: #0E0F12;
+  --stage-violet: #665CFF;
+  --stage-violet-light: #A8A0FF;
+  --stage-shadow:
+    0 28px 56px rgba(14, 15, 18, 0.08), 0 10px 20px rgba(14, 15, 18, 0.04);
+
+  --ink: #0E0F12;
+  --canvas: #F5F3EE;
+  --surface: #ECE9E2;
+  --surface-pure: #ffffff;
+
+  --line: #D8D5CE;
+  --text: var(--ink);
+  --text-secondary: #52504C;
+  --text-muted: #73716C;
+
+  --success: #34A853;
+  --success-soft: #E6F4EA;
+  --warning: #B06000;
+  --warning-soft: #FEF7E0;
+  --danger: #D93025;
+  --danger-hover: #C5221F;
+  --danger-soft: #FCE8E6;
+  --info: #1A73E8;
+  --info-soft: #E8F0FE;
+
+  --background: var(--canvas);
+  --border: var(--line);
+  --border-strong: #C4C0B6;
+  --brand: var(--stage-violet);
+  --brand-hover: #5247E6;
+  --brand-soft: #E8E6FF;
+  --shadow: var(--stage-shadow);
 }

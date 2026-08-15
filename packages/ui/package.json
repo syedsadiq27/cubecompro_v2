@@ -25,6 +25,8 @@
     "./stack": "./dist/primitives/stack.js",
     "./grid": "./dist/primitives/grid.js",
     "./frame": "./dist/primitives/frame.js",
+    "./list": "./dist/primitives/list.js",
+    "./description-list": "./dist/primitives/description-list.js",
     "./divided-list": "./dist/primitives/divided-list.js",
     "./label": "./dist/primitives/label.js",
     "./input": "./dist/primitives/input.js",
@@ -47,6 +49,7 @@
   },
   "license": "MIT",
   "scripts": {
+    "build": "yarn build:styles && yarn build:components",
     "build:styles": "tailwindcss -i ./src/styles.css -o ./dist/index.css",
     "build:components": "tsc",
     "check-types": "tsc --noEmit",

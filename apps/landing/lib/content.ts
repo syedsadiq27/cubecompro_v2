@@ -132,3 +132,36 @@ export const faqs = [
       'Thirty minutes on your catalog, rules, and commerce path — then a clear recommendation. Not a slide tour of features.',
   },
 ] as const;
+
+export const pricingFaqs = [
+  {
+    question: 'What counts as a product graph?',
+    answer:
+      'One configurable product family with its options, constraints, and commerce mappings — for example a sofa line or a tee program. Multiple unrelated catalogs usually mean multiple graphs.',
+  },
+  {
+    question: 'Are 3D assets included?',
+    answer:
+      'Plans include the 3D viewer and configurator runtime. Your product models, materials, and photography remain yours. We help map them into the graph; we do not ship a stock asset library as the product.',
+  },
+  {
+    question: 'Is API access included?',
+    answer:
+      'API access starts on Pro. Starter is built for proving the model with embed and core resolve. Enterprise adds custom integrations, environments, and higher throughput as scoped.',
+  },
+  {
+    question: 'Can I upgrade without rebuilding?',
+    answer:
+      'Yes. Your product graph, rules, and configurations carry forward. Upgrading unlocks capacity and surfaces — it does not require remodeling the catalog from scratch.',
+  },
+  {
+    question: 'What changes after founding pricing?',
+    answer:
+      'Founding rates lock in early. After founding, list prices move to the regular monthly amounts shown on each plan. Enterprise remains custom either way.',
+  },
+  {
+    question: 'Do Enterprise plans include implementation support?',
+    answer:
+      'Yes. Enterprise includes implementation support plus dedicated infrastructure, SSO/roles, PIM/ERP ingestion, and custom integrations scoped to your stack.',
+  },
+] as const;

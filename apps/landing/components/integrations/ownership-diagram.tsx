@@ -14,18 +14,18 @@ export function OwnershipDiagram({
   return (
     <Frame>
       <Grid cols="md-2" gap="none">
-        <Card variant="surface" padding="md" inset>
+        <Card tone="soft" padding="md" inset>
           <Stack gap="lg">
             <Typography variant="mono">{leftTitle}</Typography>
             <DividedList items={leftItems} density="compact" />
           </Stack>
         </Card>
-        <Card variant="ink" padding="md" inset>
+        <Card tone="ink" padding="md" inset>
           <Stack gap="lg">
-            <Typography variant="mono" tone="ink">
+            <Typography variant="mono">
               {rightTitle}
             </Typography>
-            <DividedList items={rightItems} tone="ink" density="compact" />
+            <DividedList items={rightItems} density="compact" />
           </Stack>
         </Card>
       </Grid>

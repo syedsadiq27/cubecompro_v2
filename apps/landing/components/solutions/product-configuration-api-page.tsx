@@ -1,14 +1,18 @@
-import Link from 'next/link';
-import { Compare, Heading, Typography } from '@repo/ui';
+import { EditorialColumns } from '@/components/patterns/editorial-columns';
+import { FullWidthVisual } from '@/components/patterns/full-width-visual';
+import { MediaSlot } from '@/components/patterns/media-slot';
+import { OutcomeGrid } from '@/components/patterns/outcome-grid';
+import { ProblemCompare } from '@/components/patterns/problem-compare';
+import { SignatureMechanism } from '@/components/patterns/signature-mechanism';
 import { SeoCta } from '@/components/seo/seo-cta';
 import { SeoFaq } from '@/components/seo/seo-faq';
 import { SeoJsonLd } from '@/components/seo/seo-json-ld';
 import { DOCS_URL } from '@/lib/site';
 import { getSeoBody } from '@/lib/seo-bodies';
 import { getSeoPage } from '@/lib/seo-pages';
-import { SolutionCompare } from './solution-compare';
+import { SolutionBridge } from './solution-bridge';
 import { SolutionHero } from './solution-hero';
-import { SolutionSection } from './solution-section';
+import { Card, Section, Typography } from '@repo/ui';
 
 const PATH = '/product-configuration-api';
 
@@ -28,7 +32,11 @@ const QUERY = `query ResolveSofa($input: ConfigurationStateInput!) {
 const VARIABLES = `{
   "input": {
     "productId": "sofa-01",
-    "selectionsJson": "{\\"frame\\":\\"walnut\\",\\"fabric\\":\\"beige\\",\\"legs\\":\\"brass\\"}"
+    "selections": {
+      "frame": "walnut",
+      "fabric": "beige",
+      "legs": "brass"
+    }
   }
 }`;
 
@@ -47,109 +55,88 @@ const RESPONSE = `{
   }
 }`;
 
-const WITHOUT = [
-  'Cart layer guesses variants',
-  'Rules duplicated in clients',
-  'No machine-readable validity contract',
-  'Agents invent state',
+const MECHANISM_STEPS = [
+  {
+    label: 'Request',
+    detail: 'Client submits selection parameters for a product family.',
+  },
+  {
+    label: 'Validate & Resolve',
+    detail: 'Engine checks constraints and resolves to a valid configuration identity.',
+    accent: true,
+  },
+  {
+    label: 'Commerce Response',
+    detail: 'Returns exact line item SKU, dynamic pricing tier, and inventory status.',
+  },
 ];
 
-const WITH = [
-  'One resolve contract',
-  'Validity + commerce together',
-  'Machine-readable response contract',
-  'Same truth for UI, middleware, agents',
+const CAPABILITIES = [
+  {
+    number: '01',
+    tag: 'TYPE-SAFE SCHEMA',
+    title: 'Strongly-typed contracts',
+    body: 'Predictable GraphQL schemas and REST endpoints eliminate guesswork when integrating custom frontends or ERP pipelines.',
+  },
+  {
+    number: '02',
+    tag: 'CONSTRAINT EVALUATION',
+    title: 'Machine-readable validity',
+    body: 'Violations return structured error codes and auto-rewrite suggestions that client applications can handle gracefully.',
+  },
+  {
+    number: '03',
+    tag: 'COMMERCE PROJECTION',
+    title: 'Dynamic pricing & SKU resolution',
+    body: 'The API projects multi-dimensional option combinations directly into standard commerce line items ready for checkout.',
+  },
+  {
+    number: '04',
+    tag: 'INTEGRATION AGILITY',
+    title: 'Omnichannel API delivery',
+    body: 'One configuration endpoint serves Next.js web applications, native iOS/Android apps, point-of-sale tools, and AI agents.',
+  },
 ];
 
-const CREDIBILITY = [
-  'Schema-first',
-  'Typed responses',
-  'Agent-compatible',
-  'GraphQL available',
-] as const;
-
-const MECHANISM = [
-  'Request',
-  'Validate',
-  'Resolve',
-  'Project commerce',
-  'Response',
-] as const;
-
-const SYSTEM_STEPS = [
+const OUTCOMES = [
   {
-    title: 'Selection JSON',
-    fragment: '{ fabric, size, legs }',
+    tag: 'SHARED CONTRACT',
+    title: 'Faster integration through a shared contract',
+    description: 'Engineering teams connect to clean GraphQL and REST endpoints instead of writing complex custom rule matrices in code.',
   },
   {
-    title: 'Validation result',
-    fragment: 'valid: true',
+    tag: 'CENTRALIZED TRUTH',
+    title: 'Zero backend rule duplication',
+    description: 'Pricing logic, dependency graphs, and inventory mappings are maintained once in CubeCom and consumed anywhere.',
   },
   {
-    title: 'Resolved state',
-    fragment: 'sku · price · stock',
+    tag: 'AGENT READY',
+    title: 'Machine-readable for automated commerce',
+    description: 'Structured input/output contracts allow AI shopping agents and middleware pipelines to programmatically validate and price custom products.',
   },
-  {
-    title: 'Commerce payload',
-    fragment: '{ line, qty }',
-  },
-] as const;
-
-const PROOF = [
-  {
-    label: 'Input',
-    tone: 'light' as const,
-    rows: [
-      ['frame', 'walnut'],
-      ['fabric', 'beige'],
-      ['legs', 'brass'],
-    ],
-  },
-  {
-    label: 'Resolved',
-    tone: 'ink' as const,
-    rows: [
-      ['valid', 'true'],
-      ['sku', 'SOFA-WAL-BEI-BRA'],
-      ['price', '2399'],
-      ['inventory', '4'],
-    ],
-  },
-  {
-    label: 'Handoff',
-    tone: 'light' as const,
-    rows: [
-      ['line', 'variant'],
-      ['qty', '1'],
-      ['cart', 'ready'],
-    ],
-  },
-] as const;
+];
 
 function CodePanel({
   label,
   code,
   tone = 'light',
-  compact = false,
 }: {
   label: string;
   code: string;
   tone?: 'light' | 'dark';
-  compact?: boolean;
 }) {
   const dark = tone === 'dark';
   return (
     <div
       className={`overflow-hidden rounded-2xl border ${
         dark
-          ? 'border-white/15 bg-[#0c0c0f]'
+          ? 'border-white/15 bg-[var(--ink)]'
           : 'border-[var(--line)] bg-[var(--surface-pure)]'
       }`}
+      data-surface-tone={dark ? 'ink' : 'surface'}
     >
       <div
-        className={`border-b font-mono tracking-[0.1em] ${
-          compact ? 'px-3.5 py-2 text-[10px]' : 'px-4 py-2.5 text-[11px]'
-        } ${
+        className={`border-b font-mono tracking-[0.1em] px-4 py-2.5 text-[11px] ${
           dark
             ? 'border-white/10 text-white/45'
             : 'border-[var(--line)] text-[var(--text-muted)]'
@@ -158,11 +145,9 @@ function CodePanel({
         {label}
       </div>
       <pre
-        className={`overflow-x-auto leading-relaxed ${
-          compact
-            ? 'max-h-[11.5rem] overflow-y-auto p-3.5 text-[11px] md:text-[12px]'
-            : 'p-4 text-[12px] md:text-[13px]'
-        } ${dark ? 'text-white/80' : 'text-[var(--ink)]'}`}
+        className={`overflow-x-auto p-4 text-[12px] md:text-[13px] leading-relaxed ${
+          dark ? 'text-white/80' : 'text-[var(--ink)]'
+        }`}
       >
         <code>{code}</code>
       </pre>
@@ -177,223 +162,112 @@ export function ProductConfigurationApiPage() {
   return (
     <>
       <SeoJsonLd page={page} faqs={body.faqs} />
+
+      {/* 1. Position / Hero */}
       <SolutionHero
         eyebrow={page.eyebrow}
         title="Send configuration state. Get a sellable result."
-        lead="Validate selections, resolve SKU, price, inventory, and return a commerce-ready payload through one configuration contract."
-        primaryCta={{ href: '/#contact', label: 'Request API access discussion' }}
+        lead="Validate option selections, resolve SKU, price, inventory, and return a commerce-ready line payload through one predictable API contract."
+        primaryCta={{ href: '/#contact', label: 'Request API access' }}
         secondaryCta={{
           href: `${DOCS_URL}/developers/graphql`,
-          label: 'GraphQL docs',
+          label: 'GraphQL documentation',
         }}
         visualPriority
       >
-        <div className="space-y-3">
-          <div className="overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--ink)] px-4 py-5 text-[var(--canvas)] md:px-5">
-            <Typography variant="code" tone="ink">
-              CORE CONTRACT
-            </Typography>
-            <p className="mt-2 font-mono text-[clamp(1.2rem,2.6vw,1.55rem)] tracking-tight">
-              resolveConfiguration()
-            </p>
-            <p className="mt-2 font-mono text-[12px] text-white/55 md:text-[13px]">
-              selection → valid state → commerce payload
-            </p>
-          </div>
-          <CodePanel label="REQUEST · variables" code={VARIABLES} compact />
-          <CodePanel
-            label="RESPONSE · resolveConfiguration"
-            code={RESPONSE}
-            tone="dark"
-            compact
-          />
-        </div>
+        <MediaSlot
+          src="/images/product-configurator-architecture-v2.jpg"
+          alt="Configuration request flowing through validation and resolution into commerce outputs"
+          aspectRatio="aspect-[16/9]"
+          priority
+          className="rounded-2xl border border-[var(--ink)]/15"
+          sizes="(max-width: 1024px) 100vw, 55vw"
+        />
       </SolutionHero>
 
-      <SolutionSection
-        title="Ecommerce stacks need a configuration contract, not another UI"
-        description="Without one shared resolve path, every channel invents its own sellable state."
-        tone="muted"
-      >
-        <Compare
-          density="compact"
-          left={{
-            label: 'Without a configuration contract',
-            items: [
-              'Validation duplicated across clients',
-              'Cart layer guesses variants',
-              'Storefront and middleware disagree',
-            ],
-          }}
-          right={{
-            label: 'With CubeCom',
-            items: [
-              'One request shape',
-              'One validity contract',
-              'Same payload for UI, middleware, and agents',
-            ],
-          }}
-        />
-      </SolutionSection>
-
-      <SolutionSection
-        title="Ask once. Get the product state every system can trust."
-        description="Validate the selection, resolve commerce identity, and return one contract for storefronts, middleware, agents, and services."
-      >
-        <ol className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
-          {MECHANISM.map((step, index) => (
-            <li
-              key={step}
-              className="flex flex-col items-stretch md:flex-row md:items-center md:gap-2"
-            >
-              <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-center text-[15px] font-medium text-[var(--ink)] md:min-w-[8.5rem]">
-                {step}
-              </div>
-              {index < MECHANISM.length - 1 ? (
-                <span
-                  className="py-1 text-center text-[var(--text-muted)] md:py-0"
-                  aria-hidden
-                >
-                  <span className="md:hidden">↓</span>
-                  <span className="hidden md:inline">→</span>
-                </span>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-        <div className="mt-8">
-          <Typography variant="label" className="mb-3">
-            Example · GraphQL
-          </Typography>
-          <CodePanel label="QUERY · resolveConfiguration" code={QUERY} tone="dark" />
-        </div>
-      </SolutionSection>
-
-      <SolutionSection
-        title="Turn shopper intent into a commerce-ready line."
-        description="The API equivalent of a visual configure loop: input state in, commerce handoff out."
-        tone="muted"
-      >
-        <div className="overflow-hidden rounded-2xl border-2 border-[var(--border-strong)] bg-[var(--surface-pure)] shadow-[0_24px_60px_-40px_rgba(16,16,16,0.35)]">
-          <div className="flex flex-col gap-0 p-5 md:flex-row md:items-stretch md:gap-0 md:p-8 lg:p-10">
-            {PROOF.map((stage, index) => (
-              <div key={stage.label} className="flex flex-col md:flex-row md:items-center">
-                <div
-                  className={`min-w-0 flex-1 rounded-2xl border px-5 py-6 md:min-w-[15rem] md:px-7 md:py-7 ${
-                    stage.tone === 'ink'
-                      ? 'border-white/15 bg-[var(--ink)] text-[var(--canvas)]'
-                      : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]'
-                  }`}
-                >
-                  <Typography
-                    variant="mono"
-                    tone={stage.tone === 'ink' ? 'ink' : 'muted'}
-                  >
-                    {stage.label}
-                  </Typography>
-                  <dl className="mt-5 space-y-3 font-mono text-[13px] md:text-[15px]">
-                    {stage.rows.map(([k, v]) => (
-                      <div key={k} className="flex justify-between gap-3">
-                        <dt
-                          className={
-                            stage.tone === 'ink'
-                              ? 'text-white/45'
-                              : 'text-[var(--text-muted)]'
-                          }
-                        >
-                          {k}
-                        </dt>
-                        <dd>{v}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-                {index < PROOF.length - 1 ? (
-                  <div
-                    className="flex items-center justify-center py-3.5 text-[var(--ink)] md:px-4 md:py-0"
-                    aria-hidden
-                  >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--ink)] bg-[var(--surface-pure)] text-lg font-medium md:h-12 md:w-12 md:text-xl">
-                      <span className="md:hidden">↓</span>
-                      <span className="hidden md:inline">→</span>
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      </SolutionSection>
-
-      <SolutionSection
-        title="From configuration input to commerce contract."
-        tone="ink"
-      >
-        <ol className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-stretch md:gap-2">
-          {SYSTEM_STEPS.map((step, index) => (
-            <li
-              key={step.title}
-              className="flex flex-col md:flex-row md:items-center md:gap-2"
-            >
-              <div className="min-w-0 flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-4 md:min-w-[10rem]">
-                <Typography variant="bodyStrong" tone="ink">
-                  {step.title}
-                </Typography>
-                <Typography variant="code" tone="ink" className="mt-2">
-                  {step.fragment}
-                </Typography>
-              </div>
-              {index < SYSTEM_STEPS.length - 1 ? (
-                <span className="py-1 text-center text-white/40 md:py-0" aria-hidden>
-                  <span className="md:hidden">↓</span>
-                  <span className="hidden md:inline">→</span>
-                </span>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-        <p className="mt-6 max-w-2xl text-sm text-white/55">
-          Checkout and orders stay on your commerce platform. CubeCom resolves
-          configuration — it is not a replacement cart.{' '}
-          <Link
-            href={`${DOCS_URL}/guides/resolve-sku`}
-            className="underline decoration-white/30 underline-offset-2 hover:decoration-white"
-          >
-            Resolve → SKU guide
-          </Link>
-        </p>
-      </SolutionSection>
-
-      <section className="border-t border-[var(--line)] bg-[var(--canvas)]">
-        <div className="mx-auto max-w-[90rem] px-5 py-10 md:px-8 md:py-12">
-          <Heading as="h2" variant="section">
-            Designed for systems, not screens.
-          </Heading>
-          <div className="mt-5 flex flex-wrap gap-2 md:mt-6">
-            {CREDIBILITY.map((item) => (
-              <span
-                key={item}
-                className="rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2.5 font-mono text-[12px] text-[var(--ink)] md:text-[13px]"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <SolutionCompare
-        without={WITHOUT}
-        withItems={WITH}
-        title="One resolve contract instead of custom logic everywhere."
+      {/* 2. Problem / Tension */}
+      <ProblemCompare
+        eyebrow="Integration Bottleneck"
+        title="Stop hardcoding product rules into multiple backend microservices."
+        description="When custom product options are handled by ad-hoc scripts, pricing and fulfillment rules break as the catalog scales."
+        traditionalLabel="Custom Script Glue"
+        traditionalTitle="Without CubeCom"
+        traditionalBody="Backend teams build fragile middleware to validate selections. Rules live in multiple databases, and checkout APIs have no machine-readable validity contract."
+        cubecomLabel="Configuration API"
+        cubecomTitle="With CubeCom"
+        cubecomBody="A single API mutation evaluates full constraint graphs and returns valid commerce projection data (SKU, price, stock) in one round-trip."
+        tone="soft"
       />
 
+      {/* 3. Full-width Visual — blank placeholder until API schema asset ships */}
+      <FullWidthVisual
+        eyebrow="Schema Architecture"
+        title="Request → Validate → Resolve → Project Commerce → Response"
+        description="Structured JSON contracts guarantee deterministic commerce handoffs for every selection."
+        tone="canvas"
+      />
+
+      {/* 4. Mechanism (Dark Signature Section) */}
+      <SignatureMechanism
+        eyebrow="API Pipeline"
+        title="Deterministic resolution across every channel."
+        description="How CubeCom resolves selection maps into verified commerce line items."
+        steps={MECHANISM_STEPS}
+      />
+
+      {/* 5. Capabilities (Editorial Columns) */}
+      <EditorialColumns
+        eyebrow="Developer Capabilities"
+        title="Built for engineering teams and composable stacks."
+        description="Integrate configuration intelligence into any custom storefront, CMS, or enterprise OMS."
+        items={CAPABILITIES}
+        tone="canvas"
+      />
+
+      {/* 6. Real Product Proof */}
+      <Section tone="soft" spacing="default">
+        <Section.Header
+          eyebrow="Interactive Contract Proof"
+          title="The resolveConfiguration query & payload."
+          description="Submit option state on the left — receive verified validity, calculated price, and line SKU on the right."
+        />
+        <Section.Body gap="lg">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <CodePanel label="QUERY · resolveConfiguration" code={QUERY} tone="dark" />
+              <CodePanel label="VARIABLES" code={VARIABLES} />
+            </div>
+            <div>
+              <CodePanel label="RESPONSE · deterministic commerce output" code={RESPONSE} tone="dark" />
+            </div>
+          </div>
+        </Section.Body>
+      </Section>
+
+      {/* 7. Commercial & Operational Outcomes */}
+      <OutcomeGrid
+        eyebrow="Engineering & Commercial Outcomes"
+        title="The value of an API-first configuration layer."
+        description="Unify configuration logic across your entire digital infrastructure."
+        items={OUTCOMES}
+        tone="canvas"
+      />
+
+      {/* 8. Decision Support */}
+      <SolutionBridge
+        title="Building a custom frontend on top of this API? See the Headless Product Configurator."
+        href="/headless-product-configurator"
+        label="Headless Product Configurator"
+        tone="soft"
+      />
       <SeoFaq
         items={body.faqs}
         title={body.faqTitle}
         description={body.faqDescription}
         compact
       />
+
+      {/* 9. Final CTA */}
       <SeoCta {...body.cta} />
     </>
   );

@@ -4,14 +4,18 @@ import type {
   ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import { cardRadiusClass, type CardRadius } from '../lib/radius';
+import type { SurfaceTone } from '../lib/tone';
 
-export type CardVariant = 'default' | 'soft' | 'surface' | 'muted' | 'ink';
-export type CardPadding = 'none' | 'md' | 'sm' | 'tight' | 'chip';
+export type CardTone = SurfaceTone;
+export type CardPadding = 'none' | 'xs' | 'sm' | 'md' | 'lg';
+export type { CardRadius };
 
 type CardOwnProps<T extends ElementType> = {
   as?: T;
-  variant?: CardVariant;
+  tone?: CardTone;
   padding?: CardPadding;
+  radius?: CardRadius;
   inset?: boolean;
   className?: string;
   children?: ReactNode;
@@ -20,45 +24,55 @@ type CardOwnProps<T extends ElementType> = {
 export type CardProps<T extends ElementType = 'div'> = CardOwnProps<T> &
   Omit<ComponentPropsWithoutRef<T>, keyof CardOwnProps<T>>;
 
+function cardPaddingClass(padding: CardPadding): string | false {
+  if (padding === 'xs') return 'ui:px-4 ui:py-3';
+  if (padding === 'sm') return 'ui:p-5';
+  if (padding === 'md') return 'ui:p-6 ui:md:p-7';
+  if (padding === 'lg') return 'ui:p-5 ui:md:p-8';
+  return false;
+}
+
 function resolveCardClassName({
-  variant = 'default',
+  tone = 'surface',
   padding = 'none',
+  radius = 'lg',
   inset = false,
   className,
 }: {
-  variant?: CardVariant;
+  tone?: CardTone;
   padding?: CardPadding;
+  radius?: CardRadius;
   inset?: boolean;
   className?: string;
 }): string {
   return cn(
-    !inset && variant === 'default' &&
-      'ui:rounded-2xl ui:border ui:border-[var(--border-strong)] ui:bg-[var(--surface-pure)]',
-    !inset && variant === 'soft' &&
-      'ui:rounded-2xl ui:border ui:border-[var(--line)] ui:bg-[var(--surface-pure)]',
-    !inset && variant === 'surface' &&
-      'ui:rounded-2xl ui:border ui:border-[var(--line)] ui:bg-[var(--surface)]',
-    !inset && variant === 'muted' &&
-      'ui:rounded-xl ui:border ui:border-[var(--line)] ui:border-t-[2.5px] ui:border-t-[var(--ink)] ui:bg-[var(--surface)]',
-    !inset && variant === 'ink' &&
-      'ui:rounded-2xl ui:border ui:border-[var(--ink)] ui:bg-[var(--ink)] ui:text-white',
-    inset && variant === 'default' && 'ui:bg-[var(--surface-pure)]',
-    inset && variant === 'soft' && 'ui:bg-[var(--surface-pure)]',
-    inset && variant === 'surface' && 'ui:bg-[var(--surface)]',
-    inset && variant === 'muted' && 'ui:bg-[var(--surface)]',
-    inset && variant === 'ink' && 'ui:bg-[var(--ink)] ui:text-white',
-    padding === 'md' && 'ui:p-6 ui:md:p-7',
-    padding === 'sm' && 'ui:px-5 ui:py-4 ui:md:px-6',
-    padding === 'tight' && 'ui:p-5',
-    padding === 'chip' && 'ui:px-4 ui:py-3',
+    !inset && cardRadiusClass(radius),
+    !inset &&
+      tone === 'surface' &&
+      'ui:border ui:border-[var(--border-strong)] ui:bg-[var(--surface-pure)]',
+    !inset &&
+      tone === 'soft' &&
+      'ui:border ui:border-[var(--line)] ui:bg-[var(--surface)]',
+    !inset &&
+      tone === 'canvas' &&
+      'ui:border ui:border-[var(--line)] ui:bg-[var(--canvas)]',
+    !inset &&
+      tone === 'ink' &&
+      'ui:border ui:border-[var(--ink)] ui:bg-[var(--ink)]',
+    inset && tone === 'surface' && 'ui:bg-[var(--surface-pure)]',
+    inset && tone === 'soft' && 'ui:bg-[var(--surface)]',
+    inset && tone === 'canvas' && 'ui:bg-[var(--canvas)]',
+    inset && tone === 'ink' && 'ui:bg-[var(--ink)]',
+    cardPaddingClass(padding),
     className
   );
 }
 
 export function Card<T extends ElementType = 'div'>({
   as,
-  variant = 'default',
+  tone = 'surface',
   padding = 'none',
+  radius = 'lg',
   inset = false,
   className,
   ...props
@@ -66,20 +80,15 @@ export function Card<T extends ElementType = 'div'>({
   const Comp = as ?? 'div';
   return (
     <Comp
+      data-surface-tone={tone}
       className={resolveCardClassName({
-        variant,
+        tone,
         padding,
+        radius,
         inset,
         className,
       })}
       {...props}
     />
   );
-}
-
-export function DarkPanel({
-  variant: _variant,
-  ...props
-}: Omit<CardProps, 'variant'> & { variant?: never }) {
-  return <Card variant="ink" {...props} />;
 }

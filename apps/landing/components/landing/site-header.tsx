@@ -1,10 +1,11 @@
 'use client';
 
-import { Button, Typography, Wordmark } from '@repo/ui';
+import { Button, Container, List, ListItem, Typography, Wordmark } from '@repo/ui';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import {
+  aboutNav,
   bookSessionCta,
   developersNav,
   docsNav,
@@ -26,20 +27,28 @@ function NavItemLink({
 }) {
   if (item.external) {
     return (
-      <a
+      <Typography
+        as="a"
         href={item.href}
+        variant="support"
         className={className}
         rel="noopener noreferrer"
         onClick={onNavigate}
       >
         {item.label}
-      </a>
+      </Typography>
     );
   }
   return (
-    <Link href={item.href} className={className} onClick={onNavigate}>
+    <Typography
+      as={Link}
+      href={item.href}
+      variant="support"
+      className={className}
+      onClick={onNavigate}
+    >
       {item.label}
-    </Link>
+    </Typography>
   );
 }
 
@@ -81,16 +90,16 @@ function NavDropdown({
     >
       <button
         type="button"
-        className="type-nav inline-flex items-center gap-1 text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
+        className="type-nav inline-flex items-center gap-1 text-sm text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
       >
         {label}
-        <span className="text-[10px] opacity-70" aria-hidden>
+        <Typography as="span" variant="meta" aria-hidden className="text-[10px] opacity-70">
           ▾
-        </span>
+        </Typography>
       </button>
       {open ? (
         <div
@@ -98,17 +107,17 @@ function NavDropdown({
           role="menu"
           className="absolute top-full left-0 z-50 min-w-[15.5rem] pt-2"
         >
-          <ul className="rounded-xl border border-[var(--line)] bg-[var(--canvas)] py-2 shadow-md">
+          <List className="rounded-xl border border-[var(--line)] bg-[var(--canvas)] py-2 shadow-md">
             {items.map((item) => (
-              <li key={item.href} role="none">
+              <ListItem key={item.href} role="none">
                 <NavItemLink
                   item={item}
                   onNavigate={() => setOpen(false)}
                   className="block px-3.5 py-2 text-sm text-[var(--text-secondary)] transition hover:bg-[var(--surface)] hover:text-[var(--ink)]"
                 />
-              </li>
+              </ListItem>
             ))}
-          </ul>
+          </List>
         </div>
       ) : null}
     </div>
@@ -121,28 +130,43 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--line)]/80 bg-[var(--canvas)]/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-5 py-3.5 md:px-8">
+      <Container
+        padding="none"
+        className="flex items-center justify-between gap-4 py-4"
+      >
         <Link href="/" aria-label="CubeCom Pro home" onClick={close}>
           <Wordmark size="nav" showPro />
         </Link>
 
-        <nav className="hidden items-center gap-6 xl:flex">
+        <nav className="hidden items-center gap-7 xl:flex">
           <NavDropdown label="Solutions" items={solutionsNav} />
           <NavDropdown label="Industries" items={industriesNav} />
           <NavDropdown label="Integrations" items={integrationsNav} />
           <NavDropdown label="Developers" items={developersNav} />
-          <Link
+          <Typography
+            as={Link}
             href={pricingNav.href}
+            variant="support"
             className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
           >
             {pricingNav.label}
-          </Link>
-          <Link
+          </Typography>
+          <Typography
+            as={Link}
+            href={aboutNav.href}
+            variant="support"
+            className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
+          >
+            {aboutNav.label}
+          </Typography>
+          <Typography
+            as={Link}
             href={docsNav.href}
+            variant="support"
             className="type-nav text-[var(--text-secondary)] transition hover:text-[var(--ink)]"
           >
             {docsNav.label}
-          </Link>
+          </Typography>
           <Button as={Link} href={bookSessionCta.href} variant="primary" size="nav">
             {bookSessionCta.label}
           </Button>
@@ -157,7 +181,7 @@ export function SiteHeader() {
         >
           {open ? 'Close' : 'Menu'}
         </button>
-      </div>
+      </Container>
 
       {open ? (
         <div
@@ -208,6 +232,11 @@ export function SiteHeader() {
             <div className="flex flex-col gap-1 border-t border-[var(--line)] pt-3">
               <NavItemLink
                 item={pricingNav}
+                onNavigate={close}
+                className="py-1.5 text-sm text-[var(--text-secondary)]"
+              />
+              <NavItemLink
+                item={aboutNav}
                 onNavigate={close}
                 className="py-1.5 text-sm text-[var(--text-secondary)]"
               />

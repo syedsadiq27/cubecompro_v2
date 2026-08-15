@@ -1,4 +1,13 @@
-import { Button, Card, Grid, Section, Stack, Typography } from '@repo/ui';
+import {
+  Button,
+  Card,
+  Grid,
+  List,
+  ListItem,
+  Section,
+  Stack,
+  Typography,
+} from '@repo/ui';
 import Link from 'next/link';
 
 import { plans } from '@/lib/content';
@@ -18,14 +27,14 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
         />
       )}
 
-      <Section.Body gap={compact ? 'none' : 'spacious'}>
+      <Section.Body gap={compact ? 'none' : 'xl'}>
         <Grid cols="lg-3" gap="lg">
           {plans.map((plan) => {
             const onInk = plan.featured;
             return (
               <Card
                 key={plan.name}
-                variant={onInk ? 'ink' : 'default'}
+                tone={onInk ? 'ink' : 'surface'}
                 padding="md"
                 className="flex flex-col"
               >
@@ -38,38 +47,37 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
                   <Typography
                     as="h3"
                     variant="title"
-                    tone={onInk ? 'ink' : 'strong'}
                     className="text-[22px]"
                   >
                     {plan.name}
                   </Typography>
                   {onInk ? (
-                    <Typography variant="label" tone="ink">
+                    <Typography variant="label">
                       Most popular
                     </Typography>
                   ) : null}
                 </Stack>
-                <p
-                  className={`mt-5 text-[2.15rem] font-semibold tracking-tight ${
-                    onInk ? 'text-white' : 'text-[var(--ink)]'
-                  }`}
-                  style={{ fontFamily: 'var(--font-display)' }}
+                <Typography
+                  as="p"
+                  variant="titleLg"
+                  tone={onInk ? 'inverse' : 'default'}
+                  className="ui-type-data mt-5 text-[2.15rem] tracking-tight"
                 >
                   {plan.foundingPrice}
                   {plan.foundingPrice !== 'Custom' ? (
-                    <span
-                      className={`ml-1 text-sm font-normal ${
-                        onInk ? 'text-white/55' : 'text-[var(--text-muted)]'
-                      }`}
+                    <Typography
+                      as="span"
+                      variant="meta"
+                      tone={onInk ? 'inverse' : 'muted'}
+                      className="ml-1 text-sm font-normal"
                     >
                       /mo
-                    </span>
+                    </Typography>
                   ) : null}
-                </p>
+                </Typography>
                 {plan.regularPrice ? (
                   <Typography
                     variant="meta"
-                    tone={onInk ? 'ink' : 'muted'}
                     className="mt-1"
                   >
                     then {plan.regularPrice}/mo
@@ -83,32 +91,28 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
                 </Typography>
                 <Typography
                   variant="meta"
-                  tone={onInk ? 'ink' : 'muted'}
                   className="mt-2"
                 >
                   {plan.bestFor}
                 </Typography>
-                <ul
-                  className={`mt-7 flex-1 space-y-2 text-sm ${
+                <List
+                  gap="xs"
+                  className={`mt-7 flex-1 text-sm ${
                     onInk
                       ? 'text-white/75'
                       : 'text-[var(--text-secondary)]'
                   }`}
                 >
                   {plan.features.map((feature) => (
-                    <li key={feature}>{feature}</li>
+                    <ListItem key={feature}>{feature}</ListItem>
                   ))}
-                </ul>
+                </List>
                 <Button
                   as={Link}
                   href={`/?interest=${plan.interest}#contact`}
                   variant={onInk ? 'inverse' : 'primary'}
                   size="lg"
-                  className={
-                    onInk
-                      ? 'mt-8 w-full bg-white px-4 hover:bg-white/90'
-                      : 'mt-8 w-full px-4'
-                  }
+                  className="mt-8 w-full"
                 >
                   {plan.cta}
                 </Button>

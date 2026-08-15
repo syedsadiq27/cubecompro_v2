@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Container, Frame, Grid, Heading, Typography } from '@repo/ui';
+import Image from 'next/image';
+import { Frame, Grid, List, ListItem, Section, Typography } from '@repo/ui';
 
 const FLOW = [
   'Options',
@@ -23,49 +24,50 @@ export function PcVariantExplosion() {
   }, []);
 
   return (
-    <section className="border-t border-[var(--line)] bg-[var(--surface)]">
-      <Container padding="sectionCompact">
-        <Heading
-          as="h2"
-          variant="section"
-          className="max-w-[18ch] md:max-w-3xl"
-        >
+    <Section tone="soft" spacing="compact">
+      <Section.Header>
+        <Section.Title className="max-w-[18ch] md:max-w-3xl">
           Variant matrices explode. Rules do not.
-        </Heading>
+        </Section.Title>
         <Typography variant="body" className="mt-4 max-w-2xl md:text-base">
           Options → Constraints → Valid State → SKU / Price / Inventory. That is
           the engine path — whether or not a 3D scene is attached.
         </Typography>
+      </Section.Header>
 
-        <Grid cols="lg-2" gap="md" className="mt-8 md:mt-10 md:gap-5">
+      <Section.Body gap="md">
+        <Grid cols="lg-2" gap="md" className="md:gap-5">
           <Frame className="bg-[var(--surface-pure)]">
             <div className="border-b border-[var(--line)] px-4 py-3 md:px-5 md:py-4">
               <Typography variant="label">Traditional model</Typography>
-              <p className="mt-2 font-mono text-sm text-[var(--ink)] md:text-base">
+              <Typography variant="code" className="mt-2 text-sm md:text-base normal-case tracking-normal text-[var(--ink)]">
                 10 × 8 × 6 × 5 ={' '}
-                <span className="font-semibold">2,400 variants</span>
-              </p>
+                <Typography as="span" variant="bodyStrong">
+                  2,400 variants
+                </Typography>
+              </Typography>
             </div>
             <div className="p-4 md:p-5">
               <MatrixVisual />
             </div>
           </Frame>
 
-          <Frame className="border-[var(--ink)] bg-[var(--ink)] text-[var(--canvas)]">
+          <Frame
+            className="border-[var(--ink)] bg-[var(--ink)]"
+            data-surface-tone="ink"
+          >
             <div className="border-b border-white/10 px-4 py-3 md:px-5 md:py-4">
-              <Typography variant="label" tone="ink">
-                CubeCom model
-              </Typography>
-              <p className="mt-2 font-mono text-sm md:text-base">
+              <Typography variant="label">CubeCom model</Typography>
+              <Typography variant="code" tone="inverse" className="mt-2 text-sm md:text-base normal-case tracking-normal">
                 4 dimensions + 12 rules → runtime resolve
-              </p>
+              </Typography>
             </div>
             <div className="p-4 md:p-5">
-              <ol className="space-y-2">
+              <List as="ol" gap="xs">
                 {FLOW.map((step, index) => {
                   const isActive = index === active;
                   return (
-                    <li key={step}>
+                    <ListItem key={step}>
                       <button
                         type="button"
                         onClick={() => setActive(index)}
@@ -75,27 +77,30 @@ export function PcVariantExplosion() {
                             : 'border-white/10 bg-transparent hover:bg-white/[0.04]'
                         }`}
                       >
-                        <Typography variant="code" tone="ink">
-                          0{index + 1}
+                        <Typography variant="code">0{index + 1}</Typography>
+                        <Typography as="span" variant="bodyStrong" tone="inverse">
+                          {step}
                         </Typography>
-                        <span className="text-sm font-medium">{step}</span>
                       </button>
                       {index < FLOW.length - 1 ? (
                         <div className="flex justify-center py-1">
-                          <span
-                            className={`text-xs ${
+                          <Typography
+                            as="span"
+                            variant="meta"
+                            tone="inverse"
+                            className={
                               index < active ? 'text-white/50' : 'text-white/20'
-                            }`}
+                            }
                           >
                             ↓
-                          </span>
+                          </Typography>
                         </div>
                       ) : null}
-                    </li>
+                    </ListItem>
                   );
                 })}
-              </ol>
-              <Typography variant="code" tone="ink" className="mt-4">
+              </List>
+              <Typography variant="code" className="mt-4">
                 {FLOW[active] === 'SKU / Price / Inventory'
                   ? 'Sellable state from one resolve'
                   : `Step ${active + 1} of ${FLOW.length}`}
@@ -103,38 +108,26 @@ export function PcVariantExplosion() {
             </div>
           </Frame>
         </Grid>
-      </Container>
-    </section>
+      </Section.Body>
+    </Section>
   );
 }
 
 function MatrixVisual() {
-  const cols = 40;
-  const rows = 16;
-  const cells = cols * rows;
-  const invalid = new Set([37, 82, 119, 156, 203, 241, 288, 334, 391, 447]);
-
   return (
     <div>
-      <div
-        className="grid gap-[2px]"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-        aria-hidden
-      >
-        {Array.from({ length: cells }, (_, index) => (
-          <span
-            key={index}
-            className={`aspect-square rounded-[1px] ${
-              invalid.has(index)
-                ? 'bg-[var(--danger)]/70'
-                : 'bg-[var(--ink)]/25'
-            }`}
-          />
-        ))}
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-[var(--line)]">
+        <Image
+          src="/images/problem-variant-matrix.jpg"
+          alt="Variant matrix explosion versus resolved valid state"
+          fill
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          className="object-cover"
+        />
       </div>
       <Typography variant="meta" className="mt-3">
-        Dense catalog matrix — red cells still fail after publishing every
-        variant.
+        Variant matrix explodes into thousands of disconnected fragments —
+        rules resolve into a single valid state.
       </Typography>
     </div>
   );

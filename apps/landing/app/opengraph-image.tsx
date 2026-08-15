@@ -14,7 +14,7 @@ export default function OpenGraphImage() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: '#f2f1ed',
+          background: '#F5F3EE',
           padding: '72px',
           fontFamily: 'ui-sans-serif, system-ui, sans-serif',
         }}
@@ -24,7 +24,7 @@ export default function OpenGraphImage() {
             position: 'absolute',
             inset: 0,
             background:
-              'radial-gradient(70% 55% at 70% 40%, rgba(95,87,247,0.22) 0%, rgba(166,159,255,0.08) 30%, transparent 58%)',
+              'radial-gradient(70% 55% at 70% 40%, rgba(102,92,255,0.2) 0%, rgba(168,160,255,0.08) 30%, transparent 58%)',
           }}
         />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -33,7 +33,7 @@ export default function OpenGraphImage() {
               fontSize: 28,
               fontWeight: 600,
               letterSpacing: '-0.04em',
-              color: '#101010',
+              color: '#0E0F12',
             }}
           >
             cubec○m
@@ -41,12 +41,12 @@ export default function OpenGraphImage() {
           <div
             style={{
               fontSize: 18,
-              color: '#8a8a84',
+              color: '#73716C',
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
             }}
           >
-            Pro · Digital Product Stage
+            Pro · Product Configuration Infrastructure
           </div>
         </div>
         <div
@@ -63,13 +63,13 @@ export default function OpenGraphImage() {
               fontWeight: 700,
               lineHeight: 1.02,
               letterSpacing: '-0.045em',
-              color: '#101010',
+              color: '#0E0F12',
             }}
           >
             Stage the product. Sell the state.
           </div>
-          <div style={{ fontSize: 26, lineHeight: 1.35, color: '#5c5c59' }}>
-            Turn product data into interactive, rule-bound 3D experiences.
+          <div style={{ fontSize: 26, lineHeight: 1.35, color: '#52504C' }}>
+            Product configuration infrastructure for visual commerce.
           </div>
         </div>
       </div>

@@ -1,0 +1,68 @@
+---
+description: Frozen solutions-page layout language for CubeCom landing (hub + four solution surfaces)
+globs: apps/landing/components/{solutions,product-configurator,patterns,seo}/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Solutions pages — frozen layout language
+
+Homepage is frozen separately. These five routes are the golden reference set:
+
+- `/solutions` — hub (lighter routing page; not forced to full depth)
+- `/product-configurator` — rules / infrastructure reference
+- `/3d-product-configurator` — visual / product-led reference
+- `/headless-product-configurator` — architecture reference
+- `/product-configuration-api` — developer reference
+
+Do not restructure these pages. Only fix bugs, responsive regressions, broken copy, or asset-quality issues.
+
+## Canonical skeleton (depth pages)
+
+```text
+Hero
+→ Problem / tension
+→ Full-width visual
+→ Dark mechanism section
+→ Capabilities / surfaces
+→ Real proof
+→ Outcomes
+→ Decision support (bridge + FAQ)
+→ Final CTA
+```
+
+## Locked standards
+
+- **Hero:** split layout (`SolutionHero` / `PageHero`), one strong H1, short lede, 1–2 CTAs, one finished visual (`MediaSlot` or product render).
+- **Problem:** two-column editorial compare (`ProblemCompare` or equivalent) — not cards.
+- **Full-width visual:** exactly one large cinematic/system image per page via `FullWidthVisual`. If the asset is missing, keep a blank `MediaSlot` placeholder — never invent HTML/CSS artwork.
+- **Mechanism:** exactly one primary full-width `ink` band (`SignatureMechanism` / `PcStatement`) with 3-step logic; violet marks resolved / active / synchronized state.
+- **Capabilities:** 3–4 unboxed editorial columns (`EditorialColumns`) with small numeric/mono labels.
+- **Proof:** exactly one believable proof section — type depends on page:
+  - Product Configurator → option graph
+  - 3D → live configurator
+  - Headless → runtime pipeline
+  - API → request/response contract
+- **Outcomes:** 3 concise results (`OutcomeGrid`); light cards OK if consistent.
+- **Decision support:** related-page `SolutionBridge` + `SeoFaq`.
+- **Final CTA:** dark closing band (`SeoCta`) with page-specific wording.
+
+## Consistency locks
+
+- Same section widths / vertical rhythm (`Section` spacing)
+- Same hero proportions
+- Same dark mechanism treatment
+- Same violet meaning: active / resolved / synchronization
+- Same capability-column structure
+- Same FAQ layout
+- Same final CTA / site footer
+- Exactly one primary full-width image
+- Exactly one primary dark narrative band
+- Exactly one proof section
+
+## Hub exception
+
+`/solutions` stays lighter: routing hero, path cards, shared-state ink band, FAQ. Do not force the full nine-block depth onto the hub.
+
+## Shared primitives
+
+Compose with `@repo/ui` + landing patterns (`SolutionHero`, `ProblemCompare`, `FullWidthVisual`, `SignatureMechanism`, `EditorialColumns`, `OutcomeGrid`, `SolutionBridge`, `SeoFaq`, `SeoCta`). Do not invent parallel section recipes.

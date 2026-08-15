@@ -1,0 +1,38 @@
+---
+description: Frozen About page for CubeCom landing — editorial company credibility
+globs: apps/landing/components/about/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# About page — frozen
+
+Route: `/about`
+
+Do not restructure this page. Only fix bugs, responsive regressions, broken copy, or asset-quality issues.
+
+Optional later (explicit request only): one small founder/company note near the Introfinity block — not a team grid.
+
+## Canonical skeleton
+
+```text
+Hero
+→ Why CubeCom exists
+→ Thesis (full-width visual)
+→ What we’re building (dark mechanism)
+→ How we build (principles)
+→ Company / Introfinity (editorial marker)
+→ Where we are
+→ Final CTA
+```
+
+## Locked standards
+
+- More editorial than solution pages: fewer cards, large statements, one full-width system visual, one dark band.
+- CubeCom remains the protagonist; Introfinity is brief ownership/origin only.
+- Keep candid early-access language (“Early, deliberately.”).
+- No generic mission / values / team startup template.
+- Status sub-points stay one sentence each.
+
+## Shared primitives
+
+`PageHero`, `FullWidthVisual`, `SignatureMechanism`, `EditorialColumns`, `Section`, `SeoCta`, `@repo/ui`.

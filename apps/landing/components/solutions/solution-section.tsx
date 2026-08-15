@@ -13,11 +13,11 @@ export function SolutionSection({
   title: string;
   description?: string;
   children?: ReactNode;
-  tone?: 'default' | 'muted' | 'ink';
+  tone?: 'default' | 'soft' | 'ink';
   compact?: boolean;
 }) {
   const sectionTone =
-    tone === 'ink' ? 'ink' : tone === 'muted' ? 'muted' : 'canvas';
+    tone === 'ink' ? 'ink' : tone === 'soft' ? 'soft' : 'canvas';
 
   return (
     <Section tone={sectionTone} spacing={compact ? 'compact' : 'default'}>

@@ -1,4 +1,4 @@
-import { Frame, Typography } from '@repo/ui';
+import { Frame, List, ListItem, Typography } from '@repo/ui';
 
 const STEPS = [
   {
@@ -20,12 +20,12 @@ const STEPS = [
 
 export function HeadlessArchitectureDiagram() {
   return (
-    <Frame className="bg-[var(--surface-pure)] shadow-[0_28px_70px_-42px_rgba(16,16,16,0.5)]">
+    <Frame className="bg-[var(--surface-pure)] shadow-[0_24px_60px_-40px_rgba(14,15,18,0.22)]">
       <div className="hidden border-b border-[var(--line)] px-6 py-5 md:block">
         <Typography variant="code" tone="muted">
           ARCHITECTURE
         </Typography>
-        <Typography variant="titleSm" tone="strong" className="mt-2 text-lg">
+        <Typography variant="titleSm" className="mt-2 text-lg">
           Your Frontend → CubeCom Engine → Commerce
         </Typography>
         <Typography variant="mono" className="mt-3 tracking-[0.08em]">
@@ -34,35 +34,33 @@ export function HeadlessArchitectureDiagram() {
       </div>
 
       <div className="p-0">
-        <ol className="grid md:grid-cols-3">
+        <List as="ol" gap="none" className="grid md:grid-cols-3">
           {STEPS.map((step, index) => (
-            <li
+            <ListItem
               key={step.title}
+              data-surface-tone={index === 1 ? 'ink' : 'soft'}
               className={`relative border-t border-[var(--line)] px-4 py-4 first:border-t-0 md:border-t-0 md:p-6 ${
                 index > 0 ? 'md:border-l md:border-[var(--border-strong)]' : ''
               } ${
                 index === 1
-                  ? 'bg-[var(--ink)] text-[var(--canvas)] md:min-h-[11rem]'
+                  ? 'bg-[var(--ink)] md:min-h-[11rem]'
                   : 'bg-[var(--surface)] md:min-h-[11rem]'
               }`}
             >
               <Typography
                 variant="mono"
-                tone={index === 1 ? 'ink' : 'muted'}
                 className="hidden md:block"
               >
                 {step.zone}
               </Typography>
               <Typography
                 variant="titleSm"
-                tone={index === 1 ? 'ink' : 'strong'}
                 className="md:mt-4 md:text-[20px]"
               >
                 {step.title}
               </Typography>
               <Typography
                 variant="code"
-                tone={index === 1 ? 'ink' : 'muted'}
                 className="mt-1 md:mt-3"
               >
                 {step.detail}
@@ -85,9 +83,9 @@ export function HeadlessArchitectureDiagram() {
                   ↓
                 </span>
               ) : null}
-            </li>
+            </ListItem>
           ))}
-        </ol>
+        </List>
 
         <Typography
           variant="bodyStrong"

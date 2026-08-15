@@ -12,13 +12,13 @@ export function StageProduct({ className = '' }: { className?: string }) {
     >
       <defs>
         <linearGradient id="ui-crown" x1="60" y1="40" x2="220" y2="120">
-          <stop stopColor="#f4f1ea" />
-          <stop offset="0.45" stopColor="#e6e0d4" />
-          <stop offset="1" stopColor="#cfc6b6" />
+          <stop stopColor="#F5F3EE" />
+          <stop offset="0.45" stopColor="#ECE9E2" />
+          <stop offset="1" stopColor="#D8D5CE" />
         </linearGradient>
         <linearGradient id="ui-bill" x1="40" y1="110" x2="240" y2="150">
-          <stop stopColor="#2a2a2c" />
-          <stop offset="1" stopColor="#111113" />
+          <stop stopColor="#24252A" />
+          <stop offset="1" stopColor="#0E0F12" />
         </linearGradient>
         <radialGradient
           id="ui-button"
@@ -28,8 +28,8 @@ export function StageProduct({ className = '' }: { className?: string }) {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(140 78) rotate(90) scale(14)"
         >
-          <stop stopColor="#8b84f8" />
-          <stop offset="1" stopColor="#5f57f7" />
+          <stop stopColor="#A8A0FF" />
+          <stop offset="1" stopColor="#665CFF" />
         </radialGradient>
       </defs>
       <path
@@ -43,7 +43,7 @@ export function StageProduct({ className = '' }: { className?: string }) {
       />
       <path
         d="M96 88c10-5 22-8 44-8 20 0 34 3 44 8"
-        stroke="rgba(16,16,16,0.08)"
+        stroke="rgba(14,15,18,0.08)"
         strokeWidth="2"
       />
       <path
@@ -60,7 +60,7 @@ export function StageProduct({ className = '' }: { className?: string }) {
         cx="140"
         cy="78"
         r="11"
-        stroke="rgba(95,87,247,0.28)"
+        stroke="rgba(102,92,255,0.28)"
         strokeWidth="1.5"
       />
     </svg>
@@ -99,7 +99,7 @@ export function Stage({
         <>
           <div className="ui-stage-ground" aria-hidden />
           <div className="ui:absolute ui:inset-x-0 ui:top-[8%] ui:bottom-[10%] ui:z-[1] ui:flex ui:items-center ui:justify-center">
-            <StageProduct className="ui:h-auto ui:w-[min(78%,420px)] ui:drop-shadow-[0_36px_48px_rgba(16,16,16,0.16)]" />
+            <StageProduct className="ui:h-auto ui:w-[min(78%,420px)] ui:drop-shadow-[0_36px_48px_rgba(14,15,18,0.16)]" />
           </div>
         </>
       ) : null}

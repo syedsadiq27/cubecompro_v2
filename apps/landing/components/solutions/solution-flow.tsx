@@ -1,3 +1,5 @@
+import { Grid, List, ListItem, Typography } from '@repo/ui';
+
 export function SolutionFlow({
   steps,
   outputs,
@@ -7,32 +9,58 @@ export function SolutionFlow({
 }) {
   return (
     <div>
-      <ol className="flex flex-col gap-0 md:flex-row md:flex-wrap md:items-center md:gap-2">
+      <List
+        as="ol"
+        direction="col"
+        gap="none"
+        className="md:flex-row md:flex-wrap md:items-center md:gap-2"
+      >
         {steps.map((step, index) => (
-          <li key={step} className="flex flex-col items-center md:flex-row md:gap-2">
-            <div className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center text-[15px] font-medium md:w-auto md:min-w-[8rem]">
+          <ListItem
+            key={step}
+            className="flex flex-col items-center md:flex-row md:gap-2"
+          >
+            <Typography
+              as="div"
+              variant="bodyStrong"
+              tone="inverse"
+              className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center md:w-auto md:min-w-[8rem]"
+            >
               {step}
-            </div>
+            </Typography>
             {index < steps.length - 1 ? (
-              <span className="py-1.5 text-white/40 md:py-0" aria-hidden>
-                <span className="md:hidden">↓</span>
-                <span className="hidden md:inline">→</span>
-              </span>
+              <Typography
+                as="span"
+                variant="meta"
+                tone="inverse"
+                className="py-1.5 text-white/40 md:py-0"
+                aria-hidden
+              >
+                <Typography as="span" variant="meta" className="md:hidden">
+                  ↓
+                </Typography>
+                <Typography as="span" variant="meta" className="hidden md:inline">
+                  →
+                </Typography>
+              </Typography>
             ) : null}
-          </li>
+          </ListItem>
         ))}
-      </ol>
+      </List>
       {outputs?.length ? (
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <Grid cols={2} gap="xs" className="mt-5 sm:grid-cols-4">
           {outputs.map((item) => (
-            <div
+            <Typography
               key={item}
-              className="rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-center font-mono text-xs text-white/75"
+              as="div"
+              variant="mono"
+              tone="inverse"
+              className="rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-center text-white/75"
             >
               {item}
-            </div>
+            </Typography>
           ))}
-        </div>
+        </Grid>
       ) : null}
     </div>
   );

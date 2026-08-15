@@ -4,6 +4,7 @@ import type {
   ReactNode,
 } from 'react';
 import { cn } from '../lib/cn';
+import { radiusClass } from '../lib/radius';
 
 export type ButtonVariant =
   | 'primary'
@@ -15,7 +16,7 @@ export type ButtonVariant =
 
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'nav';
 
-export function buttonClassName({
+function resolveButtonClassName({
   variant = 'primary',
   size = 'md',
   className,
@@ -23,40 +24,23 @@ export function buttonClassName({
   variant?: ButtonVariant;
   size?: ButtonSize;
   className?: string;
-} = {}): string {
-  const marketing = size === 'lg' || size === 'nav';
-
+}): string {
   return cn(
     'ui:inline-flex ui:items-center ui:justify-center ui:gap-2 ui:font-medium ui:transition ui:focus-visible:outline ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-[var(--ink)] ui:disabled:pointer-events-none ui:disabled:opacity-40',
-    size === 'sm' && 'ui:h-8 ui:rounded-[7px] ui:px-3 ui:text-[12px]',
-    size === 'md' && 'ui:h-9 ui:rounded-[7px] ui:px-3.5 ui:text-[13px]',
-    size === 'lg' && 'ui:rounded-lg ui:px-5 ui:py-3 ui:text-sm',
+    radiusClass('control'),
+    size === 'sm' && 'ui:h-8 ui:px-3 ui:text-[12px]',
+    size === 'md' && 'ui:h-9 ui:px-3.5 ui:text-[13px]',
+    size === 'lg' && 'ui:px-5 ui:py-3 ui:text-sm',
     size === 'nav' &&
-      'ui:rounded-lg ui:px-3.5 ui:py-2 ui:text-xs ui:tracking-[0.04em]',
-    !marketing &&
-      variant === 'primary' &&
-      'ui:bg-[var(--ink)] ui:text-white ui:hover:bg-black',
-    !marketing &&
-      variant === 'secondary' &&
-      'ui:border ui:border-[var(--line)] ui:bg-[var(--surface-pure)] ui:text-[var(--ink)] ui:hover:border-[var(--border-strong)] ui:hover:bg-[var(--surface)]',
-    !marketing &&
-      variant === 'ghost' &&
-      'ui:bg-transparent ui:text-[var(--ink)] ui:hover:bg-black/[0.04]',
-    !marketing &&
-      variant === 'danger' &&
-      'ui:bg-[var(--danger)] ui:text-white ui:hover:bg-[#b03e3e]',
-    marketing &&
-      variant === 'primary' &&
+      'ui:px-3.5 ui:py-2 ui:text-xs ui:tracking-[0.04em]',
+    variant === 'primary' &&
       'ui:bg-[var(--ink)] ui:text-white ui:hover:bg-[var(--ink)]/90',
-    marketing &&
-      variant === 'secondary' &&
+    variant === 'secondary' &&
       'ui:border ui:border-[var(--border-strong)] ui:text-[var(--ink)] ui:hover:border-[var(--ink)]',
-    marketing &&
-      variant === 'ghost' &&
+    variant === 'ghost' &&
       'ui:bg-transparent ui:text-[var(--ink)] ui:hover:bg-black/[0.04]',
-    marketing &&
-      variant === 'danger' &&
-      'ui:bg-[var(--danger)] ui:text-white ui:hover:bg-[#b03e3e]',
+    variant === 'danger' &&
+      'ui:bg-[var(--danger)] ui:text-white ui:hover:bg-[var(--danger-hover)]',
     variant === 'inverse' &&
       'ui:bg-[var(--canvas)] ui:text-[var(--ink)] ui:hover:bg-white',
     variant === 'inverseSecondary' &&
@@ -92,7 +76,7 @@ export function Button<T extends ElementType = 'button'>({
 
   return (
     <Comp
-      className={buttonClassName({ variant, size, className })}
+      className={resolveButtonClassName({ variant, size, className })}
       {...rest}
     >
       {children}

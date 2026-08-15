@@ -1,6 +1,15 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Card, Grid, Stack, Typography } from '@repo/ui';
+import {
+  Button,
+  Card,
+  DescriptionList,
+  Grid,
+  List,
+  ListItem,
+  Stack,
+  Typography,
+} from '@repo/ui';
 import { getSeoBody } from '@/lib/seo-bodies';
 import { getSeoPage } from '@/lib/seo-pages';
 import { SolutionBridge } from '@/components/solutions/solution-bridge';
@@ -33,6 +42,7 @@ export function SeoMarketingPage({
         {body.sections.map((section) => (
           <SeoSection
             key={section.title}
+            eyebrow={section.eyebrow}
             title={section.title}
             description={section.description}
             tone={section.tone}
@@ -57,15 +67,13 @@ export function SeoMarketingPage({
                   <Card key={column.title} padding="md">
                     <Stack gap="md">
                       <Typography variant="title">{column.title}</Typography>
-                      <Stack
-                        as="ul"
-                        gap="sm"
-                        className="text-[15px] text-[var(--text-secondary)]"
-                      >
+                      <List gap="sm">
                         {column.items.map((item) => (
-                          <li key={item}>{item}</li>
+                          <ListItem key={item}>
+                            <Typography variant="body">{item}</Typography>
+                          </ListItem>
                         ))}
-                      </Stack>
+                      </List>
                     </Stack>
                   </Card>
                 ))}
@@ -73,30 +81,35 @@ export function SeoMarketingPage({
             ) : null}
 
             {section.kind === 'links' ? (
-              <Stack as="ul" direction="row" gap="md" wrap>
+              <List direction="row" gap="md" wrap>
                 {section.links.map((item) => {
                   const external = item.href.startsWith('http');
-                  const className =
-                    'inline-block rounded-lg border border-[var(--border-strong)] px-4 py-2 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--ink)]';
                   return (
-                    <li key={item.href}>
+                    <ListItem key={item.href}>
                       {external ? (
-                        <a
+                        <Button
+                          as="a"
                           href={item.href}
-                          className={className}
+                          variant="secondary"
+                          size="md"
                           rel="noopener noreferrer"
                         >
                           {item.label}
-                        </a>
+                        </Button>
                       ) : (
-                        <Link href={item.href} className={className}>
+                        <Button
+                          as={Link}
+                          href={item.href}
+                          variant="secondary"
+                          size="md"
+                        >
                           {item.label}
-                        </Link>
+                        </Button>
                       )}
-                    </li>
+                    </ListItem>
                   );
                 })}
-              </Stack>
+              </List>
             ) : null}
 
             {section.kind === 'prose' ? (
@@ -131,40 +144,51 @@ export function SeoMarketingPage({
               <Grid cols="md-2" gap="md" className="max-w-4xl">
                 <Card padding="md">
                   <Stack gap="md">
-                    <Typography variant="mono" tone="secondary">
+                    <Typography variant="mono">
                       Configuration
                     </Typography>
-                    <dl className="space-y-2 text-sm">
+                    <DescriptionList gap="none">
                       {section.configuration.map((row) => (
                         <div
                           key={row.label}
                           className="flex justify-between gap-3 border-b border-[var(--line)] py-2"
                         >
-                          <dt className="text-[var(--text-muted)]">{row.label}</dt>
-                          <dd className="font-medium text-[var(--ink)]">
+                          <Typography as="dt" variant="meta" tone="muted">
+                            {row.label}
+                          </Typography>
+                          <Typography as="dd" variant="bodyStrong">
                             {row.value}
-                          </dd>
+                          </Typography>
                         </div>
                       ))}
-                    </dl>
+                    </DescriptionList>
                   </Stack>
                 </Card>
-                <Card variant="ink" padding="md">
+                <Card tone="ink" padding="md">
                   <Stack gap="md">
-                    <Typography variant="mono" tone="ink">
+                    <Typography variant="mono">
                       Sellable state
                     </Typography>
-                    <dl className="space-y-2 font-mono text-sm">
+                    <DescriptionList gap="none">
                       {section.resolved.map((row) => (
                         <div
                           key={row.label}
                           className="flex justify-between gap-3 border-b border-white/15 py-2"
                         >
-                          <dt className="font-sans text-white/45">{row.label}</dt>
-                          <dd className="text-right text-white">{row.value}</dd>
+                          <Typography as="dt" variant="meta" tone="inverse">
+                            {row.label}
+                          </Typography>
+                          <Typography
+                            as="dd"
+                            variant="code"
+                            tone="inverse"
+                            className="text-right normal-case tracking-normal"
+                          >
+                            {row.value}
+                          </Typography>
                         </div>
                       ))}
-                    </dl>
+                    </DescriptionList>
                   </Stack>
                 </Card>
                 {section.note ? (
@@ -193,15 +217,13 @@ export function SeoMarketingPage({
                     <Card key={column.title} padding="md">
                       <Stack gap="md">
                         <Typography variant="title">{column.title}</Typography>
-                        <Stack
-                          as="ul"
-                          gap="sm"
-                          className="text-[15px] text-[var(--text-secondary)]"
-                        >
+                        <List gap="sm">
                           {column.items.map((item) => (
-                            <li key={item}>{item}</li>
+                            <ListItem key={item}>
+                              <Typography variant="body">{item}</Typography>
+                            </ListItem>
                           ))}
-                        </Stack>
+                        </List>
                       </Stack>
                     </Card>
                   ))}
@@ -210,17 +232,19 @@ export function SeoMarketingPage({
             ) : null}
 
             {section.kind === 'code' ? (
-              <div className="max-w-4xl overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--ink)]">
+              <div
+                className="max-w-4xl overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--ink)]"
+                data-surface-tone="ink"
+              >
                 {section.caption ? (
                   <Typography
                     variant="mono"
-                    tone="ink"
                     className="border-b border-white/10 px-4 py-2 tracking-[0.06em]"
                   >
                     {section.caption}
                   </Typography>
                 ) : null}
-                <pre className="overflow-x-auto p-4 text-[12px] leading-relaxed text-[#f2f1ed] md:text-[13px]">
+                <pre className="overflow-x-auto p-4 text-[12px] leading-relaxed text-[var(--canvas)] md:text-[13px]">
                   <code>{section.code}</code>
                 </pre>
               </div>
@@ -237,7 +261,7 @@ export function SeoMarketingPage({
             title={`${bridge.blurb}`}
             href={bridge.href}
             label={`See ${bridge.label}`}
-            tone="muted"
+            tone="soft"
           />
         ) : null}
 

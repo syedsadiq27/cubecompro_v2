@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 export function SeoSection({
   id,
+  eyebrow,
   title,
   description,
   children,
@@ -13,16 +14,20 @@ export function SeoSection({
   title: string;
   description?: string;
   children: ReactNode;
-  tone?: 'default' | 'muted';
+  tone?: 'default' | 'soft';
 }) {
   return (
     <Section
       id={id}
-      tone={tone === 'muted' ? 'muted' : 'canvas'}
+      tone={tone === 'soft' ? 'soft' : 'canvas'}
       spacing="default"
     >
-      <Section.Header title={title} description={description} />
-      <Section.Body gap="loose">{children}</Section.Body>
+      <Section.Header
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+      />
+      <Section.Body gap="lg">{children}</Section.Body>
     </Section>
   );
 }

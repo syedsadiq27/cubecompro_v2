@@ -1,4 +1,4 @@
-import { Card, Container, Grid, Heading, Stack, Typography } from '@repo/ui';
+import { Card, Grid, Section, Stack, Typography } from '@repo/ui';
 
 const CAPABILITIES = [
   {
@@ -29,23 +29,20 @@ const CAPABILITIES = [
 
 export function PcRulesDepth() {
   return (
-    <section className="border-t border-[var(--line)] bg-[var(--canvas)]">
-      <Container padding="sectionCompact">
-        <Heading as="h2" variant="section">
+    <Section tone="canvas" spacing="compact">
+      <Section.Header>
+        <Section.Title>
           Stop managing combinations. Start modeling the product.
-        </Heading>
+        </Section.Title>
         <Typography variant="body" className="mt-4 max-w-2xl md:text-base">
           Define dependencies, exclusions, and availability once. CubeCom
           resolves the legal sellable state at runtime.
         </Typography>
-        <Grid cols="sm-2-lg-3" gap="sm" className="mt-8 md:mt-10">
+      </Section.Header>
+      <Section.Body gap="md">
+        <Grid cols="sm-2-lg-3" gap="sm">
           {CAPABILITIES.map((item) => (
-            <Card
-              as="article"
-              key={item.title}
-              variant="surface"
-              padding="tight"
-            >
+            <Card as="article" key={item.title} tone="soft" padding="sm">
               <Stack gap="sm">
                 <Typography variant="titleSm">{item.title}</Typography>
                 <Typography variant="support">{item.body}</Typography>
@@ -53,7 +50,7 @@ export function PcRulesDepth() {
             </Card>
           ))}
         </Grid>
-      </Container>
-    </section>
+      </Section.Body>
+    </Section>
   );
 }

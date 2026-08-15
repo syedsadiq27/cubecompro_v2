@@ -86,6 +86,12 @@ export const marketingRoutes = [
     priority: 0.8,
   },
   {
+    path: '/about',
+    title: `About | ${SITE_NAME}`,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  },
+  {
     path: '/privacy',
     title: `Privacy | ${SITE_NAME}`,
     changeFrequency: 'yearly' as const,

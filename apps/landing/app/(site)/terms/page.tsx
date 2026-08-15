@@ -1,4 +1,4 @@
-import { Heading } from '@repo/ui';
+import { Heading, Typography } from '@repo/ui';
 import type { Metadata } from 'next';
 
 import { SITE_EMAIL, SITE_NAME } from '@/lib/site';
@@ -14,33 +14,35 @@ export default function TermsPage() {
       <Heading as="h1" variant="doc">
         Terms
       </Heading>
-      <p className="mt-4 text-sm text-[var(--text-muted)]">
+      <Typography variant="meta" tone="muted" className="mt-4">
         Last updated: August 14, 2026
-      </p>
-      <div className="mt-8 space-y-4 text-base leading-relaxed text-[var(--text-secondary)]">
-        <p>
+      </Typography>
+      <div className="mt-8 space-y-4">
+        <Typography variant="body">
           The CubeCom Pro website and demo materials are provided for evaluation
           and information. Product features described as preview or early access
           may change before general availability.
-        </p>
-        <p>
+        </Typography>
+        <Typography variant="body">
           Paid use of CubeCom Pro is governed by the order form or subscription
           agreement between your organization and CubeCom Pro. Nothing on this
           marketing site creates a warranty beyond that agreement.
-        </p>
-        <p>
+        </Typography>
+        <Typography variant="body">
           Do not misuse the site, attempt unauthorized access to systems, or
           scrape content for competing products.
-        </p>
-        <p>
+        </Typography>
+        <Typography variant="body">
           Questions:{' '}
-          <a
+          <Typography
+            as="a"
             href={`mailto:${SITE_EMAIL}`}
-            className="text-[var(--ink)] underline"
+            variant="bodyStrong"
+            className="underline"
           >
             {SITE_EMAIL}
-          </a>
-        </p>
+          </Typography>
+        </Typography>
       </div>
     </article>
   );

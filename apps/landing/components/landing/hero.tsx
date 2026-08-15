@@ -1,68 +1,77 @@
-'use client';
-
-import { Button, Heading, Lede, Wordmark } from '@repo/ui';
+import {
+  Button,
+  Container,
+  Eyebrow,
+  Heading,
+  Lede,
+  Stack,
+  Typography,
+} from '@repo/ui';
 import Link from 'next/link';
 
-import { DEFAULT_CONFIGURATION } from '../demo/sofa/catalog';
-import { resolveConfiguration } from '../demo/sofa/resolve';
-import { SofaCanvas } from '../demo/sofa/SofaCanvas';
-
-const heroMaterials = resolveConfiguration(DEFAULT_CONFIGURATION).materials;
+import { MediaSlot } from '@/components/patterns/media-slot';
 
 export function Hero() {
   return (
-    <section id="home" className="relative text-[var(--ink)]">
+    <section
+      id="home"
+      className="relative overflow-hidden text-[var(--ink)]"
+    >
       <div className="cube-stage absolute inset-0" aria-hidden>
         <div className="cube-stage-field landing-plane-pulse" />
       </div>
 
-      <div className="relative z-10 mx-auto grid min-h-[calc(100svh-3.75rem)] max-w-[90rem] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="landing-rise flex flex-col justify-center px-5 py-12 md:px-8 md:py-16 lg:py-20">
-          <Wordmark size="lg" showPro className="landing-brand-in" />
-          <Heading as="h1" variant="hero" spacing="brand">
+      <Container
+        padding="none"
+        className="relative z-10 grid items-center gap-10 py-14 md:py-20 lg:min-h-[calc(100svh-3.75rem)] lg:grid-cols-[minmax(0,46rem)_minmax(0,1fr)] lg:gap-10 lg:py-20 xl:gap-14"
+      >
+        <div className="landing-rise order-1 min-w-0 w-full max-w-3xl lg:max-w-[46rem]">
+          <Eyebrow>Visual commerce infrastructure</Eyebrow>
+          <div
+            className="mt-4 h-px w-12 bg-[var(--stage-violet)]"
+            aria-hidden
+          />
+          <Heading
+            as="h1"
+            variant="hero"
+            spacing="brand"
+            className="max-w-[22ch] text-[clamp(2.75rem,12vw,4.75rem)]"
+          >
             Product configuration infrastructure for visual commerce.
           </Heading>
-          <p
-            className="mt-7 max-w-sm text-[clamp(1.2rem,2.4vw,1.45rem)] leading-snug tracking-[-0.02em] text-[var(--ink)] italic"
-            style={{ fontFamily: 'var(--font-display)', fontWeight: 550 }}
-          >
+          <Typography className="ui-type-tagline mt-7 max-w-md text-[clamp(1.15rem,2.2vw,1.35rem)] leading-snug text-[var(--ink)]">
             Stage the product. Sell the state.
-          </p>
-          <Lede variant="support">
+          </Typography>
+          <Lede variant="support" className="max-w-xl">
             CubeCom keeps product rules, 3D state, SKU, price, inventory, and
             cart aligned as shoppers configure.
           </Lede>
 
-          <div className="mt-9 flex flex-wrap items-center gap-3">
+          <Stack
+            direction="row"
+            align="center"
+            gap="sm"
+            wrap
+            className="mt-9"
+          >
             <Button as={Link} href="/#proof" variant="primary" size="lg">
-              Open live demo
+              Try the live configurator
             </Button>
             <Button as={Link} href="/#contact" variant="secondary" size="lg">
               Book a solution session
             </Button>
-          </div>
+          </Stack>
         </div>
 
-        <div className="relative min-h-[52vh] lg:min-h-0">
-          <div className="absolute inset-0 cube-stage lg:border-l lg:border-[var(--line)]/60">
-            <div className="cube-stage-field" />
-          </div>
-          <div className="relative h-full min-h-[52vh] lg:min-h-full">
-            <SofaCanvas materials={heroMaterials} />
-            <div className="pointer-events-none absolute inset-x-4 bottom-4 z-10 flex items-end justify-between gap-3">
-              <span className="rounded-lg bg-[var(--surface-pure)]/80 px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] backdrop-blur">
-                Drag to orbit
-              </span>
-              <Link
-                href="/#proof"
-                className="pointer-events-auto rounded-lg bg-[var(--ink)] px-3 py-1.5 text-[11px] font-medium text-white transition hover:bg-[var(--ink)]/90"
-              >
-                Configure below
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+        <MediaSlot
+          src="/images/homepage-hero-system-v2.jpg"
+          alt="Material choices and commerce states synchronized through a configuration engine to a resolved modular product"
+          aspectRatio="aspect-[16/9]"
+          priority
+          className="order-2 min-w-0 rounded-2xl border border-[var(--line)] shadow-[0_24px_64px_-28px_rgba(14,15,18,0.28)]"
+          sizes="(max-width: 1024px) 100vw, 55vw"
+        />
+      </Container>
     </section>
   );
 }

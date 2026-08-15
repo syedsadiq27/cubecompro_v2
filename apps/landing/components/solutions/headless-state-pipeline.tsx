@@ -60,10 +60,11 @@ const STAGES = [
 function StageCard({ stage }: { stage: (typeof STAGES)[number] }) {
   return (
     <div
+      data-surface-tone={stage.tone === 'ink' ? 'ink' : 'soft'}
       className={`flex w-full flex-col rounded-xl border px-3.5 py-3.5 md:h-full md:w-[11.25rem] md:px-4 md:py-4 ${
         stage.tone === 'ink'
-          ? 'border-white/15 bg-[var(--ink)] text-[var(--canvas)]'
-          : 'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]'
+          ? 'border-white/15 bg-[var(--ink)]'
+          : 'border-[var(--line)] bg-[var(--surface)]'
       }`}
     >
       <p
@@ -122,7 +123,7 @@ export function HeadlessStatePipeline() {
         <Typography variant="code" tone="muted">
           STATE PIPELINE
         </Typography>
-        <Typography variant="support" tone="strong" className="mt-1">
+        <Typography variant="support" className="mt-1">
           Selection → Validate → Resolve → Commerce → Cart
         </Typography>
       </div>

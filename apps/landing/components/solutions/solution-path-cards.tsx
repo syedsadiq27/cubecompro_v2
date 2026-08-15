@@ -1,38 +1,63 @@
 import Link from 'next/link';
-import { Card, Grid, Stack, Typography } from '@repo/ui';
+import { Grid, Typography } from '@repo/ui';
 import { SOLUTION_PATHS } from '@/lib/solutions';
+
+const SURFACE_NUMS = [
+  '01 / RULES ENGINE',
+  '02 / 3D SCENE',
+  '03 / HEADLESS STACK',
+  '04 / CONFIG API',
+];
 
 export function SolutionPathCards() {
   return (
-    <Grid cols="sm-2-lg-4" gap="lg">
-      {SOLUTION_PATHS.map((path) => (
-        <Card
+    <Grid cols="sm-2-lg-4" gap="xl">
+      {SOLUTION_PATHS.map((path, index) => (
+        <Link
           key={path.href}
-          as={Link}
           href={path.href}
-          variant="soft"
-          padding="md"
-          className="group flex flex-col transition hover:border-[var(--ink)]"
+          className="group relative flex flex-col justify-between border-t border-[var(--line)] pt-6 transition duration-200 hover:border-[var(--stage-violet)]"
         >
-          <Stack gap="lg" className="h-full">
-            <Typography variant="code" tone="strong">
-              {path.label}
-            </Typography>
-            <Typography variant="titleLg" className="group-hover:underline">
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-[var(--stage-violet)] opacity-70 transition group-hover:opacity-100"
+                aria-hidden
+              />
+              <Typography variant="mono" tone="accent">
+                {SURFACE_NUMS[index]}
+              </Typography>
+            </div>
+
+            <Typography
+              as="p"
+              variant="titleLg"
+              className="mt-3 text-[clamp(1.2rem,1.8vw,1.45rem)] transition group-hover:text-[var(--stage-violet)]"
+            >
               {path.title}
             </Typography>
-            <Typography variant="body" className="flex-1">
+
+            <Typography variant="support" className="mt-2.5 md:text-[15px]">
               {path.claim}
             </Typography>
+          </div>
+
+          <Typography
+            as="span"
+            variant="bodyStrong"
+            className="mt-6 inline-flex items-center gap-1.5 transition group-hover:text-[var(--stage-violet)] group-hover:underline group-hover:underline-offset-4"
+          >
+            Explore {path.label.toLowerCase()}
             <Typography
-              variant="code"
-              tone="strong"
-              className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 tracking-tight"
+              as="span"
+              variant="bodyStrong"
+              aria-hidden
+              className="inline-block transition-transform duration-200 group-hover:translate-x-1"
             >
-              {path.flow}
+              →
             </Typography>
-          </Stack>
-        </Card>
+          </Typography>
+        </Link>
       ))}
     </Grid>
   );

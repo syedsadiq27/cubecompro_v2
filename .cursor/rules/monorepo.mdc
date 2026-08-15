@@ -1,0 +1,67 @@
+---
+description: CubeCom monorepo governance — reuse shared packages, preserve boundaries, smallest coherent change
+alwaysApply: true
+---
+
+# Monorepo Agent Rules — CubeCom
+
+Canonical source: [`AGENTS.md`](../../AGENTS.md). Keep this file aligned with it.
+
+You are in a production monorepo. Do not treat each app as an isolated project.
+
+Default behavior:
+
+1. Understand package boundaries
+2. Reuse shared packages first
+3. Preserve visual and architectural consistency
+4. Avoid app-local duplication
+5. Make the smallest coherent change
+
+## Before implementing
+
+Inspect `packages/*` and sibling apps first. Prefer existing:
+
+- `@repo/ui` primitives (`Button`, `Section`, `Heading`, `Typography`, `Stack`, `Grid`, `List`, `Card`, …)
+- `@repo/tailwind-config` tokens
+- `@repo/fonts`
+- `@repo/graphql` / `@repo/product-graph` / related contracts
+
+Do not create `LandingButton`, app-local color/type scales, or duplicated Tailwind recipes when a shared primitive exists.
+
+## Ownership
+
+```text
+apps → shared feature packages → ui / contracts / config
+```
+
+- Apps compose packages; packages never import apps
+- Prefer `import { … } from '@repo/ui'` over deep `packages/.../src` paths
+- Domain business logic stays out of `packages/ui`
+- Promote to shared only when generic, reusable, and domain-neutral
+- Keep page-specific compositions (proof demos, diagrams, 3D scenes) app-local
+
+## Design system
+
+- Tokens: `packages/tailwind-config`
+- Fonts: `packages/fonts`
+- Primitives: `packages/ui`
+- Surfaces: `canvas` | `surface` | `soft` | `ink` — use inheritance, not hardcoded `#0c0c0f`
+- Typography: `Heading` / `Typography` / shared variants — no parallel type stacks
+- Actions: shared `Button` (polymorphic link when needed)
+- Layout: `Container` / `Section` / `Stack` / `Grid` / `List` — do not recreate `max-w-[90rem] px-5 md:px-8`
+
+## Change discipline
+
+- Tailwind is for unique composition, not recreating primitives
+- Preserve section rhythm, container width, radius, Button language, violet accent behavior
+- Bad/off-brand visuals: remove + keep media slot / blank placeholder — no fake HTML artwork
+- Responsive: 390 / tablet / laptop / desktop; `min-w-0` on grid children when needed
+- After shared package edits: rebuild (`yarn workspace @repo/ui build`) and typecheck
+- Do not hide errors (`ignoreBuildErrors`, blanket `any`, silenced lint)
+- Migrate: preserve behavior → reuse/extend primitive → migrate call sites → remove local dup → verify
+
+## After editing
+
+Report files changed, shared packages reused, new shared APIs, validation run, and known/pre-existing failures.
+
+**Golden rule:** reuse shared packages by default. Apps compose the platform; they do not recreate it.
