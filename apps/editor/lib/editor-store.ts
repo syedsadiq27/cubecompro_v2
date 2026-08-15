@@ -27,7 +27,6 @@ import {
 } from './materials';
 import {
   captureVisualBaseline,
-  defaultVisualSelection,
   normalizeVisualDocumentFromGraphDetail,
   replayVisualDocument,
   type VisualBaseline,
@@ -176,6 +175,7 @@ type EditorState = EditorIds & {
     productModelId?: string | null;
   }) => Promise<void>;
   setVisualSelection: (choiceKey: string, valueKey: string) => void;
+  clearVisualSelection: () => void;
   resetVisualSelection: () => void;
   replayActiveVisual: () => Promise<void>;
   setPreviewSelection: (attributeId: string, valueId: string) => void;
@@ -372,7 +372,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setGraphDetail: (graphDetail) =>
     set({
       graphDetail,
-      visualSelection: defaultVisualSelection(graphDetail),
+      visualSelection: {},
       visualDocument: null,
       visualBaseline: null,
       visualMaterialCache: new Map(),
@@ -388,7 +388,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       productModelId
     );
     const baseline = captureVisualBaseline(runtime.productRoot, document);
-    const selection = defaultVisualSelection(detail);
+    const selection = {};
     const materialCache = new Map<string, Material>();
     set({
       graphDetail: detail,
@@ -396,6 +396,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       visualBaseline: baseline,
       visualSelection: selection,
       visualMaterialCache: materialCache,
+      activeWorkspace: 'preview',
     });
     await replayVisualDocument({
       root: runtime.productRoot,
@@ -417,11 +418,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }));
     void get().replayActiveVisual();
   },
-  resetVisualSelection: () => {
-    set((state) => ({
-      visualSelection: defaultVisualSelection(state.graphDetail),
-    }));
+  clearVisualSelection: () => {
+    set({ visualSelection: {} });
     void get().replayActiveVisual();
+  },
+  resetVisualSelection: () => {
+    get().clearVisualSelection();
   },
   replayActiveVisual: async () => {
     const {

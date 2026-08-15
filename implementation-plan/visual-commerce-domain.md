@@ -569,9 +569,44 @@ No Save until these are green.
 
 ---
 
+## 15.5. Phase 2B.5 — Experience proof
+
+Between engine primitives and Save, prove a user can drive the scene:
+
+```text
+Real ProductRevision
+→ Choice UI from API (not fixtures)
+→ click ChoiceValue
+→ Selection updates
+→ deriveVisualState → reconcileScene
+→ Three.js visibly changes
+```
+
+Acceptance (experiential):
+
+```text
+Open editor
+→ product loads (Preview workspace)
+→ real choices appear
+→ click a value → 3D changes immediately
+→ click another value → correct replacement
+→ reset → baseline returns
+→ reload → same initial baseline result
+```
+
+Requirements:
+
+- No mock behavior cards
+- No manual “Apply selection” control
+- Click handlers only update Selection (no direct Three.js mutation)
+- One Choice with two values is sufficient (Frame walnut / oak)
+- Do not implement Save in this phase
+
+---
+
 ## 16. Phase 2C — Save later
 
-Only after deterministic load/replay works.
+Only after 2B.5 experience proof works.
 
 Then:
 
@@ -740,7 +775,8 @@ Order:
 ```text
 2A — normalizeVisualDocument
 2B — baseline + deriveVisualState + reconcileScene + determinism tests
-2C — Save only after 2A/2B pass
+2B.5 — Experience proof (Choice UI → Selection → visible scene change)
+2C — Save only after 2B.5 passes
 ```
 
 Do not:

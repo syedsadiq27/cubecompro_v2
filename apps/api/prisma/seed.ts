@@ -311,6 +311,15 @@ async function seed() {
       metallic: 0,
     }
   );
+  const oakDoc = await putJson(
+    `${organization.id}/${project.id}/materials/oak-wood.json`,
+    {
+      shaderModel: 'PBR',
+      baseColor: '#C29B62',
+      roughness: 0.6,
+      metallic: 0,
+    }
+  );
   const blackDoc = await putJson(
     `${organization.id}/${project.id}/materials/fabric-black.json`,
     {
@@ -365,6 +374,12 @@ async function seed() {
     name: 'Walnut Wood',
     documentUri: walnutDoc.uri,
     documentSha256: walnutDoc.sha256,
+  });
+  const oakMaterial = await upsertMaterial({
+    code: 'WOOD-OAK',
+    name: 'Oak Wood',
+    documentUri: oakDoc.uri,
+    documentSha256: oakDoc.sha256,
   });
   const blackMaterial = await upsertMaterial({
     code: 'FABRIC-BLACK',
@@ -553,7 +568,6 @@ async function seed() {
   });
   void colorWhite;
   void sizeL;
-  void frameOak;
   void materialLeather;
 
   await prisma.configurationRule.create({
@@ -606,6 +620,14 @@ async function seed() {
       modelTargetId: frameTarget.id,
       operation: VisualOperation.SET_MATERIAL,
       value: { materialAssetId: walnutMaterial.id },
+    },
+  });
+  await prisma.visualEffect.create({
+    data: {
+      choiceValueId: frameOak.id,
+      modelTargetId: frameTarget.id,
+      operation: VisualOperation.SET_MATERIAL,
+      value: { materialAssetId: oakMaterial.id },
     },
   });
   await prisma.visualEffect.create({

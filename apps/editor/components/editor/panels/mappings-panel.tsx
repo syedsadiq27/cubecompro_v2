@@ -21,8 +21,6 @@ function targetNodePath(
 export function MappingsPanel() {
   const visualDocument = useEditorStore((state) => state.visualDocument);
   const visualSelection = useEditorStore((state) => state.visualSelection);
-  const setVisualSelection = useEditorStore((state) => state.setVisualSelection);
-  const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
   const bindings = visualDocument?.bindings ?? [];
   const targets = visualDocument?.targets ?? [];
@@ -45,6 +43,10 @@ export function MappingsPanel() {
           </p>
           <StatusBadge role="published" label="HYDRATED" />
         </div>
+
+        <p className="text-[11px] text-[var(--text-muted)]">
+          Read-only. Drive the scene from Preview selection.
+        </p>
 
         {unsupported.length > 0 && (
           <div className="rounded-lg border border-amber-500/40 bg-amber-50/30 p-2 text-[10px] text-amber-900">
@@ -87,20 +89,6 @@ export function MappingsPanel() {
                       {targetNodePath(binding.targetKey, targets)})
                     </span>
                     <span>{bindingSummary(binding)}</span>
-                  </div>
-                  <div className="flex items-center justify-end gap-1.5 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setVisualSelection(binding.choiceKey, binding.valueKey);
-                        setStatusMessage(
-                          `Replay ${binding.choiceKey}=${binding.valueKey}`
-                        );
-                      }}
-                      className="rounded border border-[var(--line)] bg-[var(--canvas)]/50 px-2 py-0.5 text-[10px] font-medium hover:bg-[var(--canvas)]"
-                    >
-                      Apply selection
-                    </button>
                   </div>
                 </div>
               );
