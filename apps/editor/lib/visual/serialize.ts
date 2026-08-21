@@ -13,7 +13,7 @@ export function bindingSemanticKey(binding: {
 export function serializeBindingValueJson(binding: VisualBinding): string {
   if (binding.operation === 'SET_MATERIAL') {
     return JSON.stringify({
-      materialAssetRevisionId: binding.materialAssetRevisionId,
+      materialAssetRevisionId: binding.materialAssetRevisionId.trim(),
     });
   }
   if (binding.operation === 'REPLACE_COMPONENT') {
@@ -28,7 +28,9 @@ export function bindingsEqualForPersist(
 ): boolean {
   if (a.operation !== b.operation) return false;
   if (a.operation === 'SET_MATERIAL' && b.operation === 'SET_MATERIAL') {
-    return a.materialAssetRevisionId === b.materialAssetRevisionId;
+    return (
+      a.materialAssetRevisionId.trim() === b.materialAssetRevisionId.trim()
+    );
   }
   if (a.operation === 'SET_VISIBILITY' && b.operation === 'SET_VISIBILITY') {
     return a.visible === b.visible;
@@ -37,7 +39,7 @@ export function bindingsEqualForPersist(
     a.operation === 'REPLACE_COMPONENT' &&
     b.operation === 'REPLACE_COMPONENT'
   ) {
-    return a.linkedAssetKey === b.linkedAssetKey;
+    return a.linkedAssetKey.trim() === b.linkedAssetKey.trim();
   }
   return false;
 }

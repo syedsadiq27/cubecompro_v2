@@ -42,6 +42,10 @@ export function MobileBottomSheet({
     if (sheetHeight === 'peek') onSheetHeightChange('half');
   };
 
+  const requestPeek = () => {
+    onSheetHeightChange('peek');
+  };
+
   const tabLabel =
     activeTab === 'product'
       ? 'Config'
@@ -96,7 +100,10 @@ export function MobileBottomSheet({
           {activeTab === 'scene' ? (
             <MobileSceneWorkspace onRequestExpand={requestExpand} />
           ) : activeTab === 'product' ? (
-            <MobileConfigWorkspace onRequestExpand={requestExpand} />
+            <MobileConfigWorkspace
+              onRequestExpand={requestExpand}
+              onRequestPeek={requestPeek}
+            />
           ) : activeTab === 'cameras' ? (
             <MobileCameraWorkspace onRequestExpand={requestExpand} />
           ) : (

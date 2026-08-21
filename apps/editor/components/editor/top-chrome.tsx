@@ -21,6 +21,7 @@ export function TopChrome() {
   const embedded = useEditorStore((state) => state.embedded);
   const returnTo = useEditorStore((state) => state.returnTo);
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
+  const ensureLivePreview = useEditorStore((state) => state.ensureLivePreview);
   const saveVisualDocument = useEditorStore(
     (state) => state.saveVisualDocument
   );
@@ -117,7 +118,7 @@ export function TopChrome() {
         {tabs.map((tab) => {
           const isActive =
             activeWorkspace === tab.key ||
-            (tab.key === 'product' && (activeWorkspace === 'mappings' || activeWorkspace === 'preview' || activeWorkspace === 'model'));
+            (tab.key === 'product' && (activeWorkspace === 'mappings' || activeWorkspace === 'model'));
 
           return (
             <button
@@ -161,7 +162,16 @@ export function TopChrome() {
 
         <button
           type="button"
-          onClick={() => setStatusMessage('Opening interactive customizer preview…')}
+          onClick={() => {
+            void ensureLivePreview().catch((error) => {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : 'Live preview failed';
+              setStatusMessage(message);
+            });
+          }}
+          title="Seed defaults and replay config on the 3D scene"
           className="flex h-8 items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 text-[12px] font-medium text-white transition-colors hover:bg-white/10 hover:border-white/25"
         >
           <span>▷</span>

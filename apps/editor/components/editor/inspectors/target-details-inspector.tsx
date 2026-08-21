@@ -14,7 +14,9 @@ export function TargetDetailsInspector() {
   const updateTarget = useEditorStore((state) => state.updateTarget);
   const removeTarget = useEditorStore((state) => state.removeTarget);
   const setActiveWorkspace = useEditorStore((state) => state.setActiveWorkspace);
-  const setAuthoringFocus = useEditorStore((state) => state.setAuthoringFocus);
+  const previewChoiceValue = useEditorStore(
+    (state) => state.previewChoiceValue
+  );
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
   const setSelected = useEditorStore((state) => state.setSelected);
   const runtime = useEditorStore((state) => state.runtime);
@@ -72,9 +74,8 @@ export function TargetDetailsInspector() {
   };
 
   const handleJumpToConfig = (choiceKey: string, valueKey: string) => {
-    setAuthoringFocus({ choiceKey, valueKey });
-    setActiveWorkspace('product');
-    setStatusMessage(`Navigated to ${choiceKey} / ${valueKey} in Config`);
+    previewChoiceValue(choiceKey, valueKey);
+    setStatusMessage(`Previewing ${choiceKey} / ${valueKey}`);
   };
 
   return (
@@ -257,9 +258,9 @@ export function TargetDetailsInspector() {
         <button
           type="button"
           onClick={() => {
-            removeTarget(currentTarget.key);
-            setSelectedTargetKey(null);
-            setStatusMessage(`Deleted target ${currentTarget.key}`);
+            void removeTarget(currentTarget.key).catch(() => {
+              /* statusMessage set in store */
+            });
           }}
           className="flex h-8 w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-950/20 px-3 text-[11px] font-medium text-red-400 hover:bg-red-900/30 transition-colors"
         >

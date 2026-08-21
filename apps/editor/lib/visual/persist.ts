@@ -12,7 +12,12 @@ import {
   type GraphVersionSummary,
 } from '@repo/product-graph';
 import { normalizeVisualDocumentFromGraphDetail } from './from-graph';
-import { diffVisualBindings, serializeBindingValueJson } from './serialize';
+import {
+  bindingSemanticKey,
+  bindingsEqualForPersist,
+  diffVisualBindings,
+  serializeBindingValueJson,
+} from './serialize';
 import type { VisualBinding, VisualDocument } from './types';
 
 function resolveChoiceValueId(
@@ -204,6 +209,12 @@ export async function persistVisualDocument(input: {
     productModelId
   );
 
+  if (!documentsMatchForSaveProof(desiredOnDraft, document)) {
+    throw new Error(
+      `Save proof failed: reloaded VisualDocument does not match (${describeSaveProofMismatch(desiredOnDraft, document)})`
+    );
+  }
+
   return {
     detail: freshDetail,
     document,
@@ -216,17 +227,51 @@ export function documentsMatchForSaveProof(
   b: VisualDocument
 ): boolean {
   if (a.bindings.length !== b.bindings.length) return false;
-  const keys = new Set(
-    a.bindings.map(
-      (binding) =>
-        `${binding.choiceKey}:${binding.valueKey}:${binding.targetKey}:${binding.operation}:${serializeBindingValueJson(binding)}`
-    )
+  const byKey = new Map(
+    a.bindings.map((binding) => [bindingSemanticKey(binding), binding])
   );
-  return b.bindings.every((binding) =>
-    keys.has(
-      `${binding.choiceKey}:${binding.valueKey}:${binding.targetKey}:${binding.operation}:${serializeBindingValueJson(binding)}`
-    )
+  if (byKey.size !== a.bindings.length) return false;
+  for (const binding of b.bindings) {
+    const other = byKey.get(bindingSemanticKey(binding));
+    if (!other || !bindingsEqualForPersist(binding, other)) return false;
+  }
+  return true;
+}
+
+export function describeSaveProofMismatch(
+  desired: VisualDocument,
+  reloaded: VisualDocument
+): string {
+  const desiredKeys = new Map(
+    desired.bindings.map((binding) => [
+      bindingSemanticKey(binding),
+      serializeBindingValueJson(binding),
+    ])
   );
+  const reloadedKeys = new Map(
+    reloaded.bindings.map((binding) => [
+      bindingSemanticKey(binding),
+      serializeBindingValueJson(binding),
+    ])
+  );
+  const missing: string[] = [];
+  const extra: string[] = [];
+  const changed: string[] = [];
+  for (const [key, value] of desiredKeys) {
+    const next = reloadedKeys.get(key);
+    if (next === undefined) missing.push(key.replaceAll('\0', '/'));
+    else if (next !== value) changed.push(key.replaceAll('\0', '/'));
+  }
+  for (const key of reloadedKeys.keys()) {
+    if (!desiredKeys.has(key)) extra.push(key.replaceAll('\0', '/'));
+  }
+  const parts = [
+    missing.length ? `missing after reload: ${missing.join(', ')}` : null,
+    extra.length ? `extra after reload: ${extra.join(', ')}` : null,
+    changed.length ? `value changed: ${changed.join(', ')}` : null,
+    `counts desired=${desired.bindings.length} reloaded=${reloaded.bindings.length}`,
+  ].filter(Boolean);
+  return parts.join(' · ');
 }
 
 export type { VisualBinding };

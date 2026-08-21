@@ -3,7 +3,6 @@
 import { useEditorStore } from '@/lib/editor-store';
 import { TargetDetailsInspector } from './target-details-inspector';
 import { BehaviorInspector } from './behavior-inspector';
-import { PreviewInspector } from './preview-inspector';
 import { SceneMaterialInspector } from './scene-material-inspector';
 import { CameraInspector } from './camera-inspector';
 
@@ -30,9 +29,6 @@ export function InspectorHost() {
     }
     if (isAssets) {
       return <SceneMaterialInspector />;
-    }
-    if (activeWorkspace === 'preview') {
-      return <PreviewInspector />;
     }
     return <BehaviorInspector />;
   };

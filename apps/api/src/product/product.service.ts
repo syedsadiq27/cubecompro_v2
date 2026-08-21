@@ -1255,6 +1255,19 @@ export class ProductService {
     });
   }
 
+  async deleteModelTarget(id: string) {
+    const existing = await this.prisma.modelTarget.findUnique({
+      where: { id },
+      include: { productModel: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Model target not found');
+    }
+    await this.assertDraft(existing.productModel.productRevisionId);
+    await this.prisma.modelTarget.delete({ where: { id } });
+    return true;
+  }
+
   async createVisualEffect(input: {
     choiceValueId: string;
     modelTargetId: string;

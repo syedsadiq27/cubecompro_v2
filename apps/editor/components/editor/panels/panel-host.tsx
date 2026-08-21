@@ -4,7 +4,6 @@ import { useEditorStore } from '@/lib/editor-store';
 import { ChevronDownIcon } from '@/components/editor/icons';
 import { ProductCoveragePanel } from './product-coverage-panel';
 import { SceneOutlinerPanel } from './scene-outliner-panel';
-import { PreviewPanel } from './preview-panel';
 import { MaterialsPanel } from './materials-panel';
 import { CameraPanel } from './camera-panel';
 
@@ -19,27 +18,25 @@ export function PanelHost({ collapsed }: { collapsed: boolean }) {
   const title =
     activeWorkspace === 'product' ||
     activeWorkspace === 'mappings' ||
-    activeWorkspace === 'model'
+    activeWorkspace === 'model' ||
+    activeWorkspace === 'preview'
       ? 'Config'
       : isCamera
         ? 'Camera'
-        : activeWorkspace === 'preview'
-          ? 'Preview'
-          : activeWorkspace === 'materials'
-            ? 'Assets'
-            : 'Scene';
+        : activeWorkspace === 'materials'
+          ? 'Assets'
+          : 'Scene';
 
   const renderActivePanel = () => {
     switch (activeWorkspace) {
       case 'product':
       case 'mappings':
       case 'model':
+      case 'preview':
         return <ProductCoveragePanel />;
       case 'cameras':
       case 'camera' as any:
         return <CameraPanel />;
-      case 'preview':
-        return <PreviewPanel />;
       case 'materials':
         return <MaterialsPanel />;
       case 'scene':

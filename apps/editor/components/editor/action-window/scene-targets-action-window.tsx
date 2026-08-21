@@ -330,8 +330,9 @@ export function SceneTargetsActionWindow() {
                   <td
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeTarget(target.key);
-                      setStatusMessage(`Deleted target ${target.key}`);
+                      void removeTarget(target.key).catch(() => {
+                        /* statusMessage set in store */
+                      });
                     }}
                     className="px-3 py-2 text-center text-white/30 hover:text-red-400 cursor-pointer"
                     title="Delete target"

@@ -1,31 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { ChoiceValueSelect } from '@/components/editor/choice-value-select';
 import { useEditorStore } from '@/lib/editor-store';
 import { evaluateConfiguratorPreview } from '@/lib/visual/configurator-preview';
-
-function getSwatchGradient(choiceKey: string, valueKey: string, name: string): string {
-  const lower = (choiceKey + ' ' + valueKey + ' ' + name).toLowerCase();
-  if (lower.includes('walnut')) {
-    return 'radial-gradient(circle at 35% 35%, #8A6040, #5C3D24 60%, #2B1B10 100%)';
-  }
-  if (lower.includes('oak')) {
-    return 'radial-gradient(circle at 35% 35%, #C8A265, #A47F46 60%, #634823 100%)';
-  }
-  if (lower.includes('marble')) {
-    return 'radial-gradient(circle at 35% 35%, #F8FAFC, #E2E8F0 60%, #94A3B8 100%)';
-  }
-  if (lower.includes('black')) {
-    return 'radial-gradient(circle at 35% 35%, #4B4B52, #232328 60%, #0C0C0E 100%)';
-  }
-  if (lower.includes('brass') || lower.includes('gold')) {
-    return 'radial-gradient(circle at 35% 35%, #FFE082, #D4AF37 60%, #7A5B0B 100%)';
-  }
-  if (lower.includes('chrome') || lower.includes('steel')) {
-    return 'radial-gradient(circle at 35% 35%, #FFFFFF, #CBD5E1 60%, #64748B 100%)';
-  }
-  return 'radial-gradient(circle at 35% 35%, #A1A1AA, #52525B 60%, #27272A 100%)';
-}
 
 export function PreviewSelectionBar() {
   const activeWorkspace = useEditorStore((state) => state.activeWorkspace);
@@ -38,17 +16,22 @@ export function PreviewSelectionBar() {
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
   const [autoApply, setAutoApply] = useState(true);
+  const [pendingSelection, setPendingSelection] = useState<
+    Record<string, string>
+  >({});
 
-  // Compute effective selection with fallback to first value for complete validity
   const effectiveSelection = useMemo(() => {
     if (!graphDetail) return {};
     const result: Record<string, string> = {};
     for (const choice of graphDetail.choices) {
       result[choice.key] =
-        visualSelection[choice.key] || choice.values[0]?.key || '';
+        pendingSelection[choice.key] ||
+        visualSelection[choice.key] ||
+        choice.values[0]?.key ||
+        '';
     }
     return result;
-  }, [graphDetail, visualSelection]);
+  }, [graphDetail, pendingSelection, visualSelection]);
 
   const preview = useMemo(() => {
     if (!graphDetail) return null;
@@ -59,18 +42,38 @@ export function PreviewSelectionBar() {
     );
   }, [graphDetail, effectiveSelection, visualDocument]);
 
-  const isConfigWorkspace =
-    activeWorkspace === 'product' ||
-    activeWorkspace === 'mappings' ||
-    activeWorkspace === 'preview' ||
-    activeWorkspace === 'model';
+  const hideForCamera =
+    activeWorkspace === 'cameras' || (activeWorkspace as string) === 'camera';
 
-  // Only render in Config / Preview workspaces
-  if (!graphDetail || !isConfigWorkspace) return null;
+  if (!graphDetail || hideForCamera) return null;
 
   const choices = [...graphDetail.choices].sort(
     (a, b) => a.sortOrder - b.sortOrder
   );
+
+  const applyChoice = (choiceKey: string, valueKey: string) => {
+    if (autoApply) {
+      setVisualSelection(choiceKey, valueKey);
+      setPendingSelection((prev) => {
+        if (!(choiceKey in prev)) return prev;
+        const next = { ...prev };
+        delete next[choiceKey];
+        return next;
+      });
+      return;
+    }
+    setPendingSelection((prev) => ({ ...prev, [choiceKey]: valueKey }));
+  };
+
+  const applyPending = () => {
+    for (const [choiceKey, valueKey] of Object.entries(pendingSelection)) {
+      setVisualSelection(choiceKey, valueKey);
+    }
+    setPendingSelection({});
+    setStatusMessage('Applied live selection to scene');
+  };
+
+  const pendingCount = Object.keys(pendingSelection).length;
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[7]">
@@ -90,123 +93,73 @@ export function PreviewSelectionBar() {
       ) : null}
 
       <div className="pointer-events-auto border-t border-white/10 bg-[#121318] px-5 py-2.5 text-white select-none shadow-2xl">
-        <div className="flex flex-wrap items-center gap-6">
-          {/* Header Title with collapse caret */}
-          <div className="flex items-center gap-1.5 self-center shrink-0">
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+          <div className="flex h-8 items-center gap-1.5 shrink-0">
             <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
-              PREVIEW SELECTION
+              LIVE SELECTION
             </span>
-            <button
-              type="button"
-              onClick={() => setStatusMessage('Interactive customizer preview state')}
-              className="text-white/40 hover:text-white transition-colors text-[11px]"
-              title="Information"
-            >
-              ⓘ
-            </button>
-            <button
-              type="button"
-              className="text-white/40 hover:text-white transition-colors text-[11px] ml-0.5"
-              title="Collapse/expand"
-            >
-              ⌃
-            </button>
           </div>
 
-          {/* Choice Dropdown Columns */}
-          <div className="flex flex-wrap items-center gap-4">
-            {choices.map((choice) => {
-              const selectedKey =
-                effectiveSelection[choice.key] || choice.values[0]?.key || '';
-              const selectedValue =
-                choice.values.find((v) => v.key === selectedKey) ||
-                choice.values[0];
+          {choices.map((choice) => {
+            const selectedKey =
+              effectiveSelection[choice.key] || choice.values[0]?.key || '';
+            const values = [...choice.values].sort(
+              (a, b) => a.sortOrder - b.sortOrder
+            );
 
-              const swatchGradient = getSwatchGradient(
-                choice.key,
-                selectedValue?.key || '',
-                selectedValue?.name || ''
-              );
+            return (
+              <ChoiceValueSelect
+                key={choice.id}
+                label={choice.name}
+                value={selectedKey}
+                compact
+                className="w-[150px]"
+                options={values.map((value) => ({
+                  key: value.key,
+                  name: value.name,
+                }))}
+                onChange={(next) => applyChoice(choice.key, next)}
+              />
+            );
+          })}
 
-              return (
-                <div key={choice.id} className="space-y-1">
-                  <span className="block text-[10px] text-white/40 font-medium leading-none">
-                    {choice.name}
-                  </span>
-                  <div className="relative">
-                    <div className="flex h-8 items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#181920] px-3 py-1 shadow-sm min-w-[130px] cursor-pointer hover:border-white/20 transition-colors">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className="h-3.5 w-3.5 shrink-0 rounded-full shadow-inner border border-white/25"
-                          style={{ background: swatchGradient }}
-                        />
-                        <span className="truncate text-[12px] font-medium text-white">
-                          {selectedValue?.name || 'Select'}
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-white/40">▾</span>
-                    </div>
-
-                    <select
-                      value={selectedKey}
-                      onChange={(event) => {
-                        const next = event.target.value;
-                        if (!next) return;
-                        setVisualSelection(choice.key, next);
-                      }}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    >
-                      {choice.values.map((value) => (
-                        <option
-                          key={value.id}
-                          value={value.key}
-                          className="bg-[#181920] text-white"
-                        >
-                          {value.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Validity Badge */}
-            <div className="self-end pb-0.5">
-              <div
-                className={`flex h-8 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold tracking-wide shadow-xs ${
-                  preview?.layers.validity === 'VALID'
-                    ? 'bg-[#0D2418] text-emerald-400 border border-emerald-500/40'
-                    : 'bg-red-950/80 text-red-400 border border-red-800/60'
-                }`}
-              >
-                {preview?.layers.validity === 'VALID' ? (
-                  <span>✓</span>
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                )}
-                <span>{preview?.layers.validity || 'VALID'}</span>
-                <span className="text-[9px] text-emerald-400/60 ml-0.5">▾</span>
-              </div>
-            </div>
+          <div
+            className={`flex h-8 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold tracking-wide ${
+              preview?.layers.validity === 'VALID'
+                ? 'border border-emerald-500/40 bg-[#0D2418] text-emerald-400'
+                : 'border border-red-800/60 bg-red-950/80 text-red-400'
+            }`}
+          >
+            {preview?.layers.validity === 'VALID' ? '✓' : '·'}
+            <span>{preview?.layers.validity || 'VALID'}</span>
           </div>
         </div>
 
-        {/* Sub-row: Auto-apply toggle */}
-        <div className="flex items-center gap-2.5 pt-1.5 border-t border-white/5 mt-2 text-[11px]">
-          <span className="text-white/60 font-medium">Auto-apply</span>
-          <label className="relative inline-flex items-center cursor-pointer">
+        <div className="mt-2 flex flex-wrap items-center gap-2.5 border-t border-white/5 pt-1.5 text-[11px]">
+          <span className="font-medium text-white/60">Auto-apply</span>
+          <label className="relative inline-flex cursor-pointer items-center">
             <input
               type="checkbox"
               checked={autoApply}
-              onChange={(e) => setAutoApply(e.target.checked)}
-              className="sr-only peer"
+              onChange={(event) => setAutoApply(event.target.checked)}
+              className="peer sr-only"
             />
-            <div className="w-7 h-3.5 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1.5px] after:left-[1.5px] after:bg-white after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-[#665CFF]" />
+            <div className="h-3.5 w-7 rounded-full bg-white/20 after:absolute after:left-[1.5px] after:top-[1.5px] after:h-2.5 after:w-2.5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#665CFF] peer-checked:after:translate-x-full" />
           </label>
-          <span className="text-[11px] text-white/40">
-            Changes update the 3D view automatically.
+          <span className="text-white/40">
+            {autoApply
+              ? 'Changes update the 3D view automatically.'
+              : 'Changes stay pending until you apply.'}
           </span>
+          {!autoApply && pendingCount > 0 ? (
+            <button
+              type="button"
+              onClick={applyPending}
+              className="ml-auto rounded-lg bg-[#665CFF] px-2.5 py-1 text-[11px] font-medium text-white"
+            >
+              Apply ({pendingCount})
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
