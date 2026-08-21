@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StatusBadge } from '@/components/suite-ui';
+import { CubeStoreHydrator } from '@/components/cube-store-hydrator';
 import { OrgSubnav } from '@/components/org-subnav';
 import { loadResolved } from '@/lib/api';
 import { tenantStatusRole, trialLabel } from '@/lib/format';
@@ -21,6 +22,13 @@ export default async function OrganizationLayout({
   }
 
   return (
+    <CubeStoreHydrator
+      workspace={{
+        organizationId: id,
+        organizationName: resolved.organizationName,
+      }}
+      unmount="organization"
+    >
     <div>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -47,5 +55,6 @@ export default async function OrganizationLayout({
       <OrgSubnav organizationId={id} />
       <div className="pt-5">{children}</div>
     </div>
+    </CubeStoreHydrator>
   );
 }

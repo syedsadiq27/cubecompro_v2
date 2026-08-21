@@ -16,6 +16,21 @@ export type {
   GraphVariant,
   GraphVariantSelection,
   GraphVisualEffect,
+  VisualMappingChoice,
+  VisualMappingEffectGroup,
+  VisualMappingOperation,
+  VisualMappingResourceOption,
+  VisualMappingTarget,
+  VisualMappingValue,
+} from '@repo/product-graph';
+
+export {
+  buildVisualMappingCatalog,
+  buildVisualMappingChoices,
+  formatAssetRevisionLabel,
+  listLinkedObjectResources,
+  listMappingTargets,
+  listSetMaterialTargets,
 } from '@repo/product-graph';
 
 export type ObjectAssetOption = {
@@ -33,6 +48,7 @@ export type MaterialAssetOption = {
   id: string;
   name: string;
   code?: string | null;
+  currentRevisionId?: string | null;
 };
 
 export type WorkspaceTab =
@@ -98,15 +114,17 @@ export function humanizeEffectValue(
     if (typeof parsed === 'boolean') {
       return parsed ? 'Show' : 'Hide';
     }
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'materialAssetId' in parsed &&
-      typeof (parsed as { materialAssetId: unknown }).materialAssetId ===
-        'string'
-    ) {
-      const id = (parsed as { materialAssetId: string }).materialAssetId;
-      return materialNames?.get(id) ?? 'Library material';
+    if (typeof parsed === 'object' && parsed !== null) {
+      const revisionId =
+        'materialAssetRevisionId' in parsed &&
+        typeof (parsed as { materialAssetRevisionId: unknown })
+          .materialAssetRevisionId === 'string'
+          ? (parsed as { materialAssetRevisionId: string })
+              .materialAssetRevisionId
+          : null;
+      if (revisionId) {
+        return materialNames?.get(revisionId) ?? 'Library material';
+      }
     }
     if (typeof parsed === 'string' || typeof parsed === 'number') {
       return String(parsed);

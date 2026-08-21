@@ -172,6 +172,8 @@ input CreateProjectInput {
 input CreateTextureAssetInput {
   code: String
   folderId: ID
+  fileBase64: String
+  fileName: String
   metadataJson: String
   name: String!
   organizationId: String!
@@ -189,6 +191,21 @@ input CreateVisualEffectInput {
   modelTargetId: String!
   operation: VisualOperation!
   valueJson: String!
+}
+
+input CreateVisualSetupInput {
+  productModelId: String!
+  modelTargetId: String!
+  operation: VisualOperation!
+  valueJson: String!
+  sortOrder: Int
+}
+
+input UpdateVisualSetupInput {
+  id: String!
+  operation: VisualOperation
+  valueJson: String
+  sortOrder: Int
 }
 
 input UpdateVisualEffectInput {
@@ -408,14 +425,19 @@ input LoginInput {
 
 type MaterialAssetModel {
   code: String
+  createdAt: DateTime!
+  currentRevisionId: String
   documentSha256: String!
   documentUri: String!
   documentUrl: String
   folderId: ID
+  hasDraft: Boolean
   id: ID!
   name: String!
   organizationId: String!
   projectId: String!
+  publishedRevisionId: String
+  updatedAt: DateTime!
 }
 
 type ModelTargetModel {
@@ -434,9 +456,11 @@ type Mutation {
   createDraftProductRevision(productId: String!, sourceProductRevisionId: String): ProductRevisionModel!
   createLibraryFolder(input: CreateLibraryFolderInput!): LibraryFolderModel!
   createMaterialAsset(input: CreateMaterialAssetInput!): MaterialAssetModel!
+  publishMaterialAsset(id: String!): MaterialAssetModel!
   createModelTarget(input: CreateModelTargetInput!): ModelTargetModel!
   createObjectAsset(input: CreateObjectAssetInput!): ObjectAssetModel!
   createObjectAssetRevision(input: CreateObjectAssetRevisionInput!): ObjectAssetRevisionModel!
+  publishObjectAsset(id: String!): ObjectAssetRevisionModel!
   updateObjectAssetStatus(input: UpdateObjectAssetStatusInput!): ObjectAssetModel!
   createOrganization(input: CreateOrganizationInput!): OrganizationModel!
   createProduct(input: CreateProductInput!): ProductModel!
@@ -448,6 +472,7 @@ type Mutation {
   createTextureAsset(input: CreateTextureAssetInput!): TextureAssetModel!
   createVariantSelection(input: CreateVariantSelectionInput!): VariantSelectionModel!
   createVisualEffect(input: CreateVisualEffectInput!): VisualEffectModel!
+  createVisualSetup(input: CreateVisualSetupInput!): VisualSetupModel!
   deleteChoiceValue(id: String!): Boolean!
   deleteCommerceMappingSet(id: String!): Boolean!
   deleteConstraint(id: String!): Boolean!
@@ -456,6 +481,7 @@ type Mutation {
   deleteProductModelLinkedAsset(id: String!): Boolean!
   deleteTextureAsset(id: String!): Boolean!
   deleteVisualEffect(id: String!): Boolean!
+  deleteVisualSetup(id: String!): Boolean!
   discardDraftProductRevision(productId: String!): Boolean!
   disconnectShopify(input: DisconnectShopifyInput!): Boolean!
   importShopifyProduct(input: ImportShopifyProductInput!): ImportShopifyProductResultModel!
@@ -471,6 +497,7 @@ type Mutation {
   updateProductModelRevision(input: UpdateProductModelRevisionInput!): ProductModelAssetModel!
   updateProfile(input: UpdateProfileInput!): AuthUserModel!
   updateVisualEffect(input: UpdateVisualEffectInput!): VisualEffectModel!
+  updateVisualSetup(input: UpdateVisualSetupInput!): VisualSetupModel!
 }
 
 type MyProjectModel {
@@ -484,6 +511,7 @@ type MyProjectModel {
 type ObjectAssetModel {
   animationCount: Float
   code: String
+  createdAt: DateTime!
   currentRevisionId: String
   fileSha256: String!
   fileUri: String!
@@ -504,6 +532,7 @@ type ObjectAssetModel {
   purpose: ObjectAssetPurpose!
   sizeBytes: Float
   status: ObjectAssetStatus!
+  updatedAt: DateTime!
 }
 
 type ObjectAssetRevisionModel {
@@ -515,6 +544,27 @@ type ObjectAssetRevisionModel {
   objectAssetId: String!
   runtimeArtifactUri: String!
   sizeBytes: Float
+  status: String!
+  version: Float!
+}
+
+type MaterialTextureUsageModel {
+  slot: String!
+  textureAssetRevisionId: String!
+  textureName: String
+  wrapS: String
+  wrapT: String
+}
+
+type MaterialAssetRevisionModel {
+  contentHash: String!
+  definitionUri: String!
+  documentUrl: String
+  frozenAt: DateTime!
+  id: ID!
+  materialAssetId: String!
+  status: String!
+  textureUsages: [MaterialTextureUsageModel!]!
   version: Float!
 }
 
@@ -623,6 +673,7 @@ type ProductModelAssetModel {
   name: String!
   objectAssetRevisionId: String!
   targets: [ModelTargetModel!]
+  visualSetups: [VisualSetupModel!]
 }
 
 type ProductModelLinkedAssetModel {
@@ -681,6 +732,7 @@ type Query {
   health: String!
   libraryFolders(parentId: String, projectId: String!): [LibraryFolderModel!]!
   materialAssets(projectId: String!): [MaterialAssetModel!]!
+  materialAssetRevisions(materialAssetId: String!): [MaterialAssetRevisionModel!]!
   me: AuthUserModel!
   myProjects: [MyProjectModel!]!
   objectAsset(id: String!): ObjectAssetModel!
@@ -712,7 +764,9 @@ type Query {
 }
 
 type Resolved3DStateModel {
+  activeMaterialAssetRevisionIds: [String!]!
   activeObjectAssetRevisionIds: [String!]!
+  activeTextureAssetRevisionIds: [String!]!
   effects: [ResolvedVisualEffectModel!]!
   modelId: String
   rootObjectAssetRevisionId: String
@@ -740,7 +794,8 @@ type ResolvedConfigurationModel {
 type ResolvedVisualEffectModel {
   documentUrl: String
   linkedAssetKey: String
-  materialAssetId: String
+  materialAssetRevisionId: String
+  materialSlot: String
   nodePath: String
   objectAssetRevisionId: String
   operation: VisualOperation!
@@ -776,13 +831,19 @@ type SavedConfigurationModel {
 
 type TextureAssetModel {
   code: String
+  createdAt: DateTime!
+  currentRevisionId: String
   fileSha256: String!
   fileUri: String!
+  fileUrl: String
   folderId: ID
   id: ID!
+  mimeType: String
   name: String!
   organizationId: String!
   projectId: String!
+  sizeBytes: Float
+  updatedAt: DateTime!
 }
 
 input UpdateMaterialAssetInput {
@@ -817,6 +878,15 @@ type VisualEffectModel {
   modelTargetId: String!
   operation: VisualOperation!
   valueJson: String!
+}
+
+type VisualSetupModel {
+  id: ID!
+  productModelId: String!
+  modelTargetId: String!
+  operation: VisualOperation!
+  valueJson: String!
+  sortOrder: Float!
 }
 
 enum VisualOperation {

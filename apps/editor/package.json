@@ -13,10 +13,13 @@
   },
   "dependencies": {
     "@repo/product-graph": "*",
+    "@repo/store": "*",
     "@repo/ui": "*",
+    "lucide-react": "^1.33.0",
     "next": "16.3.0",
     "react": "^19.2.0",
     "react-dom": "^19.1.0",
+    "react-resizable-panels": "^4.12.3",
     "three": "^0.185.1",
     "zustand": "^5.0.3"
   },
@@ -39,7 +42,11 @@
     "typescript": "5.9.2"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "json", "ts"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
@@ -53,7 +60,9 @@
             "strict": true,
             "skipLibCheck": true,
             "paths": {
-              "@/*": ["./*"]
+              "@/*": [
+                "./*"
+              ]
             }
           }
         }
@@ -62,6 +71,7 @@
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
       "^@repo/product-graph$": "<rootDir>/../../packages/product-graph/src/index.ts",
+      "^@repo/store$": "<rootDir>/../../packages/store/src/index.ts",
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "testEnvironment": "node"

@@ -8,9 +8,7 @@ import { createProductModelAction } from '@/actions/graph';
 import { ChangeProductModelForm } from '@/components/products/workspace/change-product-model-form';
 import { ModelGlbPreview } from '@/components/library/model-preview';
 import {
-  ChevronDownIcon,
   ChevronRightIcon,
-  ChevronUpIcon,
   CloseIcon,
   ExternalLinkIcon,
   EyeIcon,
@@ -22,6 +20,7 @@ import {
 } from '@/components/bo/icons';
 import { EmptyState } from '@/components/bo';
 import { StatusBadge } from '@/components/bo/states/operational-states';
+import { ThreeDMappingsSection } from '@/components/products/workspace/three-d-mappings-section';
 import { getEditorStudioPath, getProduct3DStudioPath } from '@/lib/editor-embed';
 import type { ShopifyCommerceView } from '@/actions/shopify';
 import {
@@ -56,7 +55,6 @@ export function ThreeDTab({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const live = useLiveProductData(detail, shopifyCommerce);
-  const [expandedMapping, setExpandedMapping] = useState<'color' | 'frame' | null>('color');
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [showAttach, setShowAttach] = useState(false);
   const [showChangeModel, setShowChangeModel] = useState(false);
@@ -446,206 +444,15 @@ export function ThreeDTab({
           </div>
         </div>
 
-        {/* Bottom Section: 3D Mappings */}
-        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] p-4 shadow-xs space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
-            <div>
-              <h3 className="text-[14px] font-semibold text-[var(--ink)]">3D Mappings</h3>
-              <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-                Define how options map to 3D materials, meshes, and textures.
-              </p>
-            </div>
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => toast.info('Add 3D mapping')}
-              className="ui:flex ui:items-center ui:gap-1.5 ui:h-8 ui:px-3 ui:rounded-lg ui:bg-[var(--ink)] ui:hover:bg-black ui:text-white ui:text-[12px] ui:font-medium ui:shadow-xs"
-            >
-              <PlusIcon size={14} />
-              <span>Add mapping</span>
-            </Button>
-          </div>
-
-          {/* Mapping Accordion Cards */}
-          <div className="space-y-3">
-            {/* Mapping 1: Color: Black (Expanded) */}
-            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] overflow-hidden transition-all">
-              <div
-                className="flex items-center justify-between p-3.5 cursor-pointer bg-[var(--canvas)]/40 hover:bg-[var(--canvas)]/70 transition-colors"
-                onClick={() =>
-                  setExpandedMapping((cur) => (cur === 'color' ? null : 'color'))
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <span className="h-4 w-4 rounded border border-black/30 bg-black" />
-                  <span className="text-[13px] font-semibold text-[var(--ink)]">
-                    Color: Black
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                    <span className="text-[11px] font-medium text-emerald-800">Active</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-[12px] text-[var(--text-secondary)]">
-                    Used in 4 variants
-                  </span>
-                  <span className="text-[var(--text-muted)]">
-                    {expandedMapping === 'color' ? (
-                      <ChevronUpIcon size={15} />
-                    ) : (
-                      <ChevronDownIcon size={15} />
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              {expandedMapping === 'color' ? (
-                <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-pure)] grid grid-cols-1 sm:grid-cols-3 gap-6 text-[12px]">
-                  {/* Maps to */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                      Maps to
-                    </p>
-                    <div className="space-y-1.5 font-mono text-[12px]">
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">Material</span>
-                        <span className="text-[var(--ink)]">Chair_Fabric</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">Body</span>
-                        <span className="text-[var(--ink)]">Chair_Frame</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">Fabric</span>
-                        <span className="text-[var(--ink)]">Fabric_Seat</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Values */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                      Values
-                    </p>
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <span className="h-4 w-4 rounded border border-black/30 bg-black" />
-                      <span className="font-medium text-[var(--ink)]">Black</span>
-                    </div>
-                  </div>
-
-                  {/* Targets */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                      Targets
-                    </p>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                        <span>✓</span>
-                        <span>Web</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                        <span>✓</span>
-                        <span>AR</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                        <span>✓</span>
-                        <span>Thumbnails</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Mapping 2: Frame: Walnut (Collapsed) */}
-            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-pure)] overflow-hidden transition-all">
-              <div
-                className="flex items-center justify-between p-3.5 cursor-pointer bg-[var(--canvas)]/40 hover:bg-[var(--canvas)]/70 transition-colors"
-                onClick={() =>
-                  setExpandedMapping((cur) => (cur === 'frame' ? null : 'frame'))
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <span className="h-4 w-4 rounded border border-black/30 bg-[#5C3A21]" />
-                  <span className="text-[13px] font-semibold text-[var(--ink)]">
-                    Frame: Walnut
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                    <span className="text-[11px] font-medium text-emerald-800">Active</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-[12px] text-[var(--text-secondary)]">
-                    Used in 4 variants
-                  </span>
-                  <span className="text-[var(--text-muted)]">
-                    {expandedMapping === 'frame' ? (
-                      <ChevronUpIcon size={15} />
-                    ) : (
-                      <ChevronDownIcon size={15} />
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              {expandedMapping === 'frame' ? (
-                <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-pure)] grid grid-cols-1 sm:grid-cols-3 gap-6 text-[12px]">
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                      Maps to
-                    </p>
-                    <div className="space-y-1.5 font-mono text-[12px]">
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">Material</span>
-                        <span className="text-[var(--ink)]">Wood_Walnut</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">Frame</span>
-                        <span className="text-[var(--ink)]">Legs_Armrest</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                      Values
-                    </p>
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <span className="h-4 w-4 rounded border border-black/30 bg-[#5C3A21]" />
-                      <span className="font-medium text-[var(--ink)]">Walnut</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                      Targets
-                    </p>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                        <span>✓</span>
-                        <span>Web</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                        <span>✓</span>
-                        <span>AR</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {/* Callout Notice */}
-          <div className="rounded-xl border border-[var(--line)] bg-[var(--canvas)]/40 px-4 py-3 text-[12px] text-[var(--text-secondary)] flex items-center gap-2">
-            <span className="text-[13px] text-[var(--text-muted)]">ⓘ</span>
-            <span>Changes to mappings may require regenerating 3D assets for some targets.</span>
-          </div>
-        </div>
+        <ThreeDMappingsSection
+          projectId={projectId}
+          productId={productId}
+          modelId={primaryModel?.id}
+          detail={detail}
+          objectAssets={objectAssets}
+          materialAssets={materialAssets}
+          editable={editable}
+        />
       </div>
 
       {/* Right Inspector Drawer (~4 cols / 340px) */}

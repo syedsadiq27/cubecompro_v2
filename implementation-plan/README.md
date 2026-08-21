@@ -1,4 +1,4 @@
-# CubeCom Product Model — Docs (1 → 4C)
+# CubeCom Product Model — Docs (1 → 4E)
 
 **Read this first.** Slice files below are implementation handoffs; this page is the product-shaped map.
 
@@ -15,7 +15,7 @@ What is the product?
   → What freezes on publish?
 ```
 
-Status through 4C:
+Status through 4E:
 
 | Capability | Status |
 |---|---|
@@ -25,8 +25,11 @@ Status through 4C:
 | Immutable root 3D pin | ✅ 4A frozen |
 | Multi-asset model registry | ✅ 4B frozen |
 | REPLACE_COMPONENT activation | ✅ 4C narrow |
+| Material + texture revisions + SET_MATERIAL | ✅ 4D narrow |
+| Integrated multi-asset replay (structure + root surfaces) | ✅ 4E |
+| Active product-first 3D editor authoring | ✅ 4E.1 (visual stack + MODEL/CONFIG) |
 
-Do not start 4D+ without explicit approval.
+Do not start 4F+ without explicit approval.
 
 ---
 
@@ -267,14 +270,14 @@ Same ProductRevision + same Selection + same frozen asset graph
 
 ---
 
-## 8. What comes next (not started)
+## 8. What comes next
 
 | Slice | Product capability |
 |---|---|
-| **4D** | Immutable Material/Texture revisions; SET_MATERIAL pins exact material revision |
-| **4E** | Real integrated authoring + replay across object replacement + materials |
 | **4F** | Attachment points, ATTACH_OBJECT, transforms |
 | **4G** | Decorations (decals, logos, engraving) |
+
+Done recently: **4E** runtime composition; **4E.1** VisualSetup stack + MODEL/CONFIG editor (`4E.1-implementation.md`).
 
 ---
 
@@ -293,3 +296,10 @@ Use when implementing or debugging a specific handoff. Prefer §§1–7 above fo
 | [`4B-implementation.md`](./4B-implementation.md) | 4B shipping notes |
 | [`4C-object-replacement.md`](./4C-object-replacement.md) | REPLACE_COMPONENT |
 | [`4C-implementation.md`](./4C-implementation.md) | 4C shipping notes |
+| [`4d-material-texture-revision.md`](./4d-material-texture-revision.md) | Material + texture revisions |
+| [`4D-implementation.md`](./4D-implementation.md) | 4D shipping notes |
+| [`4e-integrated-multi-asset-replay.md`](./4e-integrated-multi-asset-replay.md) | Integrated multi-asset replay |
+| [`4E-implementation.md`](./4E-implementation.md) | 4E shipping notes |
+| [`4E.1-active-3d-editor-authoring-state.md`](./4E.1-active-3d-editor-authoring-state.md) | Earlier 4E.1 authoring brief |
+| [`4E.1-product-model-visual-stack.md`](./4E.1-product-model-visual-stack.md) | **Canonical** visual stack + MODEL/CONFIGURATION split |
+| [`4E.1-implementation.md`](./4E.1-implementation.md) | 4E.1 shipping / pivot notes |

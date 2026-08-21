@@ -6,10 +6,13 @@ import { useEditorStore } from '@/lib/editor-store';
 
 export function SceneInspector() {
   const editorDocument = useEditorStore((state) => state.document);
+  const projection = useEditorStore((state) => state.cameraConfig.projection);
+  const updateCameraConfig = useEditorStore(
+    (state) => state.updateCameraConfig
+  );
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
   const [environment, setEnvironment] = useState('Studio Soft');
-  const [camera, setCamera] = useState('Perspective');
   const [units, setUnits] = useState('Inches');
 
   return (
@@ -36,12 +39,20 @@ export function SceneInspector() {
           <div className="flex items-center justify-between py-1">
             <span className="text-[var(--text-muted)]">Camera</span>
             <select
-              value={camera}
-              onChange={(e) => setCamera(e.target.value)}
+              value={projection}
+              onChange={(e) => {
+                const next = e.target.value as 'PERSPECTIVE' | 'ORTHOGRAPHIC';
+                updateCameraConfig({ projection: next });
+                setStatusMessage(
+                  next === 'ORTHOGRAPHIC'
+                    ? 'Switched to Orthographic projection'
+                    : 'Switched to Perspective projection'
+                );
+              }}
               className="rounded-md border border-[var(--line)] bg-[var(--surface-pure)] px-2 py-0.5 text-[11px] text-[var(--ink)] outline-none"
             >
-              <option value="Perspective">Perspective</option>
-              <option value="Orthographic">Orthographic</option>
+              <option value="PERSPECTIVE">Perspective</option>
+              <option value="ORTHOGRAPHIC">Orthographic</option>
             </select>
           </div>
           <div className="flex items-center justify-between py-1">

@@ -1,7 +1,7 @@
 import type { Object3D } from 'three';
 import {
   coerceMaterialDocument,
-  materialDocumentUrl,
+  materialAssetRevisionDocumentUrl,
   type GraphDetail,
   type GraphSessionAuth,
 } from '@repo/product-graph';
@@ -70,22 +70,22 @@ export async function applyPreviewConfiguration(
     }
 
     if (effect.operation === 'SET_MATERIAL' && auth) {
-      let materialAssetId: string | null = null;
+      let materialAssetRevisionId: string | null = null;
       try {
         const parsed = JSON.parse(effect.valueJson) as {
-          materialAssetId?: string;
+          materialAssetRevisionId?: string;
         };
-        materialAssetId =
-          typeof parsed?.materialAssetId === 'string'
-            ? parsed.materialAssetId
+        materialAssetRevisionId =
+          typeof parsed?.materialAssetRevisionId === 'string'
+            ? parsed.materialAssetRevisionId
             : null;
       } catch {
-        materialAssetId = null;
+        materialAssetRevisionId = null;
       }
-      if (!materialAssetId) continue;
+      if (!materialAssetRevisionId) continue;
 
       const response = await fetch(
-        materialDocumentUrl(auth.apiUrl, materialAssetId),
+        materialAssetRevisionDocumentUrl(auth.apiUrl, materialAssetRevisionId),
         {
           headers: { Authorization: `Bearer ${auth.token}` },
           cache: 'no-store',

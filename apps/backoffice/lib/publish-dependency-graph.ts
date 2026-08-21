@@ -132,36 +132,49 @@ export function buildPublishDependencyGraph(input: {
     blockers.push('No 3D model attached to this draft');
   }
 
-  const materialIds = new Set<string>();
+  const materialByRevisionId = new Map(
+    materialAssets
+      .filter((material) => material.currentRevisionId)
+      .map((material) => [material.currentRevisionId as string, material])
+  );
+
+  const materialRevisionIds = new Set<string>();
   for (const effect of detail.visualEffects) {
     try {
-      const value = JSON.parse(effect.valueJson) as { materialAssetId?: string };
-      if (value.materialAssetId) materialIds.add(value.materialAssetId);
+      const value = JSON.parse(effect.valueJson) as {
+        materialAssetRevisionId?: string;
+      };
+      if (value.materialAssetRevisionId) {
+        materialRevisionIds.add(value.materialAssetRevisionId);
+      }
     } catch {
       /* ignore */
     }
   }
 
-  const materialNodes: PublishDependencyNode[] = [...materialIds].map((id) => {
-    const material = materialById.get(id);
-    if (!material) {
-      blockers.push(`Visual mapping references missing material ${id}`);
+  const materialNodes: PublishDependencyNode[] = [...materialRevisionIds].map(
+    (id) => {
+      const material =
+        materialByRevisionId.get(id) ?? materialById.get(id) ?? null;
+      if (!material) {
+        blockers.push(`Visual mapping references missing material ${id}`);
+        return {
+          id: `material:${id}`,
+          kind: 'material' as const,
+          label: 'Unknown material',
+          detail: id,
+          action: 'missing' as const,
+        };
+      }
       return {
         id: `material:${id}`,
         kind: 'material' as const,
-        label: 'Unknown material',
-        detail: id,
-        action: 'missing' as const,
+        label: material.name,
+        detail: material.code || id.slice(0, 12),
+        action: 'include' as const,
       };
     }
-    return {
-      id: `material:${id}`,
-      kind: 'material' as const,
-      label: material.name,
-      detail: material.code || id.slice(0, 12),
-      action: 'include' as const,
-    };
-  });
+  );
 
   const children: PublishDependencyNode[] = [
     {

@@ -7,14 +7,19 @@ describe('documentsMatchForSaveProof', () => {
     productRevisionId: 'rev-a',
     productModelId: 'model-a',
     assetId: 'asset-a',
+    rootObjectAssetRevisionId: 'oar_root',
+    linkedAssets: [
+      { role: 'OBJECT', key: 'root', assetRevisionId: 'oar_root' },
+    ],
     targets: [{ key: 'frame', nodePath: 'Frame' }],
+    setups: [],
     bindings: [
       {
         choiceKey: 'frame',
         valueKey: 'walnut',
         targetKey: 'frame',
         operation: 'SET_MATERIAL',
-        materialAssetId: 'mat-walnut',
+        materialAssetRevisionId: 'mat-walnut',
         effectId: 'e1',
       },
       {
@@ -52,7 +57,7 @@ describe('documentsMatchForSaveProof', () => {
     }
     const changed: VisualDocument = {
       ...base,
-      bindings: [{ ...material, materialAssetId: 'mat-oak' }, visibility],
+      bindings: [{ ...material, materialAssetRevisionId: 'mat-oak' }, visibility],
     };
     expect(documentsMatchForSaveProof(base, changed)).toBe(false);
   });

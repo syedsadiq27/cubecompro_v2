@@ -4,6 +4,9 @@ export function formatVisualAddress(address: VisualAddress): string {
   if (address.property === 'visibility') {
     return `${address.targetKey}/visibility`;
   }
+  if (address.property === 'structure') {
+    return `${address.targetKey}/structure`;
+  }
   if (address.materialSlot !== undefined && address.materialSlot !== '') {
     return `${address.targetKey}/material/${address.materialSlot}`;
   }
@@ -18,6 +21,12 @@ export function visualAddressForBinding(
     return {
       targetKey: binding.targetKey,
       property: 'visibility',
+    };
+  }
+  if (binding.operation === 'REPLACE_COMPONENT') {
+    return {
+      targetKey: binding.targetKey,
+      property: 'structure',
     };
   }
   const target = targetsByKey.get(binding.targetKey);

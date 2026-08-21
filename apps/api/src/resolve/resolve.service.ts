@@ -9,6 +9,7 @@ import {
 import {
   deriveVisualState,
   isReplaceComponentValue,
+  isSetMaterialValue,
   type VisualAssetBinding,
 } from '@repo/product-graph';
 import {
@@ -20,6 +21,7 @@ import {
   type Selection,
 } from '../product/kernel-runtime';
 import { ProductService } from '../product/product.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 export type ConfigurationState = {
   productId: string;
@@ -36,13 +38,16 @@ export type ResolvedConfiguration = {
     modelId: string | null;
     rootObjectAssetRevisionId: string | null;
     activeObjectAssetRevisionIds: string[];
+    activeMaterialAssetRevisionIds: string[];
+    activeTextureAssetRevisionIds: string[];
     effects: Array<{
       targetKey: string;
       targetType: string;
       nodePath: string | null;
+      materialSlot?: string | null;
       operation: VisualOperation;
       value: unknown;
-      materialAssetId?: string | null;
+      materialAssetRevisionId?: string | null;
       objectAssetRevisionId?: string | null;
       linkedAssetKey?: string | null;
       documentUrl?: string | null;
@@ -61,7 +66,10 @@ export type ResolvedConfiguration = {
 
 @Injectable()
 export class ResolveService {
-  constructor(private readonly products: ProductService) {}
+  constructor(
+    private readonly products: ProductService,
+    private readonly prisma: PrismaService
+  ) {}
 
   async resolve(state: ConfigurationState): Promise<ResolvedConfiguration> {
     const versionMeta = await this.products.getActiveOrVersion(
@@ -119,44 +127,131 @@ export class ResolveService {
       )
     );
 
+    const pendingMaterialRevisionIds = new Set<string>();
+    const staticSetup: Array<
+      | {
+          targetKey: string;
+          operation: 'REPLACE_COMPONENT';
+          linkedAssetKey: string;
+          expectedRole: 'OBJECT';
+        }
+      | {
+          targetKey: string;
+          operation: 'SET_MATERIAL';
+          materialAssetRevisionId: string;
+          materialSlot?: string;
+        }
+    > = [];
+
+    for (const setup of primaryModel?.visualSetups ?? []) {
+      const target = targetById.get(setup.modelTargetId);
+      if (!target) continue;
+      if (setup.operation === VisualOperation.REPLACE_COMPONENT) {
+        if (!isReplaceComponentValue(setup.value)) continue;
+        staticSetup.push({
+          targetKey: target.key,
+          operation: 'REPLACE_COMPONENT',
+          linkedAssetKey: setup.value.linkedAssetKey,
+          expectedRole: 'OBJECT',
+        });
+        continue;
+      }
+      if (setup.operation === VisualOperation.SET_MATERIAL) {
+        if (!isSetMaterialValue(setup.value)) continue;
+        const materialAssetRevisionId =
+          setup.value.materialAssetRevisionId.trim();
+        pendingMaterialRevisionIds.add(materialAssetRevisionId);
+        staticSetup.push({
+          targetKey: target.key,
+          operation: 'SET_MATERIAL',
+          materialAssetRevisionId,
+          ...(target.materialSlot
+            ? { materialSlot: target.materialSlot }
+            : {}),
+        });
+      }
+    }
+
     for (const effect of detail.visualEffects) {
-      if (effect.operation !== VisualOperation.REPLACE_COMPONENT) continue;
-      if (!isReplaceComponentValue(effect.value)) continue;
-      const replaceValue = effect.value;
       const target = targetById.get(effect.modelTargetId);
       const choiceValue = choiceValueById.get(effect.choiceValueId);
       if (!target || !choiceValue) continue;
-      bindings.push({
-        choiceKey: choiceValue.choiceKey,
-        choiceValueKey: choiceValue.choiceValueKey,
-        targetKey: target.key,
-        operation: 'REPLACE_COMPONENT',
-        linkedAssetKey: replaceValue.linkedAssetKey,
-        expectedRole: 'OBJECT',
-      });
+
+      if (effect.operation === VisualOperation.REPLACE_COMPONENT) {
+        if (!isReplaceComponentValue(effect.value)) continue;
+        const replaceValue = effect.value;
+        bindings.push({
+          choiceKey: choiceValue.choiceKey,
+          choiceValueKey: choiceValue.choiceValueKey,
+          targetKey: target.key,
+          operation: 'REPLACE_COMPONENT',
+          linkedAssetKey: replaceValue.linkedAssetKey,
+          expectedRole: 'OBJECT',
+        });
+        continue;
+      }
+
+      if (effect.operation === VisualOperation.SET_MATERIAL) {
+        if (!isSetMaterialValue(effect.value)) continue;
+        const materialAssetRevisionId =
+          effect.value.materialAssetRevisionId.trim();
+        pendingMaterialRevisionIds.add(materialAssetRevisionId);
+        bindings.push({
+          choiceKey: choiceValue.choiceKey,
+          choiceValueKey: choiceValue.choiceValueKey,
+          targetKey: target.key,
+          ...(target.materialSlot
+            ? { materialSlot: target.materialSlot }
+            : {}),
+          operation: 'SET_MATERIAL',
+          materialAssetRevisionId,
+        });
+      }
     }
 
-    const visualState = primaryModel
-      ? deriveVisualState({
-          rootObjectAssetRevisionId: primaryModel.objectAssetRevisionId,
-          linkedAssets: primaryModel.linkedAssets.map((link) => ({
-            id: link.id,
-            role: link.role as
-              | 'OBJECT'
-              | 'MATERIAL'
-              | 'TEXTURE'
-              | 'ENVIRONMENT'
-              | 'SHADER'
-              | 'ANIMATION',
-            key: link.key,
-            assetRevisionId: link.assetRevisionId,
-          })),
-          selection: selectionRecord,
-          bindings,
-        })
-      : null;
+    const textureRevisionsByMaterialRevisionId: Record<string, string[]> = {};
+    if (pendingMaterialRevisionIds.size > 0) {
+      const materialRevisions =
+        await this.prisma.materialAssetRevision.findMany({
+          where: { id: { in: [...pendingMaterialRevisionIds] } },
+          include: { textureUsages: true },
+        });
+      for (const revision of materialRevisions) {
+        textureRevisionsByMaterialRevisionId[revision.id] =
+          revision.textureUsages.map((usage) => usage.textureAssetRevisionId);
+      }
+    }
 
-    const threeD = {
+    let visualState = null;
+    try {
+      visualState = primaryModel
+        ? deriveVisualState({
+            rootObjectAssetRevisionId: primaryModel.objectAssetRevisionId,
+            linkedAssets: primaryModel.linkedAssets.map((link) => ({
+              id: link.id,
+              role: link.role as
+                | 'OBJECT'
+                | 'MATERIAL'
+                | 'TEXTURE'
+                | 'ENVIRONMENT'
+                | 'SHADER'
+                | 'ANIMATION',
+              key: link.key,
+              assetRevisionId: link.assetRevisionId,
+            })),
+            selection: selectionRecord,
+            staticSetup,
+            bindings,
+            textureRevisionsByMaterialRevisionId,
+          })
+        : null;
+    } catch (error) {
+      violations.push(
+        error instanceof Error ? error.message : 'Visual state derivation failed'
+      );
+    }
+
+    const threeD: ResolvedConfiguration['threeD'] = {
       modelId: primaryModel?.id ?? null,
       rootObjectAssetRevisionId:
         visualState?.rootObjectAssetRevisionId ??
@@ -165,7 +260,11 @@ export class ResolveService {
       activeObjectAssetRevisionIds:
         visualState?.activeAssets.objectAssetRevisionIds ??
         (primaryModel ? [primaryModel.objectAssetRevisionId] : []),
-      effects: [] as ResolvedConfiguration['threeD']['effects'],
+      activeMaterialAssetRevisionIds:
+        visualState?.activeAssets.materialAssetRevisionIds ?? [],
+      activeTextureAssetRevisionIds:
+        visualState?.activeAssets.textureAssetRevisionIds ?? [],
+      effects: [],
     };
 
     const commerce: ResolvedConfiguration['commerce'] = {
@@ -176,7 +275,7 @@ export class ResolveService {
       cartPayload: null,
     };
 
-    if (valid) {
+    if (valid && violations.length === 0) {
       const selectedValueIds = new Set<string>();
       for (const attribute of choicesData) {
         if (attribute.type !== AttributeType.SELECT) {
@@ -195,18 +294,20 @@ export class ResolveService {
         if (!target) continue;
 
         if (effect.operation === VisualOperation.SET_MATERIAL) {
-          const materialAssetId = readMaterialAssetId(effect.value);
-          if (!materialAssetId) continue;
+          if (!isSetMaterialValue(effect.value)) continue;
+          const materialAssetRevisionId =
+            effect.value.materialAssetRevisionId.trim();
           threeD.effects.push({
             targetKey: target.key,
             targetType: target.targetType,
             nodePath: target.nodePath ?? null,
+            materialSlot: target.materialSlot ?? null,
             operation: effect.operation,
-            value: { materialAssetId },
-            materialAssetId,
+            value: { materialAssetRevisionId },
+            materialAssetRevisionId,
             objectAssetRevisionId: null,
             linkedAssetKey: null,
-            documentUrl: publicMaterialUrl(materialAssetId),
+            documentUrl: publicMaterialRevisionUrl(materialAssetRevisionId),
           });
           continue;
         }
@@ -224,12 +325,13 @@ export class ResolveService {
             targetKey: target.key,
             targetType: target.targetType,
             nodePath: target.nodePath ?? null,
+            materialSlot: target.materialSlot ?? null,
             operation: effect.operation,
             value: {
               linkedAssetKey: replaceValue.linkedAssetKey,
               role: 'OBJECT',
             },
-            materialAssetId: null,
+            materialAssetRevisionId: null,
             objectAssetRevisionId: link.assetRevisionId,
             linkedAssetKey: replaceValue.linkedAssetKey,
             documentUrl: publicObjectRevisionUrl(link.assetRevisionId),
@@ -241,9 +343,10 @@ export class ResolveService {
           targetKey: target.key,
           targetType: target.targetType,
           nodePath: target.nodePath ?? null,
+          materialSlot: target.materialSlot ?? null,
           operation: effect.operation,
           value: effect.value,
-          materialAssetId: null,
+          materialAssetRevisionId: null,
           objectAssetRevisionId: null,
           linkedAssetKey: null,
           documentUrl: null,
@@ -280,7 +383,7 @@ export class ResolveService {
     }
 
     return {
-      valid,
+      valid: valid && violations.length === 0,
       violations,
       selections: normalized,
       availability,
@@ -376,6 +479,8 @@ function emptyUnresolved(
       modelId: null,
       rootObjectAssetRevisionId: null,
       activeObjectAssetRevisionIds: [],
+      activeMaterialAssetRevisionIds: [],
+      activeTextureAssetRevisionIds: [],
       effects: [],
     },
     commerce: {
@@ -390,20 +495,8 @@ function emptyUnresolved(
   };
 }
 
-function readMaterialAssetId(value: unknown): string | null {
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    'materialAssetId' in value &&
-    typeof (value as { materialAssetId: unknown }).materialAssetId === 'string'
-  ) {
-    return (value as { materialAssetId: string }).materialAssetId;
-  }
-  return null;
-}
-
-function publicMaterialUrl(materialAssetId: string): string {
-  return `/documents/materials/${materialAssetId}`;
+function publicMaterialRevisionUrl(materialAssetRevisionId: string): string {
+  return `/documents/material-revisions/${materialAssetRevisionId}`;
 }
 
 function publicObjectRevisionUrl(objectAssetRevisionId: string): string {

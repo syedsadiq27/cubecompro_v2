@@ -31,10 +31,15 @@ export function EditorViewport() {
       const entry = entries[0];
       if (!entry) return;
       const { width, height } = entry.contentRect;
+      if (width <= 0 || height <= 0) return;
       runtime.resize(width, height);
     });
     observer.observe(host);
-    runtime.resize(host.clientWidth, host.clientHeight);
+
+    const { width, height } = host.getBoundingClientRect();
+    if (width > 0 && height > 0) {
+      runtime.resize(width, height);
+    }
 
     return () => {
       window.cancelAnimationFrame(frame);

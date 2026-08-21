@@ -24,6 +24,7 @@ import {
   TagIcon,
 } from '@/components/bo/icons';
 import type { ReactNode } from 'react';
+import { useBackofficeStore } from '@/lib/backoffice-store';
 
 type NavItem = { href: string; label: string; icon: ReactNode };
 
@@ -197,24 +198,24 @@ function ProjectSidebar({
 
 export function AppShell({
   children,
-  projectId,
-  projectName,
-  userName,
   supportSession,
 }: {
   children: React.ReactNode;
-  projectId?: string;
-  projectName?: string;
-  userName: string;
   supportSession?: {
     actingAdmin: string;
     sessionId: string;
     expiresAt: string;
   } | null;
 }) {
+  const userName = useBackofficeStore((state) => state.userName) ?? '';
+  const projectId = useBackofficeStore((state) => state.projectId);
+  const projectName = useBackofficeStore((state) => state.projectName);
+  const organizationName =
+    useBackofficeStore((state) => state.organizationName) ?? 'Default Org';
   return (
     <BackofficeShell
       projectName={projectName}
+      orgName={organizationName}
       sidebar={
         <ProjectSidebar
           projectId={projectId}

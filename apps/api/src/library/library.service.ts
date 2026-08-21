@@ -7,12 +7,16 @@ import {
 import {
   ObjectAssetPurpose,
   ObjectAssetStatus,
+  LibraryRevisionStatus,
   ProductStatus,
+  TextureSemanticSlot,
+  type Prisma,
 } from '@prisma/client';
 import { DocumentStoreService } from '../documents/document-store.service';
 import { EntitlementService } from '../entitlements/entitlement.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseGlbMetadata } from './parse-glb';
+import { MATERIAL_FACTORS, TEXTURE_SLOT_PROPERTIES, normalizeMaterialSampler } from '@repo/product-graph';
 
 @Injectable()
 export class LibraryService {
@@ -77,12 +81,35 @@ export class LibraryService {
       .findMany({
         where: { projectId },
         orderBy: { name: 'asc' },
+        include: {
+          revisions: { orderBy: { version: 'desc' } },
+        },
       })
       .then((assets) =>
-        assets.map((asset) => ({
-          ...asset,
-          documentUrl: this.publicMaterialUrl(asset.id),
-        }))
+        assets.map((asset) => {
+          const published = asset.revisions.find(
+            (row) => row.status === LibraryRevisionStatus.PUBLISHED
+          );
+          const draft = asset.revisions.find(
+            (row) => row.status === LibraryRevisionStatus.DRAFT
+          );
+          return {
+            id: asset.id,
+            organizationId: asset.organizationId,
+            projectId: asset.projectId,
+            folderId: asset.folderId,
+            name: asset.name,
+            code: asset.code,
+            documentUri: asset.documentUri,
+            documentSha256: asset.documentSha256,
+            documentUrl: this.publicMaterialUrl(asset.id),
+            currentRevisionId: (draft ?? published)?.id ?? null,
+            publishedRevisionId: published?.id ?? null,
+            hasDraft: Boolean(draft),
+            createdAt: asset.createdAt,
+            updatedAt: asset.updatedAt,
+          };
+        })
       );
   }
 
@@ -112,10 +139,12 @@ export class LibraryService {
     document = normalizeMaterialDocument(document);
 
     const idHint = cryptoRandom();
-    const stored = await this.documents.putJson(
-      `${input.organizationId}/${input.projectId}/materials/${idHint}.json`,
-      document
-    );
+    const frozen = await this.freezeMaterialDocument({
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      idHint,
+      document: document as Record<string, unknown>,
+    });
 
     const created = await this.prisma.materialAsset.create({
       data: {
@@ -124,13 +153,43 @@ export class LibraryService {
         folderId: input.folderId,
         name: input.name,
         code: input.code,
-        documentUri: stored.uri,
-        documentSha256: stored.sha256,
+        documentUri: frozen.definitionUri,
+        documentSha256: frozen.contentHash,
+        revisions: {
+          create: {
+            version: 1,
+            status: LibraryRevisionStatus.DRAFT,
+            definitionUri: frozen.definitionUri,
+            contentHash: frozen.contentHash,
+            textureUsages: {
+              create: frozen.textureUsages.map((usage) => ({
+                slot: usage.slot,
+                textureAssetRevisionId: usage.textureAssetRevisionId,
+                ...(usage.texCoord !== undefined
+                  ? { texCoord: usage.texCoord }
+                  : {}),
+                ...(usage.transformJson
+                  ? { transformJson: usage.transformJson }
+                  : {}),
+                ...(usage.samplerJson
+                  ? { samplerJson: usage.samplerJson }
+                  : {}),
+              })),
+            },
+          },
+        },
+      },
+      include: {
+        revisions: { orderBy: { version: 'desc' }, take: 1 },
       },
     });
+
     return {
       ...created,
       documentUrl: this.publicMaterialUrl(created.id),
+      currentRevisionId: created.revisions[0]?.id ?? null,
+      publishedRevisionId: null,
+      hasDraft: true,
     };
   }
 
@@ -142,6 +201,9 @@ export class LibraryService {
   }) {
     const existing = await this.prisma.materialAsset.findUnique({
       where: { id: input.id },
+      include: {
+        revisions: { orderBy: { version: 'desc' } },
+      },
     });
     if (!existing) {
       throw new NotFoundException('Material asset not found');
@@ -162,6 +224,15 @@ export class LibraryService {
     if (input.code !== undefined) {
       data.code = input.code.trim() || null;
     }
+
+    const draft = existing.revisions.find(
+      (row) => row.status === LibraryRevisionStatus.DRAFT
+    );
+    const published = existing.revisions.find(
+      (row) => row.status === LibraryRevisionStatus.PUBLISHED
+    );
+    let currentRevisionId = (draft ?? published)?.id ?? null;
+
     if (input.documentJson !== undefined) {
       let document: unknown;
       try {
@@ -170,21 +241,111 @@ export class LibraryService {
         throw new BadRequestException('documentJson must be valid JSON');
       }
       document = normalizeMaterialDocument(document);
-      const stored = await this.documents.putJson(
-        `${existing.organizationId}/${existing.projectId}/materials/${existing.id}.json`,
-        document
-      );
-      data.documentUri = stored.uri;
-      data.documentSha256 = stored.sha256;
+
+      const version =
+        draft?.version ?? (existing.revisions[0]?.version ?? 0) + 1;
+      const frozen = await this.freezeMaterialDocument({
+        organizationId: existing.organizationId,
+        projectId: existing.projectId,
+        idHint: `${existing.id}-v${version}-draft`,
+        document: document as Record<string, unknown>,
+      });
+      data.documentUri = frozen.definitionUri;
+      data.documentSha256 = frozen.contentHash;
+
+      const usageRows = frozen.textureUsages.map((usage) => ({
+        slot: usage.slot,
+        textureAssetRevisionId: usage.textureAssetRevisionId,
+        ...(usage.texCoord !== undefined ? { texCoord: usage.texCoord } : {}),
+        ...(usage.transformJson
+          ? { transformJson: usage.transformJson }
+          : {}),
+        ...(usage.samplerJson ? { samplerJson: usage.samplerJson } : {}),
+      }));
+
+      if (draft) {
+        await this.prisma.$transaction(async (tx) => {
+          await tx.materialTextureUsage.deleteMany({
+            where: { materialAssetRevisionId: draft.id },
+          });
+          await tx.materialAssetRevision.update({
+            where: { id: draft.id },
+            data: {
+              definitionUri: frozen.definitionUri,
+              contentHash: frozen.contentHash,
+              frozenAt: new Date(),
+              textureUsages: { create: usageRows },
+            },
+          });
+        });
+        currentRevisionId = draft.id;
+      } else {
+        const revision = await this.prisma.materialAssetRevision.create({
+          data: {
+            materialAssetId: existing.id,
+            version,
+            status: LibraryRevisionStatus.DRAFT,
+            definitionUri: frozen.definitionUri,
+            contentHash: frozen.contentHash,
+            textureUsages: { create: usageRows },
+          },
+        });
+        currentRevisionId = revision.id;
+      }
     }
 
     const updated = await this.prisma.materialAsset.update({
       where: { id: existing.id },
       data,
     });
+    const publishedRevision = await this.prisma.materialAssetRevision.findFirst(
+      {
+        where: {
+          materialAssetId: existing.id,
+          status: LibraryRevisionStatus.PUBLISHED,
+        },
+        orderBy: { version: 'desc' },
+      }
+    );
     return {
       ...updated,
       documentUrl: this.publicMaterialUrl(updated.id),
+      currentRevisionId,
+      publishedRevisionId: publishedRevision?.id ?? null,
+      hasDraft: true,
+    };
+  }
+
+  async publishMaterial(id: string) {
+    const draft = await this.prisma.materialAssetRevision.findFirst({
+      where: { materialAssetId: id, status: LibraryRevisionStatus.DRAFT },
+      orderBy: { version: 'desc' },
+    });
+    if (!draft) {
+      throw new BadRequestException('No draft material revision to publish');
+    }
+
+    const published = await this.prisma.materialAssetRevision.update({
+      where: { id: draft.id },
+      data: {
+        status: LibraryRevisionStatus.PUBLISHED,
+        frozenAt: new Date(),
+      },
+    });
+
+    const asset = await this.prisma.materialAsset.findUnique({
+      where: { id },
+    });
+    if (!asset) {
+      throw new NotFoundException('Material asset not found');
+    }
+
+    return {
+      ...asset,
+      documentUrl: this.publicMaterialUrl(asset.id),
+      currentRevisionId: published.id,
+      publishedRevisionId: published.id,
+      hasDraft: false,
     };
   }
 
@@ -192,7 +353,32 @@ export class LibraryService {
     return this.prisma.textureAsset.findMany({
       where: { projectId },
       orderBy: { name: 'asc' },
-    });
+      include: {
+        revisions: { orderBy: { version: 'desc' }, take: 1 },
+      },
+    }).then((assets) =>
+      assets.map((asset) => {
+        const revision = asset.revisions[0];
+        return {
+          id: asset.id,
+          organizationId: asset.organizationId,
+          projectId: asset.projectId,
+          folderId: asset.folderId,
+          name: asset.name,
+          code: asset.code,
+          fileUri: asset.fileUri,
+          fileSha256: asset.fileSha256,
+          currentRevisionId: revision?.id ?? null,
+          fileUrl: revision
+            ? this.publicTextureRevisionUrl(revision.id)
+            : null,
+          sizeBytes: revision?.sizeBytes ?? null,
+          mimeType: revision?.mimeType ?? null,
+          createdAt: asset.createdAt,
+          updatedAt: asset.updatedAt,
+        };
+      })
+    );
   }
 
   async createTexture(input: {
@@ -202,8 +388,48 @@ export class LibraryService {
     name: string;
     code?: string;
     metadataJson?: string;
+    fileBase64?: string;
+    fileName?: string;
   }) {
     await this.assertProject(input.organizationId, input.projectId);
+
+    if (input.fileBase64) {
+      const bytes = Buffer.from(input.fileBase64, 'base64');
+      if (bytes.length === 0) {
+        throw new BadRequestException('Texture file is empty');
+      }
+      const { extension, mimeType } = textureFileMeta(input.fileName);
+      const stored = await this.documents.putImmutableBytes(bytes, extension);
+      const created = await this.prisma.textureAsset.create({
+        data: {
+          organizationId: input.organizationId,
+          projectId: input.projectId,
+          folderId: input.folderId,
+          name: input.name,
+          code: input.code,
+          fileUri: stored.uri,
+          fileSha256: stored.sha256,
+          revisions: {
+            create: {
+              version: 1,
+              status: LibraryRevisionStatus.PUBLISHED,
+              artifactUri: stored.uri,
+              contentHash: stored.sha256,
+              mimeType,
+              sizeBytes: bytes.length,
+            },
+          },
+        },
+        include: {
+          revisions: { orderBy: { version: 'desc' }, take: 1 },
+        },
+      });
+      return {
+        ...created,
+        currentRevisionId: created.revisions[0]?.id ?? null,
+      };
+    }
+
     const metadata = parseOptionalJson(input.metadataJson, {
       kind: 'texture',
       name: input.name,
@@ -214,7 +440,7 @@ export class LibraryService {
       metadata
     );
 
-    return this.prisma.textureAsset.create({
+    const created = await this.prisma.textureAsset.create({
       data: {
         organizationId: input.organizationId,
         projectId: input.projectId,
@@ -223,8 +449,25 @@ export class LibraryService {
         code: input.code,
         fileUri: stored.uri,
         fileSha256: stored.sha256,
+        revisions: {
+          create: {
+            version: 1,
+            status: LibraryRevisionStatus.PUBLISHED,
+            artifactUri: stored.uri,
+            contentHash: stored.sha256,
+            mimeType: 'application/json',
+          },
+        },
+      },
+      include: {
+        revisions: { orderBy: { version: 'desc' }, take: 1 },
       },
     });
+
+    return {
+      ...created,
+      currentRevisionId: created.revisions[0]?.id ?? null,
+    };
   }
 
   private toObjectAssetModel(asset: {
@@ -247,6 +490,8 @@ export class LibraryService {
     meshCount: number | null;
     materialCount: number | null;
     animationCount: number | null;
+    createdAt: Date;
+    updatedAt: Date;
     currentRevisionId?: string | null;
   }) {
     return {
@@ -263,6 +508,7 @@ export class LibraryService {
     id: string;
     objectAssetId: string;
     version: number;
+    status: LibraryRevisionStatus;
     runtimeArtifactUri: string;
     contentHash: string;
     frozenAt: Date;
@@ -295,12 +541,171 @@ export class LibraryService {
     return `${this.publicObjectUrl(id)}/metadata`;
   }
 
+  private async resolveTextureRevisionId(
+    projectId: string,
+    idHint: string
+  ): Promise<string> {
+    const asRevision = await this.prisma.textureAssetRevision.findUnique({
+      where: { id: idHint },
+      include: { textureAsset: true },
+    });
+    if (asRevision) {
+      if (asRevision.textureAsset.projectId !== projectId) {
+        throw new BadRequestException(
+          `Texture revision ${idHint} is outside this project`
+        );
+      }
+      return asRevision.id;
+    }
+
+    const asset = await this.prisma.textureAsset.findFirst({
+      where: { id: idHint, projectId },
+      include: {
+        revisions: { orderBy: { version: 'desc' }, take: 1 },
+      },
+    });
+    if (asset?.revisions[0]) {
+      return asset.revisions[0].id;
+    }
+
+    throw new BadRequestException(
+      `Unknown textureAssetRevisionId / textureAssetId: ${idHint}`
+    );
+  }
+
+  private async freezeMaterialDocument(input: {
+    organizationId: string;
+    projectId: string;
+    idHint: string;
+    document: Record<string, unknown>;
+  }): Promise<{
+    definitionUri: string;
+    contentHash: string;
+    textureUsages: Array<{
+      slot: TextureSemanticSlot;
+      textureAssetRevisionId: string;
+      texCoord?: number;
+      transformJson?: Prisma.InputJsonValue;
+      samplerJson?: Prisma.InputJsonValue;
+    }>;
+  }> {
+    const definition: Record<string, unknown> = {
+      shaderModel: 'PBR',
+    };
+    for (const factor of MATERIAL_FACTORS) {
+      if (input.document[factor.key] !== undefined) {
+        definition[factor.key] = input.document[factor.key];
+      }
+    }
+
+    const usages: Array<{
+      slot: TextureSemanticSlot;
+      textureAssetRevisionId: string;
+      texCoord?: number;
+      transformJson?: Prisma.InputJsonValue;
+      samplerJson?: Prisma.InputJsonValue;
+    }> = [];
+
+    for (const slot of TEXTURE_SLOT_PROPERTIES) {
+      const idHint = slot.legacyIds
+        .map((key) => input.document[key])
+        .find(
+          (value): value is string =>
+            typeof value === 'string' && value.trim().length > 0
+        );
+      if (!idHint) continue;
+      usages.push({
+        slot: slot.slot,
+        textureAssetRevisionId: await this.resolveTextureRevisionId(
+          input.projectId,
+          idHint.trim()
+        ),
+      });
+    }
+
+    if (Array.isArray(input.document.textureUsages)) {
+      for (const raw of input.document.textureUsages) {
+        if (typeof raw !== 'object' || raw === null) continue;
+        const entry = raw as Record<string, unknown>;
+        const slot =
+          typeof entry.slot === 'string' &&
+          (Object.values(TextureSemanticSlot) as string[]).includes(entry.slot)
+            ? (entry.slot as TextureSemanticSlot)
+            : null;
+        const idHint =
+          typeof entry.textureAssetRevisionId === 'string'
+            ? entry.textureAssetRevisionId.trim()
+            : '';
+        if (!slot || !idHint) continue;
+        const existing = usages.findIndex((u) => u.slot === slot);
+        const next = {
+          slot,
+          textureAssetRevisionId: await this.resolveTextureRevisionId(
+            input.projectId,
+            idHint
+          ),
+          ...(typeof entry.texCoord === 'number'
+            ? { texCoord: entry.texCoord }
+            : {}),
+          ...(entry.transform && typeof entry.transform === 'object'
+            ? { transformJson: entry.transform as Prisma.InputJsonValue }
+            : {}),
+          ...(normalizeMaterialSampler(entry.sampler)
+            ? {
+                samplerJson: normalizeMaterialSampler(
+                  entry.sampler
+                ) as Prisma.InputJsonValue,
+              }
+            : {}),
+        };
+        if (existing >= 0) usages[existing] = next;
+        else usages.push(next);
+      }
+    }
+
+    const stored = await this.documents.putJson(
+      `${input.organizationId}/${input.projectId}/material-revisions/${input.idHint}.json`,
+      {
+        ...definition,
+        textureUsages: usages.map((usage) => ({
+          slot: usage.slot,
+          textureAssetRevisionId: usage.textureAssetRevisionId,
+          ...(usage.texCoord !== undefined ? { texCoord: usage.texCoord } : {}),
+          ...(usage.transformJson ? { transform: usage.transformJson } : {}),
+          ...(usage.samplerJson ? { sampler: usage.samplerJson } : {}),
+        })),
+      }
+    );
+
+    return {
+      definitionUri: stored.uri,
+      contentHash: stored.sha256,
+      textureUsages: usages,
+    };
+  }
+
   private publicMaterialUrl(id: string) {
     const base =
       process.env.API_PUBLIC_URL ??
       process.env.NEXT_PUBLIC_PRODUCT_GRAPH_URL ??
       'http://localhost:3005';
     return `${base.replace(/\/$/, '')}/documents/materials/${id}`;
+  }
+
+  private publicMaterialRevisionUrl(id: string) {
+    const base =
+      process.env.API_PUBLIC_URL ??
+      process.env.NEXT_PUBLIC_PRODUCT_GRAPH_URL ??
+      'http://localhost:3005';
+    return `${base.replace(/\/$/, '')}/documents/material-revisions/${id}`;
+  }
+
+  private publicTextureRevisionUrl(id: string) {
+    const base =
+      process.env.API_PUBLIC_URL ??
+      process.env.NEXT_PUBLIC_PRODUCT_GRAPH_URL ??
+      'http://localhost:3005';
+    return `${base.replace(/\/$/, '')}/documents/texture-revisions/${id}`;
   }
 
   listObjects(projectId: string) {
@@ -347,6 +752,56 @@ export class LibraryService {
       .then((revisions) => revisions.map((r) => this.toRevisionModel(r)));
   }
 
+  listMaterialRevisions(materialAssetId: string) {
+    return this.prisma.materialAssetRevision
+      .findMany({
+        where: { materialAssetId },
+        orderBy: { version: 'asc' },
+        include: {
+          textureUsages: {
+            include: {
+              textureRevision: {
+                include: { textureAsset: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      })
+      .then((revisions) =>
+        revisions.map((revision) => ({
+          id: revision.id,
+          materialAssetId: revision.materialAssetId,
+          version: revision.version,
+          definitionUri: revision.definitionUri,
+          contentHash: revision.contentHash,
+          frozenAt: revision.frozenAt,
+          documentUrl: this.publicMaterialRevisionUrl(revision.id),
+          status: revision.status,
+          textureUsages: revision.textureUsages.map((usage) => ({
+            slot: usage.slot,
+            textureAssetRevisionId: usage.textureAssetRevisionId,
+            textureName: usage.textureRevision.textureAsset.name,
+            wrapS:
+              usage.samplerJson &&
+              typeof usage.samplerJson === 'object' &&
+              !Array.isArray(usage.samplerJson) &&
+              typeof (usage.samplerJson as { wrapS?: unknown }).wrapS ===
+                'string'
+                ? String((usage.samplerJson as { wrapS: string }).wrapS)
+                : null,
+            wrapT:
+              usage.samplerJson &&
+              typeof usage.samplerJson === 'object' &&
+              !Array.isArray(usage.samplerJson) &&
+              typeof (usage.samplerJson as { wrapT?: unknown }).wrapT ===
+                'string'
+                ? String((usage.samplerJson as { wrapT: string }).wrapT)
+                : null,
+          })),
+        }))
+      );
+  }
+
   async createObject(input: {
     organizationId: string;
     projectId: string;
@@ -385,6 +840,7 @@ export class LibraryService {
           revisions: {
             create: {
               version: 1,
+              status: LibraryRevisionStatus.PUBLISHED,
               runtimeArtifactUri: stored.uri,
               contentHash: stored.sha256,
               format: 'json',
@@ -458,6 +914,7 @@ export class LibraryService {
         revisions: {
           create: {
             version: 1,
+            status: LibraryRevisionStatus.PUBLISHED,
             runtimeArtifactUri: stored.uri,
             contentHash: stored.sha256,
             format,
@@ -494,11 +951,18 @@ export class LibraryService {
       : 'glb';
     const stored = await this.documents.putImmutableBytes(bytes, format);
 
+    const draft = await this.prisma.objectAssetRevision.findFirst({
+      where: {
+        objectAssetId: asset.id,
+        status: LibraryRevisionStatus.DRAFT,
+      },
+      orderBy: { version: 'desc' },
+    });
     const latest = await this.prisma.objectAssetRevision.findFirst({
       where: { objectAssetId: asset.id },
       orderBy: { version: 'desc' },
     });
-    const nextVersion = (latest?.version ?? 0) + 1;
+    const version = draft?.version ?? (latest?.version ?? 0) + 1;
 
     let parsedMetadataUri: string | undefined;
     let parsedMetadataSha256: string | undefined;
@@ -529,40 +993,68 @@ export class LibraryService {
       status = ObjectAssetStatus.FAILED;
     }
 
-    const [revision] = await this.prisma.$transaction([
-      this.prisma.objectAssetRevision.create({
-        data: {
-          objectAssetId: asset.id,
-          version: nextVersion,
-          runtimeArtifactUri: stored.uri,
-          contentHash: stored.sha256,
-          format,
-          sizeBytes: bytes.length,
-          parsedMetadataUri,
-          parsedMetadataSha256,
-          metadataVersion,
-        },
-      }),
-      this.prisma.objectAsset.update({
-        where: { id: asset.id },
-        data: {
-          fileUri: stored.uri,
-          fileSha256: stored.sha256,
-          format,
-          sizeBytes: bytes.length,
-          status,
-          parsedMetadataUri,
-          parsedMetadataSha256,
-          metadataVersion,
-          nodeCount,
-          meshCount,
-          materialCount,
-          animationCount,
-        },
-      }),
-    ]);
+    const revisionData = {
+      runtimeArtifactUri: stored.uri,
+      contentHash: stored.sha256,
+      format,
+      sizeBytes: bytes.length,
+      parsedMetadataUri,
+      parsedMetadataSha256,
+      metadataVersion,
+      frozenAt: new Date(),
+    };
+
+    const revision = draft
+      ? await this.prisma.objectAssetRevision.update({
+          where: { id: draft.id },
+          data: revisionData,
+        })
+      : await this.prisma.objectAssetRevision.create({
+          data: {
+            objectAssetId: asset.id,
+            version,
+            status: LibraryRevisionStatus.DRAFT,
+            ...revisionData,
+          },
+        });
+
+    await this.prisma.objectAsset.update({
+      where: { id: asset.id },
+      data: {
+        fileUri: stored.uri,
+        fileSha256: stored.sha256,
+        format,
+        sizeBytes: bytes.length,
+        status,
+        parsedMetadataUri,
+        parsedMetadataSha256,
+        metadataVersion,
+        nodeCount,
+        meshCount,
+        materialCount,
+        animationCount,
+      },
+    });
 
     return this.toRevisionModel(revision);
+  }
+
+  async publishObject(id: string) {
+    const draft = await this.prisma.objectAssetRevision.findFirst({
+      where: { objectAssetId: id, status: LibraryRevisionStatus.DRAFT },
+      orderBy: { version: 'desc' },
+    });
+    if (!draft) {
+      throw new BadRequestException('No draft object revision to publish');
+    }
+    const published = await this.prisma.objectAssetRevision.update({
+      where: { id: draft.id },
+      data: {
+        status: LibraryRevisionStatus.PUBLISHED,
+        frozenAt: new Date(),
+      },
+    });
+    return this.toRevisionModel(published);
   }
 
   async deleteTexture(id: string) {
@@ -651,6 +1143,25 @@ function cryptoRandom() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function textureFileMeta(fileName?: string): {
+  extension: string;
+  mimeType: string;
+} {
+  const lower = (fileName ?? '').toLowerCase();
+  if (lower.endsWith('.png')) return { extension: 'png', mimeType: 'image/png' };
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+    return { extension: 'jpg', mimeType: 'image/jpeg' };
+  }
+  if (lower.endsWith('.webp')) {
+    return { extension: 'webp', mimeType: 'image/webp' };
+  }
+  if (lower.endsWith('.ktx2')) {
+    return { extension: 'ktx2', mimeType: 'image/ktx2' };
+  }
+  if (lower.endsWith('.gif')) return { extension: 'gif', mimeType: 'image/gif' };
+  return { extension: 'bin', mimeType: 'application/octet-stream' };
+}
+
 function parseOptionalJson(raw: string | undefined, fallback: unknown) {
   if (!raw) return fallback;
   try {
@@ -690,6 +1201,7 @@ function normalizeMaterialDocument(value: unknown) {
   if (metallic !== undefined) doc.metallic = metallic;
 
   if (typeof raw.opacity === 'number') doc.opacity = raw.opacity;
+  if (typeof raw.emissive === 'string') doc.emissive = raw.emissive;
   if (typeof raw.doubleSided === 'boolean') doc.doubleSided = raw.doubleSided;
 
   for (const key of [
@@ -704,6 +1216,10 @@ function normalizeMaterialDocument(value: unknown) {
     if (typeof raw[key] === 'string' && raw[key]) {
       doc[key] = raw[key];
     }
+  }
+
+  if (Array.isArray(raw.textureUsages)) {
+    doc.textureUsages = raw.textureUsages;
   }
 
   return doc;

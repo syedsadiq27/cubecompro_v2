@@ -1,5 +1,14 @@
 import type * as THREE from 'three';
-import { baselineMaterialForTarget } from './baseline';
+import {
+  baselineMaterialForTarget,
+  mountObjectAtStructuralSlot,
+  restoreStructuralSlot,
+} from './baseline';
+import type {
+  ObjectRuntimeInstance,
+  ObjectRuntimeRegistry,
+  StructuralSlotBaseline,
+} from './object-runtime';
 import { resolveTargetObject } from './resolve-target';
 import type {
   VisualBaseline,
@@ -39,14 +48,46 @@ function assignMaterial(
   });
 }
 
-export function reconcileScene(
-  root: THREE.Object3D,
-  document: VisualDocument,
-  state: VisualState,
-  baseline: VisualBaseline,
-  materials: ReconcileMaterials = {}
-): void {
+export type ReconcileSceneInput = {
+  root: THREE.Object3D;
+  document: VisualDocument;
+  state: VisualState;
+  surfaceBaseline: VisualBaseline;
+  structuralBaselines: Map<string, StructuralSlotBaseline>;
+  materials?: ReconcileMaterials;
+  objectRegistry: ObjectRuntimeRegistry;
+  /** Slot → currently mounted replacement instance (mutated in place). */
+  mountedInstances: Map<string, ObjectRuntimeInstance>;
+};
+
+/**
+ * Structure first, then root surfaces. VisualEffect / binding array order
+ * has no rendering semantics — only VisualState maps do.
+ */
+export function reconcileScene(input: ReconcileSceneInput): void {
+  const {
+    root,
+    document,
+    state,
+    surfaceBaseline,
+    structuralBaselines,
+    materials = {},
+    objectRegistry,
+    mountedInstances,
+  } = input;
+
+  reconcileStructure({
+    state,
+    structuralBaselines,
+    objectRegistry,
+    mountedInstances,
+  });
+
   for (const target of document.targets) {
+    if (structuralBaselines.has(target.key)) {
+      continue;
+    }
+
     const object = resolveTargetObject(root, target);
     const desired = state.targets[target.key];
 
@@ -54,25 +95,72 @@ export function reconcileScene(
       object.visible = desired.visible;
     } else {
       const visibilityKey = `${target.key}/visibility`;
-      const baselineVisible = baseline[visibilityKey]?.visible;
+      const baselineVisible = surfaceBaseline[visibilityKey]?.visible;
       if (baselineVisible !== undefined) {
         object.visible = baselineVisible;
       }
     }
 
-    if (desired?.materialAssetId) {
-      const material = materials[desired.materialAssetId];
+    const surface = state.rootSurfaces[target.key];
+    if (surface?.materialAssetRevisionId) {
+      const material = materials[surface.materialAssetRevisionId];
       if (!material) {
         throw new Error(
-          `Missing resolved material for asset ${desired.materialAssetId}`
+          `Missing resolved material for asset ${surface.materialAssetRevisionId}`
+        );
+      }
+      assignMaterial(object, material);
+    } else if (desired?.materialAssetRevisionId) {
+      const material = materials[desired.materialAssetRevisionId];
+      if (!material) {
+        throw new Error(
+          `Missing resolved material for asset ${desired.materialAssetRevisionId}`
         );
       }
       assignMaterial(object, material);
     } else {
-      const baselineMaterial = baselineMaterialForTarget(baseline, target);
+      const baselineMaterial = baselineMaterialForTarget(
+        surfaceBaseline,
+        target
+      );
       if (baselineMaterial) {
         assignMaterial(object, baselineMaterial);
       }
     }
+  }
+}
+
+function reconcileStructure(input: {
+  state: VisualState;
+  structuralBaselines: Map<string, StructuralSlotBaseline>;
+  objectRegistry: ObjectRuntimeRegistry;
+  mountedInstances: Map<string, ObjectRuntimeInstance>;
+}): void {
+  const {
+    state,
+    structuralBaselines,
+    objectRegistry,
+    mountedInstances,
+  } = input;
+
+  for (const [slotKey, baseline] of structuralBaselines) {
+    const desiredRevisionId = state.structure[slotKey];
+
+    if (!desiredRevisionId) {
+      if (mountedInstances.has(slotKey)) {
+        restoreStructuralSlot(baseline);
+        mountedInstances.delete(slotKey);
+      }
+      continue;
+    }
+
+    const existing = mountedInstances.get(slotKey);
+    if (existing && existing.objectAssetRevisionId === desiredRevisionId) {
+      continue;
+    }
+
+    const instance = objectRegistry.instantiate(desiredRevisionId, slotKey);
+    mountObjectAtStructuralSlot(baseline, instance.object3D);
+    mountedInstances.set(slotKey, instance);
   }
 }

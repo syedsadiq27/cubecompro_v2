@@ -41,13 +41,18 @@ export class ResolveResolver {
         rootObjectAssetRevisionId: resolved.threeD.rootObjectAssetRevisionId,
         activeObjectAssetRevisionIds:
           resolved.threeD.activeObjectAssetRevisionIds,
+        activeMaterialAssetRevisionIds:
+          resolved.threeD.activeMaterialAssetRevisionIds,
+        activeTextureAssetRevisionIds:
+          resolved.threeD.activeTextureAssetRevisionIds,
         effects: resolved.threeD.effects.map((effect) => ({
           targetKey: effect.targetKey,
           targetType: effect.targetType,
           nodePath: effect.nodePath,
+          materialSlot: effect.materialSlot ?? null,
           operation: effect.operation,
           valueJson: JSON.stringify(effect.value),
-          materialAssetId: effect.materialAssetId ?? null,
+          materialAssetRevisionId: effect.materialAssetRevisionId ?? null,
           objectAssetRevisionId: effect.objectAssetRevisionId ?? null,
           linkedAssetKey: effect.linkedAssetKey ?? null,
           documentUrl: effect.documentUrl ?? null,

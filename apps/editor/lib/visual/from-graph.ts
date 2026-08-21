@@ -26,16 +26,27 @@ export function normalizeVisualDocumentFromGraphDetail(
 ): VisualDocument {
   const model = pickProductModel(detail, productModelId);
   const modelTargetIds = new Set(model.targets.map((t) => t.id));
+  const linkedAssets = (model.linkedAssets ?? []).map((asset) => ({
+    id: asset.id,
+    role: asset.role as VisualDocument['linkedAssets'][number]['role'],
+    key: asset.key,
+    assetRevisionId: asset.assetRevisionId,
+  }));
   return normalizeVisualDocument({
     productRevisionId: detail.id,
     model: {
       id: model.id,
       assetId: model.assetId,
+      objectAssetRevisionId: model.objectAssetRevisionId,
+      linkedAssets,
       targets: model.targets,
     },
     choices: detail.choices,
     visualEffects: detail.visualEffects.filter((effect) =>
       modelTargetIds.has(effect.modelTargetId)
+    ),
+    visualSetups: (model.visualSetups ?? []).filter((setup) =>
+      modelTargetIds.has(setup.modelTargetId)
     ),
   });
 }

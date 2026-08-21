@@ -44,6 +44,11 @@ enum ProductModelAssetRole {
   ANIMATION
 }
 
+enum LibraryRevisionStatus {
+  DRAFT
+  PUBLISHED
+}
+
 enum OrganizationStatus {
   ACTIVE
   TRIAL
@@ -400,6 +405,7 @@ model ProductModel {
   objectAssetRevision ObjectAssetRevision @relation(fields: [objectAssetRevisionId], references: [id], onDelete: Restrict)
   targets             ModelTarget[]
   linkedAssets        ProductModelAsset[]
+  visualSetups        VisualSetup[]
 
   @@unique([productRevisionId, key])
   @@index([productRevisionId])
@@ -431,9 +437,25 @@ model ModelTarget {
 
   productModel  ProductModel   @relation(fields: [productModelId], references: [id], onDelete: Cascade)
   visualEffects VisualEffect[]
+  visualSetups  VisualSetup[]
 
   @@unique([productModelId, key])
   @@index([productModelId])
+}
+
+model VisualSetup {
+  id             String          @id @default(cuid())
+  productModelId String
+  modelTargetId  String
+  operation      VisualOperation
+  value          Json
+  sortOrder      Int             @default(0)
+
+  productModel ProductModel @relation(fields: [productModelId], references: [id], onDelete: Cascade)
+  modelTarget  ModelTarget  @relation(fields: [modelTargetId], references: [id], onDelete: Cascade)
+
+  @@index([productModelId])
+  @@index([modelTargetId])
 }
 
 model VisualEffect {
@@ -609,6 +631,14 @@ model MediaAsset {
   @@index([folderId])
 }
 
+enum TextureSemanticSlot {
+  BASE_COLOR
+  NORMAL
+  METALLIC_ROUGHNESS
+  OCCLUSION
+  EMISSIVE
+}
+
 model MaterialAsset {
   id             String   @id @default(cuid())
   organizationId String
@@ -621,12 +651,31 @@ model MaterialAsset {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  folder       LibraryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  revisions    MaterialAssetRevision[]
 
   @@index([organizationId, projectId])
   @@index([folderId])
+}
+
+model MaterialAssetRevision {
+  id              String                @id @default(cuid())
+  materialAssetId String
+  version         Int
+  status          LibraryRevisionStatus @default(DRAFT)
+  definitionUri   String
+  contentHash     String
+  frozenAt        DateTime              @default(now())
+
+  materialAsset MaterialAsset           @relation(fields: [materialAssetId], references: [id], onDelete: Cascade)
+  textureUsages MaterialTextureUsage[]
+
+  @@unique([materialAssetId, version])
+  @@index([materialAssetId])
+  @@index([materialAssetId, status])
+  @@index([contentHash])
 }
 
 model TextureAsset {
@@ -641,12 +690,52 @@ model TextureAsset {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  folder       LibraryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder       LibraryFolder?         @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  revisions    TextureAssetRevision[]
 
   @@index([organizationId, projectId])
   @@index([folderId])
+}
+
+model TextureAssetRevision {
+  id             String                @id @default(cuid())
+  textureAssetId String
+  version        Int
+  status         LibraryRevisionStatus @default(DRAFT)
+  artifactUri    String
+  contentHash    String
+  frozenAt       DateTime              @default(now())
+  mimeType       String?
+  width          Int?
+  height         Int?
+  sizeBytes      Int?
+
+  textureAsset   TextureAsset            @relation(fields: [textureAssetId], references: [id], onDelete: Cascade)
+  materialUsages MaterialTextureUsage[]
+
+  @@unique([textureAssetId, version])
+  @@index([textureAssetId])
+  @@index([textureAssetId, status])
+  @@index([contentHash])
+}
+
+model MaterialTextureUsage {
+  id                       String              @id @default(cuid())
+  materialAssetRevisionId  String
+  slot                     TextureSemanticSlot
+  textureAssetRevisionId   String
+  texCoord                 Int?
+  transformJson            Json?
+  samplerJson              Json?
+
+  materialRevision MaterialAssetRevision @relation(fields: [materialAssetRevisionId], references: [id], onDelete: Cascade)
+  textureRevision  TextureAssetRevision  @relation(fields: [textureAssetRevisionId], references: [id], onDelete: Restrict)
+
+  @@unique([materialAssetRevisionId, slot])
+  @@index([materialAssetRevisionId])
+  @@index([textureAssetRevisionId])
 }
 
 enum ObjectAssetPurpose {
@@ -694,12 +783,13 @@ model ObjectAsset {
 }
 
 model ObjectAssetRevision {
-  id                   String   @id @default(cuid())
+  id                   String                @id @default(cuid())
   objectAssetId        String
   version              Int
+  status               LibraryRevisionStatus @default(DRAFT)
   runtimeArtifactUri   String
   contentHash          String
-  frozenAt             DateTime @default(now())
+  frozenAt             DateTime              @default(now())
   format               String?
   sizeBytes            Int?
   parsedMetadataUri    String?
@@ -711,6 +801,7 @@ model ObjectAssetRevision {
 
   @@unique([objectAssetId, version])
   @@index([objectAssetId])
+  @@index([objectAssetId, status])
   @@index([contentHash])
 }
 

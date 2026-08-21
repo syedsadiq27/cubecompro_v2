@@ -11,10 +11,14 @@ import {
   PencilIcon,
 } from '@/components/bo/icons';
 import { StatusBadge } from '@/components/bo/states/operational-states';
-import { useMaterialDocument } from './material-preview';
+import {
+  clearMaterialDocumentCache,
+  useMaterialDocument,
+} from './material-preview';
 import { MaterialSwatch } from './material-swatch';
 import { ModelGlbPreview } from './model-preview';
 import { EditMaterialDialog } from './edit-material-dialog';
+import { MaterialRevisionsPanel } from './material-revisions-panel';
 import { ObjectRevisionsPanel } from './object-revisions-panel';
 import { UploadObjectRevisionDialog } from './upload-object-revision-dialog';
 import {
@@ -62,10 +66,10 @@ export function AssetInspector({
         <div className="shrink-0 border-b border-[var(--line)] p-4">
           <div className="flex items-start gap-3.5">
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--canvas)] shadow-xs">
-              {asset.imageUrl ? (
+              {asset.imageUrl || asset.fileUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={asset.imageUrl}
+                  src={asset.imageUrl || asset.fileUrl || ''}
                   alt={asset.name}
                   className="h-full w-full object-cover"
                 />
@@ -84,7 +88,7 @@ export function AssetInspector({
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)] text-[11px]">
-                  IMG
+                  {assetTypeLabel(asset.type)}
                 </div>
               )}
             </div>
@@ -183,24 +187,24 @@ export function AssetInspector({
               <InspectorRow label="Type" value={assetTypeLabel(asset.type)} />
               <InspectorRow
                 label="Created"
-                value={
-                  asset.createdDate
-                    ? `${asset.createdDate} by ${asset.creator || 'Demo Owner'}`
-                    : 'Apr 28, 2025 by Demo Owner'
-                }
+                value={asset.createdDate || '—'}
               />
               <InspectorRow
                 label="Updated"
                 value={
                   asset.updatedDate
-                    ? `${asset.updatedDate} by ${asset.creator || 'Demo Owner'}`
-                    : 'May 14, 2025 by Demo Owner'
+                    ? [asset.updatedDate, asset.updatedTime]
+                        .filter(Boolean)
+                        .join(' ')
+                    : '—'
                 }
               />
-              <InspectorRow
-                label="Usage"
-                value={`${asset.productUsage ?? 12} products · ${asset.configUsage ?? 3} configurations`}
-              />
+              {(asset.productUsage != null || asset.configUsage != null) && (
+                <InspectorRow
+                  label="Usage"
+                  value={`${asset.productUsage ?? 0} products · ${asset.configUsage ?? 0} configurations`}
+                />
+              )}
             </div>
           </section>
 
@@ -210,6 +214,14 @@ export function AssetInspector({
               objectAssetId={asset.id}
               refreshKey={revisionRefreshKey}
               onUpload={() => setRevisionUploadOpen(true)}
+            />
+          ) : null}
+
+          {asset.type === 'material' ? (
+            <MaterialRevisionsPanel
+              projectId={projectId}
+              materialAssetId={asset.id}
+              refreshKey={revisionRefreshKey}
             />
           ) : null}
 
@@ -238,11 +250,10 @@ export function AssetInspector({
                 </span>
                 <div className="text-right">
                   <p className="font-mono text-[12px] text-[var(--ink)]">
-                    {asset.fileName ||
-                      `${asset.code?.toLowerCase() || 'asset'}.${asset.format?.toLowerCase() || 'sbsar'}`}
+                    {asset.fileName || asset.code || asset.name}
                   </p>
                   <p className="text-[11px] text-[var(--text-muted)]">
-                    {asset.fileSize || '2.4 MB'}
+                    {asset.fileSize || '—'}
                   </p>
                 </div>
               </div>
@@ -251,27 +262,28 @@ export function AssetInspector({
                 label="Format"
                 value={
                   asset.format ||
-                  (asset.type === 'material' ? 'SBSAR' : 'GLB')
+                  (asset.type === 'material'
+                    ? 'PBR'
+                    : asset.type === 'texture'
+                      ? 'Image'
+                      : '—')
                 }
                 isMono
               />
-              <InspectorRow
-                label="Resolution"
-                value={asset.resolution || '2048 x 2048'}
-              />
-              <InspectorRow
-                label="Color space"
-                value={asset.colorSpace || 'sRGB'}
-              />
+              {asset.resolution ? (
+                <InspectorRow label="Resolution" value={asset.resolution} />
+              ) : null}
+              {asset.colorSpace ? (
+                <InspectorRow label="Color space" value={asset.colorSpace} />
+              ) : null}
 
-              <div className="flex items-center justify-between gap-2 py-1">
-                <span className="text-[12px] text-[var(--text-secondary)]">
-                  Tags
-                </span>
-                <div className="flex flex-wrap items-center justify-end gap-1">
-                  {(asset.tags || ['fabric', 'beige', 'textile'])
-                    .slice(0, 3)
-                    .map((tag) => (
+              {asset.tags && asset.tags.length > 0 ? (
+                <div className="flex items-center justify-between gap-2 py-1">
+                  <span className="text-[12px] text-[var(--text-secondary)]">
+                    Tags
+                  </span>
+                  <div className="flex flex-wrap items-center justify-end gap-1">
+                    {asset.tags.slice(0, 5).map((tag) => (
                       <span
                         key={tag}
                         className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-secondary)] font-mono"
@@ -279,102 +291,93 @@ export function AssetInspector({
                         {tag}
                       </span>
                     ))}
-                  <span className="rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)] font-mono">
-                    +2
-                  </span>
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
-              <Link
-                href={`/${projectId}/library?folder=${asset.folderId || 'fabrics'}`}
-                className="flex items-center justify-between gap-2 py-1 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
-              >
+              <div className="flex items-center justify-between gap-2 py-1">
                 <span className="text-[12px] text-[var(--text-secondary)]">
                   Folder
                 </span>
-                <span className="flex items-center gap-1 text-[12px] font-medium group-hover:underline">
-                  {asset.folderName || 'Materials / Fabrics'}
-                  <ChevronRightIcon
-                    size={12}
-                    className="text-[var(--text-muted)]"
-                  />
+                <span className="text-[12px] font-medium text-[var(--ink)]">
+                  {asset.folderName || 'Unfiled'}
                 </span>
-              </Link>
-            </div>
-          </section>
-
-          <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
-            <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
-              Usage
-            </h3>
-            <div className="space-y-1">
-              <Link
-                href={`/${projectId}/products`}
-                className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
-              >
-                <span className="text-[12px] text-[var(--text-secondary)]">
-                  Products
-                </span>
-                <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
-                  {asset.productUsage ?? 12}
-                  <ChevronRightIcon
-                    size={12}
-                    className="text-[var(--text-muted)]"
-                  />
-                </span>
-              </Link>
-              <Link
-                href={`/${projectId}/experience/rules`}
-                className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
-              >
-                <span className="text-[12px] text-[var(--text-secondary)]">
-                  Configurations
-                </span>
-                <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
-                  {asset.configUsage ?? 3}
-                  <ChevronRightIcon
-                    size={12}
-                    className="text-[var(--text-muted)]"
-                  />
-                </span>
-              </Link>
-            </div>
-          </section>
-
-          <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
-            <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
-              Activity
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-2.5">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" />
-                <div className="min-w-0 text-[12px]">
-                  <p className="font-medium text-[var(--ink)]">Asset updated</p>
-                  <p className="text-[11px] text-[var(--text-muted)]">
-                    May 14, 2025 10:24 AM by Demo Owner
-                  </p>
-                </div>
               </div>
-
-              <div className="flex items-start gap-2.5">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0" />
-                <div className="min-w-0 text-[12px]">
-                  <p className="font-medium text-[var(--ink)]">Asset created</p>
-                  <p className="text-[11px] text-[var(--text-muted)]">
-                    Apr 28, 2025 9:11 AM by Demo Owner
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="pt-1 text-[11px] font-medium text-[#665CFF] hover:underline"
-                onClick={() => toast.info('Viewing full activity audit log')}
-              >
-                View all activity
-              </button>
             </div>
           </section>
+
+          {(asset.productUsage != null || asset.configUsage != null) && (
+            <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
+              <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+                Usage
+              </h3>
+              <div className="space-y-1">
+                <Link
+                  href={`/${projectId}/products`}
+                  className="flex items-center justify-between py-1.5 text-[var(--ink)] hover:text-[#665CFF] no-underline group"
+                >
+                  <span className="text-[12px] text-[var(--text-secondary)]">
+                    Products
+                  </span>
+                  <span className="flex items-center gap-1 font-mono text-[12px] font-medium group-hover:underline">
+                    {asset.productUsage ?? 0}
+                    <ChevronRightIcon
+                      size={12}
+                      className="text-[var(--text-muted)]"
+                    />
+                  </span>
+                </Link>
+                {asset.configUsage != null ? (
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-[12px] text-[var(--text-secondary)]">
+                      Configurations
+                    </span>
+                    <span className="font-mono text-[12px] font-medium text-[var(--ink)]">
+                      {asset.configUsage}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )}
+
+          {(asset.createdDate || asset.updatedDate) && (
+            <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
+              <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+                Activity
+              </h3>
+              <div className="space-y-3">
+                {asset.updatedDate ? (
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" />
+                    <div className="min-w-0 text-[12px]">
+                      <p className="font-medium text-[var(--ink)]">
+                        Asset updated
+                      </p>
+                      <p className="text-[11px] text-[var(--text-muted)]">
+                        {[asset.updatedDate, asset.updatedTime]
+                          .filter(Boolean)
+                          .join(' ')}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+                {asset.createdDate ? (
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0" />
+                    <div className="min-w-0 text-[12px]">
+                      <p className="font-medium text-[var(--ink)]">
+                        Asset created
+                      </p>
+                      <p className="text-[11px] text-[var(--text-muted)]">
+                        {asset.createdDate}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )}
         </div>
       </aside>
 
@@ -384,9 +387,13 @@ export function AssetInspector({
           materialId={asset.id}
           name={asset.name}
           code={asset.code}
-          document={null}
+          document={document}
           open={editOpen}
           onClose={() => setEditOpen(false)}
+          onSaved={() => {
+            clearMaterialDocumentCache(asset.id);
+            setRevisionRefreshKey((key) => key + 1);
+          }}
         />
       ) : null}
 

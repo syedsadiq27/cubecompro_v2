@@ -6,13 +6,7 @@ import { AdminNav } from './admin-nav';
 import { CommandPalette } from './ops/command-palette';
 import { SuiteShell, TopBar } from '@repo/ui';
 
-export function AdminShell({
-  children,
-  userName,
-}: {
-  children: ReactNode;
-  userName: string;
-}) {
+export function AdminShell({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
@@ -37,7 +31,7 @@ export function AdminShell({
             </span>
           </>
         }
-        sidebar={<AdminNav userName={userName} />}
+        sidebar={<AdminNav />}
         topBar={
           <TopBar
             start={

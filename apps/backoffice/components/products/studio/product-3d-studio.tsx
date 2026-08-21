@@ -39,7 +39,11 @@ export function Product3DStudio(props: {
   productName: string;
   detail: GraphDetail | null;
   objectAssets: ObjectAssetOption[];
-  materials?: Array<{ id: string; name: string }>;
+  materials?: Array<{
+    id: string;
+    name: string;
+    currentRevisionId?: string | null;
+  }>;
   editable: boolean;
 }) {
   return (
@@ -67,7 +71,11 @@ function Product3DStudioInner({
   productName: string;
   detail: GraphDetail | null;
   objectAssets: ObjectAssetOption[];
-  materials?: Array<{ id: string; name: string }>;
+  materials?: Array<{
+    id: string;
+    name: string;
+    currentRevisionId?: string | null;
+  }>;
   editable: boolean;
 }) {
   const router = useRouter();
@@ -85,8 +93,13 @@ function Product3DStudioInner({
   const [mapAction, setMapAction] = useState<'show' | 'hide' | 'material'>(
     'hide'
   );
-  const [materialAssetId, setMaterialAssetId] = useState('');
+  const [materialAssetRevisionId, setMaterialAssetRevisionId] = useState('');
   const [showChangeModel, setShowChangeModel] = useState(false);
+  const materialRevisionOptions = materials.filter(
+    (material): material is { id: string; name: string; currentRevisionId: string } =>
+      typeof material.currentRevisionId === 'string' &&
+      material.currentRevisionId.length > 0
+  );
 
   const primaryModel = detail?.models[0] ?? null;
   const modelUrl = primaryModel?.objectAssetRevisionId
@@ -569,15 +582,18 @@ function Product3DStudioInner({
                           </select>
                           {mapAction === 'material' ? (
                             <select
-                              value={materialAssetId}
+                              value={materialAssetRevisionId}
                               onChange={(event) =>
-                                setMaterialAssetId(event.target.value)
+                                setMaterialAssetRevisionId(event.target.value)
                               }
                               className={inputClass}
                             >
                               <option value="">Library material</option>
-                              {materials.map((material) => (
-                                <option key={material.id} value={material.id}>
+                              {materialRevisionOptions.map((material) => (
+                                <option
+                                  key={material.currentRevisionId}
+                                  value={material.currentRevisionId}
+                                >
                                   {material.name}
                                 </option>
                               ))}
@@ -594,7 +610,8 @@ function Product3DStudioInner({
                               pending ||
                               !mapValueId ||
                               !mapTargetId ||
-                              (mapAction === 'material' && !materialAssetId)
+                              (mapAction === 'material' &&
+                                !materialAssetRevisionId)
                             }
                             onClick={() => {
                               const form: Record<string, string> = {
@@ -603,7 +620,8 @@ function Product3DStudioInner({
                               };
                               if (mapAction === 'material') {
                                 form.operation = 'SET_MATERIAL';
-                                form.materialAssetId = materialAssetId;
+                                form.materialAssetRevisionId =
+                                  materialAssetRevisionId;
                               } else {
                                 form.operation = 'SET_VISIBILITY';
                                 form.value =
@@ -616,7 +634,7 @@ function Product3DStudioInner({
                                   label,
                                   form,
                                 });
-                                setMaterialAssetId('');
+                                setMaterialAssetRevisionId('');
                                 setMessage(
                                   'Queued mapping. Click Save to commit.'
                                 );
@@ -638,7 +656,7 @@ function Product3DStudioInner({
                                     : result.error || 'Failed.'
                                 );
                                 if (result.ok) {
-                                  setMaterialAssetId('');
+                                  setMaterialAssetRevisionId('');
                                   router.refresh();
                                 }
                               });

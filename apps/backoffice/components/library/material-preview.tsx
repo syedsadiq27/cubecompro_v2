@@ -107,6 +107,11 @@ export function MaterialSpherePreview({
 
 const documentCache = new Map<string, MaterialDocument | null>();
 
+export function clearMaterialDocumentCache(assetId?: string) {
+  if (assetId) documentCache.delete(assetId);
+  else documentCache.clear();
+}
+
 export function useMaterialDocument(
   assetId: string | null,
   enabled: boolean

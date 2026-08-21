@@ -1,74 +1,68 @@
 'use client';
 
 import { useEditorStore } from '@/lib/editor-store';
+import { ChevronDownIcon } from '@/components/editor/icons';
+import { ProductCoveragePanel } from './product-coverage-panel';
 import { SceneOutlinerPanel } from './scene-outliner-panel';
-import { MaterialsPanel } from './materials-panel';
-import { MappingsPanel } from './mappings-panel';
-import { CamerasPanel } from './cameras-panel';
-import { LightsPanel } from './lights-panel';
-import { EnvironmentPanel } from './environment-panel';
-import { BehaviorsPanel } from './behaviors-panel';
 import { PreviewPanel } from './preview-panel';
+import { MaterialsPanel } from './materials-panel';
+import { CameraPanel } from './camera-panel';
 
 export function PanelHost({ collapsed }: { collapsed: boolean }) {
   const activeWorkspace = useEditorStore((state) => state.activeWorkspace);
-  const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
 
   if (collapsed) return null;
 
+  const isCamera =
+    activeWorkspace === 'cameras' || (activeWorkspace as string) === 'camera';
+
+  const title =
+    activeWorkspace === 'product' ||
+    activeWorkspace === 'mappings' ||
+    activeWorkspace === 'model'
+      ? 'Config'
+      : isCamera
+        ? 'Camera'
+        : activeWorkspace === 'preview'
+          ? 'Preview'
+          : activeWorkspace === 'materials'
+            ? 'Assets'
+            : 'Scene';
+
   const renderActivePanel = () => {
     switch (activeWorkspace) {
-      case 'scene':
-        return <SceneOutlinerPanel showSearch={false} />;
-      case 'objects':
-        return <SceneOutlinerPanel showSearch={true} />;
-      case 'materials':
-        return <MaterialsPanel />;
+      case 'product':
       case 'mappings':
-        return <MappingsPanel />;
+      case 'model':
+        return <ProductCoveragePanel />;
       case 'cameras':
-        return <CamerasPanel />;
-      case 'lights':
-        return <LightsPanel />;
-      case 'environment':
-        return <EnvironmentPanel />;
-      case 'behaviors':
-        return <BehaviorsPanel />;
+      case 'camera' as any:
+        return <CameraPanel />;
       case 'preview':
         return <PreviewPanel />;
+      case 'materials':
+        return <MaterialsPanel />;
+      case 'scene':
+      case 'objects':
       default:
         return <SceneOutlinerPanel />;
     }
   };
 
   return (
-    <div className="flex w-[240px] shrink-0 flex-col justify-between overflow-hidden border-r border-[var(--line)] bg-[var(--surface-pure)] select-none z-10">
-      {/* Panel Header */}
-      <div className="flex h-10 items-center justify-between border-b border-[var(--line)] px-3">
-        <span className="text-[10px] font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-          {activeWorkspace}
+    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden border-r border-white/10 bg-[#121318] text-white select-none z-10">
+      <div className="flex h-11 items-center justify-between border-b border-white/10 px-3.5">
+        <span className="text-[11px] font-mono font-bold tracking-wider text-white/60 uppercase">
+          {title}
         </span>
-        <div className="flex items-center gap-1 text-[var(--text-muted)]">
-          <button
-            type="button"
-            className="flex h-5 w-5 items-center justify-center rounded hover:bg-[var(--canvas)] hover:text-[var(--ink)] text-[13px]"
-            onClick={() => setStatusMessage(`Add new item to ${activeWorkspace}`)}
-            title="Add item"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            className="flex h-5 w-5 items-center justify-center rounded hover:bg-[var(--canvas)] hover:text-[var(--ink)] text-[12px]"
-            onClick={() => setStatusMessage('Workspace options')}
-            title="Options"
-          >
-            •••
-          </button>
-        </div>
+        <button
+          type="button"
+          className="text-white/40 hover:text-white transition-colors"
+          title="Toggle panel"
+        >
+          <ChevronDownIcon size="sm" className="rotate-180" />
+        </button>
       </div>
-
-      {/* Dynamic Panel Content */}
       <div className="min-h-0 flex-1 overflow-hidden flex flex-col">
         {renderActivePanel()}
       </div>

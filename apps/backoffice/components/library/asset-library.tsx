@@ -15,7 +15,11 @@ import {
   SearchField,
   useToast,
 } from '@repo/ui';
-import { setObjectAssetStatusAction } from '@/actions/assets';
+import {
+  deleteObjectAction,
+  deleteTextureAction,
+  setObjectAssetStatusAction,
+} from '@/actions/assets';
 import {
   BackofficePageHeader,
   BulkActionBar,
@@ -50,192 +54,6 @@ import {
   type LibraryScope,
 } from './types';
 
-const DEMO_LIBRARY_ASSETS: LibraryAssetItem[] = [
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R1',
-    type: 'material',
-    name: 'Beige Fabric',
-    code: 'FABRIC-BEIGE',
-    detail: 'FABRIC-BEIGE',
-    status: 'PUBLISHED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 14, 2025',
-    updatedTime: '10:24 AM',
-    createdDate: 'Apr 28, 2025',
-    creator: 'Demo Owner',
-    fileName: 'beige-fabric.sbsar',
-    fileSize: '2.4 MB',
-    format: 'SBSAR',
-    resolution: '2048 x 2048',
-    colorSpace: 'sRGB',
-    tags: ['fabric', 'beige', 'textile', 'woven', 'neutral'],
-    folderName: 'Materials / Fabrics',
-    productUsage: 12,
-    configUsage: 3,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R2',
-    type: 'model',
-    name: 'Demo Chair',
-    code: 'GLB · 6 meshes',
-    detail: 'GLB-6MESHES',
-    status: 'PUBLISHED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 14, 2025',
-    updatedTime: '9:15 AM',
-    createdDate: 'Apr 25, 2025',
-    creator: 'Demo Owner',
-    fileName: 'demo-chair.glb',
-    fileSize: '4.8 MB',
-    format: 'GLB',
-    meshCount: 6,
-    materialCount: 3,
-    tags: ['chair', 'furniture', 'seating', 'glb'],
-    folderName: 'Models / Seating',
-    productUsage: 8,
-    configUsage: 2,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R3',
-    type: 'material',
-    name: 'Fabric Black',
-    code: 'FABRIC-BLACK',
-    detail: 'FABRIC-BLACK',
-    status: 'PUBLISHED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 13, 2025',
-    updatedTime: '3:45 PM',
-    createdDate: 'Apr 20, 2025',
-    creator: 'Demo Owner',
-    fileName: 'fabric-black.sbsar',
-    fileSize: '2.1 MB',
-    format: 'SBSAR',
-    resolution: '2048 x 2048',
-    colorSpace: 'sRGB',
-    tags: ['fabric', 'black', 'textile', 'dark'],
-    folderName: 'Materials / Fabrics',
-    productUsage: 10,
-    configUsage: 4,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R4',
-    type: 'material',
-    name: 'Walnut Wood',
-    code: 'WOOD-WALNUT',
-    detail: 'WOOD-WALNUT',
-    status: 'PUBLISHED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 13, 2025',
-    updatedTime: '11:02 AM',
-    createdDate: 'Apr 18, 2025',
-    creator: 'Demo Owner',
-    fileName: 'walnut-wood.sbsar',
-    fileSize: '3.6 MB',
-    format: 'SBSAR',
-    resolution: '4096 x 4096',
-    colorSpace: 'sRGB',
-    tags: ['wood', 'walnut', 'grain', 'organic'],
-    folderName: 'Materials / Woods',
-    productUsage: 14,
-    configUsage: 5,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R5',
-    type: 'material',
-    name: 'Concrete Light',
-    code: 'CONC-LIGHT',
-    detail: 'CONC-LIGHT',
-    status: 'DRAFT',
-    imageUrl:
-      'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 12, 2025',
-    updatedTime: '5:20 PM',
-    createdDate: 'May 12, 2025',
-    creator: 'Demo Owner',
-    fileName: 'concrete-light.sbsar',
-    fileSize: '1.9 MB',
-    format: 'SBSAR',
-    resolution: '2048 x 2048',
-    colorSpace: 'sRGB',
-    tags: ['concrete', 'industrial', 'gray', 'matte'],
-    folderName: 'Materials / Stone',
-    productUsage: 2,
-    configUsage: 1,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R6',
-    type: 'material',
-    name: 'Metal Matte Black',
-    code: 'MATTE-BLACK',
-    detail: 'MATTE-BLACK',
-    status: 'PUBLISHED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 12, 2025',
-    updatedTime: '1:10 PM',
-    createdDate: 'Apr 10, 2025',
-    creator: 'Demo Owner',
-    fileName: 'metal-matte-black.sbsar',
-    fileSize: '1.2 MB',
-    format: 'SBSAR',
-    resolution: '2048 x 2048',
-    colorSpace: 'sRGB',
-    tags: ['metal', 'black', 'matte', 'frame'],
-    folderName: 'Materials / Metals',
-    productUsage: 18,
-    configUsage: 6,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R7',
-    type: 'model',
-    name: 'Living Room Scene',
-    code: 'GLB · 1.2MB',
-    detail: 'GLB-SCENE',
-    status: 'PUBLISHED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 11, 2025',
-    updatedTime: '4:05 PM',
-    createdDate: 'Apr 02, 2025',
-    creator: 'Demo Owner',
-    fileName: 'living-room-scene.glb',
-    fileSize: '1.2 MB',
-    format: 'GLB',
-    meshCount: 12,
-    tags: ['room', 'scene', 'interior', 'environment'],
-    folderName: 'Models / Scenes',
-    productUsage: 6,
-    configUsage: 2,
-  },
-  {
-    id: 'asset_01HZY8Q9K3W5YD8M7F2JQ2R8',
-    type: 'material',
-    name: 'Herringbone Oak',
-    code: 'WOOD-OAK-HERRINGBONE',
-    detail: 'WOOD-OAK-HERRINGBONE',
-    status: 'ARCHIVED',
-    imageUrl:
-      'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=120&auto=format&fit=crop&q=80',
-    updatedDate: 'May 10, 2025',
-    updatedTime: '10:11 AM',
-    createdDate: 'Mar 15, 2025',
-    creator: 'Demo Owner',
-    fileName: 'herringbone-oak.sbsar',
-    fileSize: '4.1 MB',
-    format: 'SBSAR',
-    resolution: '4096 x 4096',
-    colorSpace: 'sRGB',
-    tags: ['wood', 'oak', 'herringbone', 'floor'],
-    folderName: 'Materials / Woods',
-    productUsage: 0,
-    configUsage: 0,
-  },
-];
-
 export function AssetLibrary({
   projectId,
   folders,
@@ -250,38 +68,10 @@ export function AssetLibrary({
   const toast = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [catalog, setCatalog] = useState<LibraryAssetItem[]>(() => {
-    if (serverAssets.length > 0) {
-      return serverAssets.map((sa, i) => {
-        const demo = DEMO_LIBRARY_ASSETS[i % DEMO_LIBRARY_ASSETS.length]!;
-        return {
-          ...demo,
-          ...sa,
-          status: libraryAssetStatusLabel(sa.status || demo.status),
-          detail: sa.code || demo.detail,
-          updatedDate: demo.updatedDate,
-          updatedTime: demo.updatedTime,
-        };
-      });
-    }
-    return DEMO_LIBRARY_ASSETS;
-  });
+  const [catalog, setCatalog] = useState<LibraryAssetItem[]>(serverAssets);
 
   useEffect(() => {
-    if (serverAssets.length === 0) return;
-    setCatalog(
-      serverAssets.map((sa, i) => {
-        const demo = DEMO_LIBRARY_ASSETS[i % DEMO_LIBRARY_ASSETS.length]!;
-        return {
-          ...demo,
-          ...sa,
-          status: libraryAssetStatusLabel(sa.status || demo.status),
-          detail: sa.code || demo.detail,
-          updatedDate: demo.updatedDate,
-          updatedTime: demo.updatedTime,
-        };
-      })
-    );
+    setCatalog(serverAssets);
   }, [serverAssets]);
 
   const [typeTab, setTypeTab] = useState<LibraryAssetType | 'all' | 'folders'>(
@@ -292,7 +82,9 @@ export function AssetLibrary({
   >('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'material' | 'model' | 'texture' | 'image'>('all');
   const [query, setQuery] = useState('');
-  const [inspectId, setInspectId] = useState<string | null>(DEMO_LIBRARY_ASSETS[0]?.id ?? null);
+  const [inspectId, setInspectId] = useState<string | null>(
+    serverAssets[0]?.id ?? null
+  );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [moreOpen, setMoreOpen] = useState(false);
@@ -318,15 +110,17 @@ export function AssetLibrary({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
 
-  // Counts for tabs
-  const counts = useMemo(() => ({
-    all: 128,
-    materials: 64,
-    models: 28,
-    textures: 22,
-    images: 10,
-    folders: 4,
-  }), []);
+  const counts = useMemo(
+    () => ({
+      all: catalog.length,
+      materials: catalog.filter((a) => a.type === 'material').length,
+      models: catalog.filter((a) => a.type === 'model').length,
+      textures: catalog.filter((a) => a.type === 'texture').length,
+      images: catalog.filter((a) => a.type === 'image').length,
+      folders: folders.length,
+    }),
+    [catalog, folders.length]
+  );
 
   // Filter and sort catalog
   const filtered = useMemo(() => {
@@ -468,20 +262,65 @@ export function AssetLibrary({
     });
   };
 
+  const deleteAssets = (assets: LibraryAssetItem[], successLabel: string) => {
+    if (assets.length === 0) return;
+    const unsupported = assets.filter(
+      (asset) => asset.type !== 'model' && asset.type !== 'texture'
+    );
+    const deletable = assets.filter(
+      (asset) => asset.type === 'model' || asset.type === 'texture'
+    );
+    if (deletable.length === 0) {
+      toast.error(
+        unsupported.length > 0
+          ? 'Material delete is not available yet. Delete models or textures.'
+          : 'No assets selected.'
+      );
+      return;
+    }
+    startTransition(async () => {
+      const results = await Promise.all(
+        deletable.map((asset) =>
+          asset.type === 'texture'
+            ? deleteTextureAction(projectId, asset.id)
+            : deleteObjectAction(projectId, asset.id)
+        )
+      );
+      const failed = results.find((result) => !result.ok);
+      if (failed) {
+        toast.error(failed.error || 'Delete failed.');
+        return;
+      }
+      const deletedIds = new Set(deletable.map((asset) => asset.id));
+      setCatalog((prev) => prev.filter((asset) => !deletedIds.has(asset.id)));
+      if (inspectId && deletedIds.has(inspectId)) setInspectId(null);
+      setSelectedIds(new Set());
+      setConfirmDialog((d) => ({ ...d, open: false }));
+      if (unsupported.length > 0) {
+        toast.info(
+          `${unsupported.length} material${unsupported.length === 1 ? '' : 's'} skipped`
+        );
+      }
+      toast.success(successLabel);
+      router.refresh();
+    });
+  };
+
   const handleBulkDelete = () => {
-    const count = selectedIds.size;
+    const selected = catalog.filter((asset) => selectedIds.has(asset.id));
+    const count = selected.length;
+    if (count === 0) return;
     setConfirmDialog({
       open: true,
       title: `Delete ${count} asset${count === 1 ? '' : 's'}?`,
-      body: 'This permanently removes the selected assets from the library. This action cannot be undone.',
+      body: 'This permanently removes selected models and textures. Materials are skipped for now.',
       confirmLabel: 'Delete',
       danger: true,
       onConfirm: () => {
-        setCatalog((prev) => prev.filter((a) => !selectedIds.has(a.id)));
-        if (inspectId && selectedIds.has(inspectId)) setInspectId(null);
-        setSelectedIds(new Set());
-        setConfirmDialog((d) => ({ ...d, open: false }));
-        toast.success(`Deleted ${count} asset${count === 1 ? '' : 's'}`);
+        deleteAssets(
+          selected,
+          `Deleted ${count} asset${count === 1 ? '' : 's'}`
+        );
       },
     });
   };
@@ -550,7 +389,7 @@ export function AssetLibrary({
       {/* Header */}
       <BackofficePageHeader
         title="Assets"
-        count="128"
+        count={String(counts.all)}
         actions={
           <BackofficePageHeader.Actions
             secondary={
@@ -559,13 +398,25 @@ export function AssetLibrary({
                 size="sm"
                 variant="secondary"
                 onClick={() => {
-                  setCreateType('model');
+                  setCreateType(
+                    typeTab === 'texture'
+                      ? 'texture'
+                      : typeTab === 'material'
+                        ? 'material'
+                        : 'model'
+                  );
                   setCreateOpen(true);
                 }}
                 className="ui:flex ui:items-center ui:gap-1.5 ui:h-9 ui:px-3 ui:rounded-lg ui:text-[13px] ui:font-medium"
               >
                 <UploadIcon size={15} />
-                <span>Upload</span>
+                <span>
+                  {typeTab === 'texture'
+                    ? 'Upload texture'
+                    : typeTab === 'material'
+                      ? 'New material'
+                      : 'Upload'}
+                </span>
               </Button>
             }
             primary={
@@ -579,7 +430,7 @@ export function AssetLibrary({
                 className="ui:flex ui:items-center ui:gap-1.5 ui:h-9 ui:px-3.5 ui:rounded-lg ui:bg-[var(--ink)] ui:hover:bg-black ui:text-white ui:text-[13px] ui:font-medium ui:shadow-xs"
               >
                 <PlusIcon size={15} />
-                <span>New material ▾</span>
+                <span>New asset</span>
               </Button>
             }
           />
@@ -727,7 +578,15 @@ export function AssetLibrary({
 
       {/* Main Table / Grid View */}
       <PageBody flush>
-        {filtered.length === 0 ? (
+        {catalog.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              variant="firstUse"
+              title="No assets yet"
+              description="Upload a model or texture, or create a material to get started."
+            />
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="p-6">
             <EmptyState
               variant="filtered"
@@ -750,10 +609,10 @@ export function AssetLibrary({
                     )}
                   >
                     <div className="relative aspect-square w-full rounded-lg border border-[var(--line)] bg-[var(--canvas)] overflow-hidden">
-                      {asset.imageUrl ? (
+                      {asset.imageUrl || asset.fileUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={asset.imageUrl}
+                          src={asset.imageUrl || asset.fileUrl || ''}
                           alt={asset.name}
                           className="h-full w-full object-cover"
                         />
@@ -895,8 +754,8 @@ export function AssetLibrary({
                     </DataTable.Cell>
 
                     <DataTable.DateCell
-                      date={asset.updatedDate || 'May 14, 2025'}
-                      time={asset.updatedTime || '10:24 AM'}
+                      date={asset.updatedDate || '—'}
+                      time={asset.updatedTime || undefined}
                     />
 
                     <DataTable.ActionsCell>
@@ -932,19 +791,27 @@ export function AssetLibrary({
                               setConfirmDialog({
                                 open: true,
                                 title: `Delete “${asset.name}”?`,
-                                body: 'This permanently removes the asset from your library. This action cannot be undone.',
+                                body:
+                                  asset.type === 'material'
+                                    ? 'Material delete is not available yet.'
+                                    : 'This permanently removes the asset from your library. This action cannot be undone.',
                                 confirmLabel: 'Delete',
                                 danger: true,
                                 onConfirm: () => {
-                                  setCatalog((prev) =>
-                                    prev.filter((a) => a.id !== asset.id)
+                                  if (asset.type === 'material') {
+                                    toast.error(
+                                      'Material delete is not available yet.'
+                                    );
+                                    setConfirmDialog((d) => ({
+                                      ...d,
+                                      open: false,
+                                    }));
+                                    return;
+                                  }
+                                  deleteAssets(
+                                    [asset],
+                                    `Deleted ${asset.name}`
                                   );
-                                  if (inspectId === asset.id) setInspectId(null);
-                                  setConfirmDialog((d) => ({
-                                    ...d,
-                                    open: false,
-                                  }));
-                                  toast.success(`Deleted ${asset.name}`);
                                 },
                               });
                             },

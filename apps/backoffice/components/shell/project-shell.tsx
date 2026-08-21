@@ -10,17 +10,7 @@ function isStudioEditorPath(pathname: string) {
   );
 }
 
-export function ProjectShell({
-  children,
-  projectId,
-  projectName,
-  userName,
-}: {
-  children: React.ReactNode;
-  projectId?: string;
-  projectName?: string;
-  userName: string;
-}) {
+export function ProjectShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   if (isStudioEditorPath(pathname)) {
@@ -31,13 +21,5 @@ export function ProjectShell({
     );
   }
 
-  return (
-    <AppShell
-      projectId={projectId}
-      projectName={projectName}
-      userName={userName}
-    >
-      {children}
-    </AppShell>
-  );
+  return <AppShell>{children}</AppShell>;
 }

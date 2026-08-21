@@ -9,16 +9,20 @@ import {
   pickGraphVersionId,
 } from '@repo/product-graph';
 import { Product3DStudio } from '@/components/products/studio/product-3d-studio';
+import { CubeStoreHydrator } from '@/components/shell/cube-store-hydrator';
 import { getEditorStudioPath } from '@/lib/editor-embed';
 import type { GraphDetail } from '@/lib/product-workspace';
 import { getProjectSession } from '@/lib/session-server';
 
 export default async function Product3DStudioPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string; id: string }>;
+  searchParams: Promise<{ choice?: string; value?: string }>;
 }) {
   const { projectId, id } = await params;
+  const { choice, value } = await searchParams;
   const project = await getProjectSession();
   if (!project) return null;
 
@@ -45,7 +49,11 @@ export default async function Product3DStudioPage({
         objectAssets: [],
       })),
       graphRequest<{
-        materialAssets: Array<{ id: string; name: string }>;
+        materialAssets: Array<{
+          id: string;
+          name: string;
+          currentRevisionId?: string | null;
+        }>;
       }>(MATERIAL_ASSETS_QUERY, { projectId }, project.projectToken).catch(
         () => ({ materialAssets: [] })
       ),
@@ -66,7 +74,12 @@ export default async function Product3DStudioPage({
   const detail = detailData.productRevisionDetail;
   const modelId = detail.models[0]?.id;
   if (modelId) {
-    redirect(getEditorStudioPath(projectId, id, modelId));
+    const studioPath = getEditorStudioPath(projectId, id, modelId);
+    if (choice && value) {
+      const params = new URLSearchParams({ choice, value });
+      redirect(`${studioPath}?${params.toString()}`);
+    }
+    redirect(studioPath);
   }
 
   const editable =
@@ -74,14 +87,20 @@ export default async function Product3DStudioPage({
     detail.status !== 'ARCHIVED';
 
   return (
-    <Product3DStudio
-      projectId={projectId}
-      productId={id}
-      productName={productData.product.name}
-      detail={detail}
-      objectAssets={objectsData.objectAssets}
-      materials={materialsData.materialAssets}
-      editable={editable}
-    />
+    <CubeStoreHydrator
+      workspace={{ productId: id, modelId: detail.models[0]?.id }}
+      graphDetail={detail}
+      unmount="product"
+    >
+      <Product3DStudio
+        projectId={projectId}
+        productId={id}
+        productName={productData.product.name}
+        detail={detail}
+        objectAssets={objectsData.objectAssets}
+        materials={materialsData.materialAssets}
+        editable={editable}
+      />
+    </CubeStoreHydrator>
   );
 }

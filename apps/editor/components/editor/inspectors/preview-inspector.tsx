@@ -1,12 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { DetailRow, InspectorSection, StatusBadge } from '@repo/ui';
 import { useEditorStore } from '@/lib/editor-store';
 import { evaluateConfiguratorPreview } from '@/lib/visual/configurator-preview';
 
 export function PreviewInspector() {
-  const visualSelection = useEditorStore((state) => state.visualSelection);
+  const visualSelection = useEditorStore((state) => state.selection);
   const visualDocument = useEditorStore((state) => state.visualDocument);
   const graphDetail = useEditorStore((state) => state.graphDetail);
   const editorDocument = useEditorStore((state) => state.document);
@@ -26,117 +25,112 @@ export function PreviewInspector() {
     ) ?? [];
 
   return (
-    <div className="space-y-4 select-none">
+    <div className="space-y-4 select-none text-white">
       <div>
         <div className="flex items-center justify-between pb-1">
-          <h3 className="text-[13px] font-bold text-[var(--ink)]">
+          <h3 className="text-[13px] font-bold text-white">
             Configurator Preview
           </h3>
-          <StatusBadge
-            role={
-              preview?.layers.validity === 'VALID' ? 'published' : 'danger'
-            }
-            label={preview?.layers.validity ?? '—'}
-          />
+          <span
+            className={`rounded-full px-2.5 py-0.5 font-mono text-[9px] font-bold tracking-wide ${
+              preview?.layers.validity === 'VALID'
+                ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60'
+                : 'bg-red-950/80 text-red-400 border border-red-800/60'
+            }`}
+          >
+            {preview?.layers.validity ?? '—'}
+          </span>
         </div>
-        <p className="text-[11px] text-[var(--text-muted)]">
+        <p className="text-[11px] text-white/50">
           UNMAPPED blocks purchase only — not selection or render.
         </p>
       </div>
 
-      <div>
-        <InspectorSection title="Product affinity" />
-        <div className="space-y-1.5 text-[11px]">
-          <DetailRow
-            label="Product"
-            value={editorDocument?.productName ?? '—'}
-          />
-          <DetailRow
-            label="Model"
-            value={editorDocument?.modelName ?? 'No model'}
-          />
+      <div className="space-y-2">
+        <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
+          Product affinity
+        </h4>
+        <div className="space-y-1.5 text-[11px] rounded-xl border border-white/10 bg-[#181920] p-3">
+          <div className="flex justify-between">
+            <span className="text-white/50">Product</span>
+            <span className="font-medium text-white">{editorDocument?.productName ?? '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Model</span>
+            <span className="font-medium text-white">{editorDocument?.modelName ?? 'No model'}</span>
+          </div>
         </div>
       </div>
 
-      <div>
-        <InspectorSection title="Runtime status" />
-        <div className="space-y-1.5 text-[11px]">
-          <DetailRow
-            label="Configuration"
-            value={
-              <span className="font-mono">
-                {preview
-                  ? `${preview.layers.validity} · ${preview.layers.completeness}`
-                  : '—'}
-              </span>
-            }
-          />
-          <DetailRow
-            label="Commerce"
-            value={
-              <span className="font-mono">
-                {preview?.layers.commerce ?? '—'}
-              </span>
-            }
-          />
-          <DetailRow
-            label="Purchase"
-            value={
-              <span className="font-mono">
-                {preview?.layers.purchase ?? '—'}
-              </span>
-            }
-          />
-          <DetailRow
-            label="Visual"
-            value={
-              <span className="font-mono">{preview?.layers.visual ?? '—'}</span>
-            }
-          />
+      <div className="space-y-2">
+        <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
+          Runtime status
+        </h4>
+        <div className="space-y-1.5 text-[11px] rounded-xl border border-white/10 bg-[#181920] p-3">
+          <div className="flex justify-between">
+            <span className="text-white/50">Configuration</span>
+            <span className="font-mono text-white">
+              {preview
+                ? `${preview.layers.validity} · ${preview.layers.completeness}`
+                : '—'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Commerce</span>
+            <span className="font-mono text-white">{preview?.layers.commerce ?? '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Purchase</span>
+            <span className="font-mono text-white">{preview?.layers.purchase ?? '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Visual</span>
+            <span className="font-mono text-white">{preview?.layers.visual ?? '—'}</span>
+          </div>
         </div>
       </div>
 
-      <div>
-        <InspectorSection title="Revision" />
-        <div className="space-y-1.5 text-[11px]">
-          <DetailRow
-            label="ProductRevision"
-            value={
-              <span className="font-mono">
-                {graphDetail?.id?.slice(0, 8) ?? '—'}
-              </span>
-            }
-          />
-          <DetailRow
-            label="Constraints"
-            value={
-              <span className="font-mono">
-                {graphDetail?.constraints.length ?? 0}
-              </span>
-            }
-          />
-          <DetailRow
-            label="Fired visuals"
-            value={
-              <span className="font-mono">
-                {activeBindings.length} / {visualDocument?.bindings.length ?? 0}
-              </span>
-            }
-          />
+      <div className="space-y-2">
+        <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
+          Revision
+        </h4>
+        <div className="space-y-1.5 text-[11px] rounded-xl border border-white/10 bg-[#181920] p-3">
+          <div className="flex justify-between">
+            <span className="text-white/50">ProductRevision</span>
+            <span className="font-mono text-white">
+              {graphDetail?.id?.slice(0, 8) ?? '—'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Constraints</span>
+            <span className="font-mono text-white">
+              {graphDetail?.constraints.length ?? 0}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Fired visuals</span>
+            <span className="font-mono text-white">
+              {activeBindings.length} / {visualDocument?.bindings.length ?? 0}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div>
-        <InspectorSection title="Selection" />
-        <pre className="rounded border border-[var(--line)] bg-[var(--canvas)]/50 p-2 font-mono text-[10px] text-[var(--ink)] whitespace-pre-wrap break-all">
+      <div className="space-y-2">
+        <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
+          Selection
+        </h4>
+        <pre className="rounded-xl border border-white/10 bg-[#181920] p-3 font-mono text-[10px] text-white/80 whitespace-pre-wrap break-all">
           {JSON.stringify(visualSelection, null, 2)}
         </pre>
       </div>
 
       {preview && !preview.validation.valid ? (
-        <div>
-          <InspectorSection title="Validation" />
-          <div className="space-y-1 font-mono text-[10px] text-amber-900">
+        <div className="space-y-2">
+          <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-400/80">
+            Validation
+          </h4>
+          <div className="space-y-1 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 font-mono text-[10px] text-amber-300">
             {preview.issueLabels.map((label) => (
               <div key={label}>{label}</div>
             ))}
@@ -144,23 +138,25 @@ export function PreviewInspector() {
         </div>
       ) : null}
 
-      <div>
-        <InspectorSection title="Fired visual bindings" />
+      <div className="space-y-2">
+        <h4 className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
+          Fired visual bindings
+        </h4>
         <div className="space-y-1.5 text-[11px]">
           {activeBindings.length === 0 ? (
-            <p className="text-[var(--text-muted)]">
+            <p className="text-white/40">
               None — reconcile restores baseline.
             </p>
           ) : (
             activeBindings.map((binding) => (
               <div
                 key={`${binding.choiceKey}:${binding.valueKey}:${binding.targetKey}:${binding.operation}`}
-                className="rounded border border-[var(--line)] bg-[var(--canvas)]/50 p-2 font-mono text-[10px] text-[var(--text-muted)]"
+                className="rounded-xl border border-white/10 bg-[#181920] p-3 font-mono text-[10px] text-white/70"
               >
-                <span className="font-sans font-bold text-[var(--ink)]">
+                <span className="font-sans font-bold text-white">
                   {binding.choiceKey}={binding.valueKey}
                 </span>
-                <div>
+                <div className="text-white/40 mt-0.5">
                   {binding.operation} → {binding.targetKey}
                 </div>
               </div>

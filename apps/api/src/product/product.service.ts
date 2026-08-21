@@ -6,6 +6,7 @@ import {
 import {
   AttributeType,
   GraphVersionStatus,
+  LibraryRevisionStatus,
   ObjectAssetStatus,
   ProductModelAssetRole,
   ProductStatus,
@@ -21,6 +22,7 @@ import {
 } from './kernel-authoring';
 import { ConstraintService } from './constraint.service';
 import { CommerceMappingService } from './commerce-mapping.service';
+import { assertNoStructuralSurfaceConflicts } from '@repo/product-graph';
 
 export const PRODUCT_MODEL_ROOT_ASSET_KEY = 'root';
 
@@ -46,6 +48,7 @@ const graphDetailInclude = {
       targets: true,
       objectAssetRevision: true,
       linkedAssets: { orderBy: [{ role: 'asc' as const }, { key: 'asc' as const }] },
+      visualSetups: { orderBy: { sortOrder: 'asc' as const } },
     },
   },
   variants: { include: { selections: true } },
@@ -206,13 +209,31 @@ export class ProductService {
     return candidateIds.filter((id) => !sharedIds.has(id));
   }
 
+  private async clearRevisionRestrictBlockers(
+    client: Prisma.TransactionClient | PrismaService,
+    productRevisionId: string
+  ) {
+    await client.commerceMappingSet.deleteMany({ where: { productRevisionId } });
+    await client.constraint.deleteMany({ where: { productRevisionId } });
+    await client.savedConfiguration.deleteMany({ where: { productRevisionId } });
+  }
+
   async delete(id: string) {
     await this.getById(id);
-    await this.prisma.product.update({
-      where: { id },
-      data: { activeRevisionId: null },
+    const revisions = await this.prisma.productRevision.findMany({
+      where: { productId: id },
+      select: { id: true },
     });
-    await this.prisma.product.delete({ where: { id } });
+    await this.prisma.$transaction(async (tx) => {
+      for (const revision of revisions) {
+        await this.clearRevisionRestrictBlockers(tx, revision.id);
+      }
+      await tx.product.update({
+        where: { id },
+        data: { activeRevisionId: null },
+      });
+      await tx.product.delete({ where: { id } });
+    });
     return true;
   }
 
@@ -226,14 +247,16 @@ export class ProductService {
     }
 
     const product = await this.getById(productId);
-    if (product.activeRevisionId === draft.id) {
-      await this.prisma.product.update({
-        where: { id: productId },
-        data: { activeRevisionId: null },
-      });
-    }
-
-    await this.prisma.productRevision.delete({ where: { id: draft.id } });
+    await this.prisma.$transaction(async (tx) => {
+      if (product.activeRevisionId === draft.id) {
+        await tx.product.update({
+          where: { id: productId },
+          data: { activeRevisionId: null },
+        });
+      }
+      await this.clearRevisionRestrictBlockers(tx, draft.id);
+      await tx.productRevision.delete({ where: { id: draft.id } });
+    });
     return true;
   }
 
@@ -327,6 +350,7 @@ export class ProductService {
       const choiceIdMap = new Map<string, string>();
       const valueIdMap = new Map<string, string>();
       const targetIdMap = new Map<string, string>();
+      const modelIdMap = new Map<string, string>();
 
       for (const choice of source.choices) {
         const created = await tx.choice.create({
@@ -418,6 +442,7 @@ export class ProductService {
             },
           },
         });
+        modelIdMap.set(model.id, createdModel.id);
 
         for (const target of model.targets) {
           const createdTarget = await tx.modelTarget.create({
@@ -446,6 +471,24 @@ export class ProductService {
             value: effect.value as Prisma.InputJsonValue,
           },
         });
+      }
+
+      for (const model of source.models) {
+        const newModelId = modelIdMap.get(model.id);
+        if (!newModelId) continue;
+        for (const setup of model.visualSetups ?? []) {
+          const newTargetId = targetIdMap.get(setup.modelTargetId);
+          if (!newTargetId) continue;
+          await tx.visualSetup.create({
+            data: {
+              productModelId: newModelId,
+              modelTargetId: newTargetId,
+              operation: setup.operation,
+              value: setup.value as Prisma.InputJsonValue,
+              sortOrder: setup.sortOrder,
+            },
+          });
+        }
       }
 
       for (const variant of source.variants) {
@@ -935,6 +978,85 @@ export class ProductService {
     return true;
   }
 
+  private async assertSetMaterialValue(
+    productModelId: string,
+    productRevisionId: string,
+    parsed: Prisma.InputJsonValue
+  ): Promise<Prisma.InputJsonValue> {
+    const materialAssetRevisionId =
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      !Array.isArray(parsed) &&
+      typeof (parsed as { materialAssetRevisionId?: unknown })
+        .materialAssetRevisionId === 'string'
+        ? (parsed as { materialAssetRevisionId: string })
+            .materialAssetRevisionId.trim()
+        : '';
+    if (!materialAssetRevisionId) {
+      throw new BadRequestException(
+        'SET_MATERIAL value must be { "materialAssetRevisionId": "<id>" }'
+      );
+    }
+
+    const revision = await this.prisma.productRevision.findUnique({
+      where: { id: productRevisionId },
+      include: { product: true },
+    });
+    if (!revision) {
+      throw new NotFoundException('Product revision not found');
+    }
+
+    const materialRevision =
+      await this.prisma.materialAssetRevision.findUnique({
+        where: { id: materialAssetRevisionId },
+        include: {
+          materialAsset: true,
+          textureUsages: true,
+        },
+      });
+    if (
+      !materialRevision ||
+      materialRevision.materialAsset.organizationId !==
+        revision.organizationId ||
+      materialRevision.materialAsset.projectId !== revision.product.projectId
+    ) {
+      throw new BadRequestException(
+        'materialAssetRevisionId must reference a material revision in this project'
+      );
+    }
+
+    for (const usage of materialRevision.textureUsages) {
+      const textureRevision =
+        await this.prisma.textureAssetRevision.findUnique({
+          where: { id: usage.textureAssetRevisionId },
+        });
+      if (!textureRevision) {
+        throw new BadRequestException(
+          `Material revision references missing TextureAssetRevision ${usage.textureAssetRevisionId}`
+        );
+      }
+    }
+
+    const materialLinks = await this.prisma.productModelAsset.findMany({
+      where: {
+        productModelId,
+        role: ProductModelAssetRole.MATERIAL,
+      },
+    });
+    if (
+      materialLinks.length > 0 &&
+      !materialLinks.some(
+        (link) => link.assetRevisionId === materialAssetRevisionId
+      )
+    ) {
+      throw new BadRequestException(
+        'materialAssetRevisionId must be linked on this ProductModel as MATERIAL'
+      );
+    }
+
+    return { materialAssetRevisionId };
+  }
+
   private async assertReplaceComponentValue(
     productModelId: string,
     parsed: Prisma.InputJsonValue
@@ -992,6 +1114,78 @@ export class ProductService {
     return { linkedAssetKey, role: 'OBJECT' };
   }
 
+  private async assertStructuralSurfaceCompatibility(
+    productRevisionId: string,
+    proposed?: {
+      modelTargetId: string;
+      operation: VisualOperation;
+      excludeEffectId: string | null;
+      excludeSetupId?: string | null;
+    }
+  ) {
+    const models = await this.prisma.productModel.findMany({
+      where: { productRevisionId },
+      include: {
+        targets: {
+          include: {
+            visualEffects: true,
+            visualSetups: true,
+          },
+        },
+      },
+    });
+
+    for (const model of models) {
+      const targets = model.targets
+        .filter((target) => typeof target.nodePath === 'string' && target.nodePath)
+        .map((target) => ({
+          key: target.key,
+          nodePath: target.nodePath as string,
+        }));
+
+      const effects: Array<{ operation: string; targetKey: string }> = [];
+      for (const target of model.targets) {
+        for (const effect of target.visualEffects) {
+          if (effect.id === proposed?.excludeEffectId) continue;
+          effects.push({
+            operation: effect.operation,
+            targetKey: target.key,
+          });
+        }
+        for (const setup of target.visualSetups) {
+          if (setup.id === proposed?.excludeSetupId) continue;
+          effects.push({
+            operation: setup.operation,
+            targetKey: target.key,
+          });
+        }
+      }
+
+      if (
+        proposed &&
+        model.targets.some((target) => target.id === proposed.modelTargetId)
+      ) {
+        const proposedTarget = model.targets.find(
+          (target) => target.id === proposed.modelTargetId
+        );
+        if (proposedTarget) {
+          effects.push({
+            operation: proposed.operation,
+            targetKey: proposedTarget.key,
+          });
+        }
+      }
+
+      try {
+        assertNoStructuralSurfaceConflicts({ targets, effects });
+      } catch (error) {
+        throw new BadRequestException(
+          error instanceof Error ? error.message : 'Invalid visual target layout'
+        );
+      }
+    }
+  }
+
   private async assertLinkedAssetRevision(
     role: ProductModelAssetRole,
     assetRevisionId: string
@@ -1012,21 +1206,21 @@ export class ProductService {
     }
 
     if (role === ProductModelAssetRole.MATERIAL) {
-      const material = await this.prisma.materialAsset.findUnique({
+      const revision = await this.prisma.materialAssetRevision.findUnique({
         where: { id },
       });
-      if (!material) {
-        throw new NotFoundException('Material asset not found');
+      if (!revision) {
+        throw new NotFoundException('Material asset revision not found');
       }
       return;
     }
 
     if (role === ProductModelAssetRole.TEXTURE) {
-      const texture = await this.prisma.textureAsset.findUnique({
+      const revision = await this.prisma.textureAssetRevision.findUnique({
         where: { id },
       });
-      if (!texture) {
-        throw new NotFoundException('Texture asset not found');
+      if (!revision) {
+        throw new NotFoundException('Texture asset revision not found');
       }
       return;
     }
@@ -1097,42 +1291,11 @@ export class ProductService {
     }
 
     if (input.operation === VisualOperation.SET_MATERIAL) {
-      const materialAssetId =
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        !Array.isArray(parsed) &&
-        typeof (parsed as { materialAssetId?: unknown }).materialAssetId ===
-          'string'
-          ? (parsed as { materialAssetId: string }).materialAssetId.trim()
-          : '';
-      if (!materialAssetId) {
-        throw new BadRequestException(
-          'SET_MATERIAL value must be { "materialAssetId": "<id>" }'
-        );
-      }
-
-      const revision = await this.prisma.productRevision.findUnique({
-        where: { id: value.choice.productRevisionId },
-        include: { product: true },
-      });
-      if (!revision) {
-        throw new NotFoundException('Product revision not found');
-      }
-
-      const material = await this.prisma.materialAsset.findFirst({
-        where: {
-          id: materialAssetId,
-          organizationId: revision.organizationId,
-          projectId: revision.product.projectId,
-        },
-      });
-      if (!material) {
-        throw new BadRequestException(
-          'materialAssetId must reference a material in this project'
-        );
-      }
-
-      parsed = { materialAssetId };
+      parsed = await this.assertSetMaterialValue(
+        target.productModelId,
+        value.choice.productRevisionId,
+        parsed
+      );
     }
 
     if (input.operation === VisualOperation.REPLACE_COMPONENT) {
@@ -1141,6 +1304,15 @@ export class ProductService {
         parsed
       );
     }
+
+    await this.assertStructuralSurfaceCompatibility(
+      value.choice.productRevisionId,
+      {
+        modelTargetId: input.modelTargetId,
+        operation: input.operation,
+        excludeEffectId: null,
+      }
+    );
 
     return this.prisma.visualEffect.create({
       data: {
@@ -1182,33 +1354,11 @@ export class ProductService {
     }
 
     if (operation === VisualOperation.SET_MATERIAL) {
-      const materialAssetId =
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        !Array.isArray(parsed) &&
-        typeof (parsed as { materialAssetId?: unknown }).materialAssetId ===
-          'string'
-          ? (parsed as { materialAssetId: string }).materialAssetId.trim()
-          : '';
-      if (!materialAssetId) {
-        throw new BadRequestException(
-          'SET_MATERIAL value must be { "materialAssetId": "<id>" }'
-        );
-      }
-      const revision = existing.modelTarget.productModel.productRevision;
-      const material = await this.prisma.materialAsset.findFirst({
-        where: {
-          id: materialAssetId,
-          organizationId: revision.organizationId,
-          projectId: revision.product.projectId,
-        },
-      });
-      if (!material) {
-        throw new BadRequestException(
-          'materialAssetId must reference a material in this project'
-        );
-      }
-      parsed = { materialAssetId };
+      parsed = await this.assertSetMaterialValue(
+        existing.modelTarget.productModelId,
+        existing.choiceValue.choice.productRevisionId,
+        parsed
+      );
     }
 
     if (operation === VisualOperation.REPLACE_COMPONENT) {
@@ -1225,6 +1375,15 @@ export class ProductService {
         );
       }
     }
+
+    await this.assertStructuralSurfaceCompatibility(
+      existing.choiceValue.choice.productRevisionId,
+      {
+        modelTargetId: existing.modelTargetId,
+        operation,
+        excludeEffectId: existing.id,
+      }
+    );
 
     return this.prisma.visualEffect.update({
       where: { id: input.id },
@@ -1247,6 +1406,147 @@ export class ProductService {
     }
     await this.assertDraft(existing.choiceValue.choice.productRevisionId);
     await this.prisma.visualEffect.delete({ where: { id } });
+    return true;
+  }
+
+  async createVisualSetup(input: {
+    productModelId: string;
+    modelTargetId: string;
+    operation: VisualOperation;
+    valueJson: string;
+    sortOrder?: number;
+  }) {
+    const model = await this.prisma.productModel.findUnique({
+      where: { id: input.productModelId },
+    });
+    if (!model) {
+      throw new NotFoundException('Product model not found');
+    }
+    await this.assertDraft(model.productRevisionId);
+
+    const target = await this.prisma.modelTarget.findUnique({
+      where: { id: input.modelTargetId },
+    });
+    if (!target) {
+      throw new NotFoundException('Model target not found');
+    }
+    if (target.productModelId !== input.productModelId) {
+      throw new BadRequestException(
+        'Model target must belong to the ProductModel'
+      );
+    }
+
+    let parsed: Prisma.InputJsonValue;
+    try {
+      parsed = JSON.parse(input.valueJson) as Prisma.InputJsonValue;
+    } catch {
+      throw new BadRequestException('valueJson must be valid JSON');
+    }
+
+    if (input.operation === VisualOperation.SET_MATERIAL) {
+      parsed = await this.assertSetMaterialValue(
+        input.productModelId,
+        model.productRevisionId,
+        parsed
+      );
+    }
+
+    if (input.operation === VisualOperation.REPLACE_COMPONENT) {
+      parsed = await this.assertReplaceComponentValue(
+        input.productModelId,
+        parsed
+      );
+    }
+
+    await this.assertStructuralSurfaceCompatibility(model.productRevisionId, {
+      modelTargetId: input.modelTargetId,
+      operation: input.operation,
+      excludeEffectId: null,
+      excludeSetupId: null,
+    });
+
+    return this.prisma.visualSetup.create({
+      data: {
+        productModelId: input.productModelId,
+        modelTargetId: input.modelTargetId,
+        operation: input.operation,
+        value: parsed,
+        sortOrder: input.sortOrder ?? 0,
+      },
+    });
+  }
+
+  async updateVisualSetup(input: {
+    id: string;
+    operation?: VisualOperation;
+    valueJson?: string;
+    sortOrder?: number;
+  }) {
+    const existing = await this.prisma.visualSetup.findUnique({
+      where: { id: input.id },
+      include: { productModel: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Visual setup not found');
+    }
+    await this.assertDraft(existing.productModel.productRevisionId);
+
+    const operation = input.operation ?? existing.operation;
+    let parsed: Prisma.InputJsonValue = existing.value as Prisma.InputJsonValue;
+    if (typeof input.valueJson === 'string') {
+      try {
+        parsed = JSON.parse(input.valueJson) as Prisma.InputJsonValue;
+      } catch {
+        throw new BadRequestException('valueJson must be valid JSON');
+      }
+    }
+
+    if (operation === VisualOperation.SET_MATERIAL) {
+      parsed = await this.assertSetMaterialValue(
+        existing.productModelId,
+        existing.productModel.productRevisionId,
+        parsed
+      );
+    }
+    if (operation === VisualOperation.REPLACE_COMPONENT) {
+      parsed = await this.assertReplaceComponentValue(
+        existing.productModelId,
+        parsed
+      );
+    }
+
+    await this.assertStructuralSurfaceCompatibility(
+      existing.productModel.productRevisionId,
+      {
+        modelTargetId: existing.modelTargetId,
+        operation,
+        excludeEffectId: null,
+        excludeSetupId: existing.id,
+      }
+    );
+
+    return this.prisma.visualSetup.update({
+      where: { id: input.id },
+      data: {
+        operation,
+        value: parsed,
+        ...(typeof input.sortOrder === 'number'
+          ? { sortOrder: input.sortOrder }
+          : {}),
+      },
+    });
+  }
+
+  async deleteVisualSetup(id: string) {
+    const existing = await this.prisma.visualSetup.findUnique({
+      where: { id },
+      include: { productModel: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Visual setup not found');
+    }
+    await this.assertDraft(existing.productModel.productRevisionId);
+    await this.prisma.visualSetup.delete({ where: { id } });
     return true;
   }
 
@@ -1294,18 +1594,23 @@ export class ProductService {
       throw new BadRequestException('Only DRAFT versions can be published');
     }
 
+    await this.assertStructuralSurfaceCompatibility(id);
+
     // Draft may still pin an older ObjectAssetRevision after a library tip
     // upload. Publishing freezes pins — advance each ProductModel to the
     // current tip of its ObjectAsset so storefront gets the intended bytes.
     for (const model of detail.models) {
       const objectAssetId = model.objectAssetRevision.objectAssetId;
       const tip = await this.prisma.objectAssetRevision.findFirst({
-        where: { objectAssetId },
+        where: {
+          objectAssetId,
+          status: LibraryRevisionStatus.PUBLISHED,
+        },
         orderBy: { version: 'desc' },
       });
       if (!tip) {
         throw new BadRequestException(
-          `Product model “${model.name}” has no library revision to publish`
+          `Product model “${model.name}” has no published library revision to freeze`
         );
       }
       if (tip.id !== model.objectAssetRevisionId) {
@@ -1387,6 +1692,14 @@ export class ProductService {
           nodePath: target.nodePath,
           materialSlot: target.materialSlot,
           metadata: target.metadata,
+        })),
+        visualSetups: (model.visualSetups ?? []).map((setup) => ({
+          id: setup.id,
+          productModelId: setup.productModelId,
+          modelTargetId: setup.modelTargetId,
+          operation: setup.operation,
+          value: setup.value,
+          sortOrder: setup.sortOrder,
         })),
       })),
       visualEffects: frozen.visualEffects.map((effect) => ({

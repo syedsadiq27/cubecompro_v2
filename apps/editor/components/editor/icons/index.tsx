@@ -1,45 +1,132 @@
-import type { SVGProps } from 'react';
+'use client';
 
-type IconProps = SVGProps<SVGSVGElement> & {
-  size?: number;
+import {
+  ArrowLeft,
+  Box,
+  Camera,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Crosshair,
+  Eye,
+  EyeOff,
+  Focus,
+  FolderKanban,
+  Grid3x3,
+  Layers,
+  Menu,
+  MoreHorizontal,
+  Move,
+  MousePointer2,
+  Package,
+  Plus,
+  RotateCw,
+  Scaling,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  Target,
+  type LucideIcon,
+  type LucideProps,
+} from 'lucide-react';
+
+export const EDITOR_ICON_STROKE = 1.75;
+
+export const EDITOR_ICON_SIZE = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 20,
+} as const;
+
+export type EditorIconSize = keyof typeof EDITOR_ICON_SIZE;
+
+type EditorIconProps = {
+  size?: EditorIconSize | number;
+  className?: string;
+} & Omit<LucideProps, 'size' | 'ref' | 'absoluteStrokeWidth'>;
+
+export function Icon({
+  icon: IconCmp,
+  size = 'md',
+  strokeWidth = EDITOR_ICON_STROKE,
+  ...props
+}: {
+  icon: LucideIcon;
+} & EditorIconProps) {
+  const pixelSize =
+    typeof size === 'number' ? size : EDITOR_ICON_SIZE[size];
+
+  return (
+    <IconCmp
+      size={pixelSize}
+      strokeWidth={strokeWidth}
+      absoluteStrokeWidth={false}
+      aria-hidden
+      {...props}
+    />
+  );
+}
+
+function named(icon: LucideIcon) {
+  return function NamedIcon(props: EditorIconProps) {
+    return <Icon icon={icon} {...props} />;
+  };
+}
+
+export const EyeIcon = named(Eye);
+export const EyeOffIcon = named(EyeOff);
+export const SettingsIcon = named(Settings);
+export const SearchIcon = named(Search);
+export const PlusIcon = named(Plus);
+export const ChevronDownIcon = named(ChevronDown);
+export const ChevronRightIcon = named(ChevronRight);
+export const MoreHorizontalIcon = named(MoreHorizontal);
+export const ArrowLeftIcon = named(ArrowLeft);
+export const MenuIcon = named(Menu);
+export const CheckIcon = named(Check);
+export const TargetIcon = named(Target);
+export const BoxIcon = named(Box);
+export const CameraIcon = named(Camera);
+export const ConfigIcon = named(SlidersHorizontal);
+export const AssetsIcon = named(Layers);
+export const SceneIcon = named(Box);
+export const MousePointerIcon = named(MousePointer2);
+export const MoveIcon = named(Move);
+export const RotateIcon = named(RotateCw);
+export const ScaleIcon = named(Scaling);
+export const FocusIcon = named(Focus);
+export const GridIcon = named(Grid3x3);
+export const CrosshairIcon = named(Crosshair);
+export const PackageIcon = named(Package);
+export const FolderIcon = named(FolderKanban);
+
+export {
+  ArrowLeft,
+  Box,
+  Camera,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Crosshair,
+  Eye,
+  EyeOff,
+  Focus,
+  FolderKanban,
+  Grid3x3,
+  Layers,
+  Menu,
+  MoreHorizontal,
+  Move,
+  MousePointer2,
+  Package,
+  Plus,
+  RotateCw,
+  Scaling,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  Target,
+  type LucideIcon,
 };
-
-export function EyeIcon({ size = 16, className, ...props }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      {...props}
-    >
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-export function SettingsIcon({ size = 16, className, ...props }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      {...props}
-    >
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}

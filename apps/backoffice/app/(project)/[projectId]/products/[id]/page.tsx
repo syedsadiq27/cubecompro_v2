@@ -1,5 +1,6 @@
 import { ProductWorkspace } from '@/components/products/workspace/product-workspace';
 import { EmptyState } from '@/components/bo';
+import { CubeStoreHydrator } from '@/components/shell/cube-store-hydrator';
 import {
   getProductShopifyCommerceAction,
   type ShopifyCommerceView,
@@ -81,6 +82,7 @@ export default async function ProductDetailPage({
           id: string;
           name: string;
           code?: string | null;
+          currentRevisionId?: string | null;
         }>;
       }>(MATERIAL_ASSETS_QUERY, { projectId }, project.projectToken).catch(
         () => ({ materialAssets: [] })
@@ -132,17 +134,23 @@ export default async function ProductDetailPage({
     }
 
     return (
-      <ProductWorkspace
-        projectId={projectId}
-        productId={id}
-        product={productData.product}
-        detail={detail}
-        objectAssets={objectsData.objectAssets}
-        materialAssets={materialsData.materialAssets}
-        publishedVersions={publishedVersions}
-        initialTab={parseWorkspaceTab(tab)}
-        shopifyCommerce={shopifyCommerce}
-      />
+      <CubeStoreHydrator
+        workspace={{ productId: id }}
+        graphDetail={detail}
+        unmount="product"
+      >
+        <ProductWorkspace
+          projectId={projectId}
+          productId={id}
+          product={productData.product}
+          detail={detail}
+          objectAssets={objectsData.objectAssets}
+          materialAssets={materialsData.materialAssets}
+          publishedVersions={publishedVersions}
+          initialTab={parseWorkspaceTab(tab)}
+          shopifyCommerce={shopifyCommerce}
+        />
+      </CubeStoreHydrator>
     );
   } catch (error) {
     return (
