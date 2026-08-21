@@ -316,6 +316,11 @@ export class ProductResolver {
     return this.products.createModelTarget(input);
   }
 
+  @Mutation(() => Boolean)
+  deleteModelTarget(@Args('id') id: string) {
+    return this.products.deleteModelTarget(id);
+  }
+
   @Mutation(() => VisualEffectModel)
   async createVisualEffect(@Args('input') input: CreateVisualEffectInput) {
     const effect = await this.products.createVisualEffect(input);

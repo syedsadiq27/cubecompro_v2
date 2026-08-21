@@ -1,7 +1,7 @@
 import type { Object3D, Material } from 'three';
 import {
   coerceMaterialDocument,
-  materialDocumentUrl,
+  materialAssetRevisionDocumentUrl,
   objectAssetRevisionDocumentUrl,
   type GraphSessionAuth,
 } from '@repo/product-graph';
@@ -49,12 +49,17 @@ export async function resolveMaterialMap(
     if (!auth) {
       throw new Error('Cannot resolve materials without graph auth');
     }
-    const response = await fetch(materialDocumentUrl(auth.apiUrl, id), {
-      headers: { Authorization: `Bearer ${auth.token}` },
-      cache: 'no-store',
-    });
+    const response = await fetch(
+      materialAssetRevisionDocumentUrl(auth.apiUrl, id),
+      {
+        headers: { Authorization: `Bearer ${auth.token}` },
+        cache: 'no-store',
+      }
+    );
     if (!response.ok) {
-      throw new Error(`Failed to load material asset ${id}`);
+      throw new Error(
+        `Failed to load material revision ${id} (${response.status})`
+      );
     }
     const raw = (await response.json()) as unknown;
     const document = coerceMaterialDocument(raw);

@@ -349,8 +349,9 @@ export function MobileSceneWorkspace({
             <button
               type="button"
               onClick={() => {
-                removeTarget(currentTarget.key);
-                setSelectedTargetKey(null);
+                void removeTarget(currentTarget.key).catch(() => {
+                  /* statusMessage set in store */
+                });
               }}
               className="flex h-9 items-center justify-center rounded-xl border border-red-500/30 bg-red-950/20 text-[12px] font-medium text-red-300"
             >
@@ -584,8 +585,11 @@ export function MobileSceneWorkspace({
               <MobileSheetAction
                 tone="danger"
                 onClick={() => {
-                  removeTarget(menuTargetKey);
-                  setMenuTargetKey(null);
+                  void removeTarget(menuTargetKey)
+                    .then(() => setMenuTargetKey(null))
+                    .catch(() => {
+                      /* statusMessage set in store */
+                    });
                 }}
               >
                 Delete

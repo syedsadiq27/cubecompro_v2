@@ -16,6 +16,7 @@ import { ViewportNavControls } from './stage/viewport-nav-controls';
 import { OrientationWidget } from './stage/orientation-widget';
 import { CameraPresetsBar } from './stage/camera-presets-bar';
 import { RenderModePill } from './stage/render-mode-pill';
+import { PreviewSelectionBar } from './stage/preview-selection-bar';
 import { DrawerHost } from './drawer-host';
 import { ModalHost } from './modal-host';
 import {
@@ -57,6 +58,7 @@ function ViewportCanvas({
           <OrientationWidget />
           <CameraPresetsBar />
           <RenderModePill />
+          <PreviewSelectionBar />
         </>
       ) : null}
 

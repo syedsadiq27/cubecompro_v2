@@ -476,6 +476,7 @@ type Mutation {
   deleteChoiceValue(id: String!): Boolean!
   deleteCommerceMappingSet(id: String!): Boolean!
   deleteConstraint(id: String!): Boolean!
+  deleteModelTarget(id: String!): Boolean!
   deleteObjectAsset(id: String!): Boolean!
   deleteProduct(id: String!): Boolean!
   deleteProductModelLinkedAsset(id: String!): Boolean!

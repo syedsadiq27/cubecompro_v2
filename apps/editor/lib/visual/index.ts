@@ -74,6 +74,7 @@ export {
 export type { VisualPersistOp } from './serialize';
 export {
   documentsMatchForSaveProof,
+  describeSaveProofMismatch,
   persistVisualDocument,
 } from './persist';
 export type { PersistVisualDocumentResult } from './persist';

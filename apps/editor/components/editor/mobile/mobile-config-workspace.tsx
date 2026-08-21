@@ -4,7 +4,9 @@ import { useMemo } from 'react';
 import {
   buildCoverageRows,
   effectsForChoiceValue,
+  isRevisionEditable,
 } from '@/lib/authoring-focus';
+import { ValueOptionsMenu } from '@/components/editor/value-options-menu';
 import { useEditorStore } from '@/lib/editor-store';
 import {
   MobileAccordion,
@@ -16,19 +18,26 @@ import {
 
 export function MobileConfigWorkspace({
   onRequestExpand,
+  onRequestPeek,
 }: {
   onRequestExpand?: () => void;
+  onRequestPeek?: () => void;
 }) {
   const graphDetail = useEditorStore((state) => state.graphDetail);
   const visualDocument = useEditorStore((state) => state.visualDocument);
   const authoringFocus = useEditorStore((state) => state.authoringFocus);
   const setAuthoringFocus = useEditorStore((state) => state.setAuthoringFocus);
-  const setVisualSelection = useEditorStore((state) => state.setVisualSelection);
+  const previewChoiceValue = useEditorStore(
+    (state) => state.previewChoiceValue
+  );
+  const setChoiceDefault = useEditorStore((state) => state.setChoiceDefault);
   const beginEffectComposer = useEditorStore(
     (state) => state.beginEffectComposer
   );
   const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
   const loadError = useEditorStore((state) => state.loadError);
+
+  const editable = isRevisionEditable(graphDetail?.status);
 
   const rows = useMemo(
     () => buildCoverageRows(graphDetail, visualDocument),
@@ -114,21 +123,39 @@ export function MobileConfigWorkspace({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setVisualSelection(
-                authoringFocus.choiceKey,
-                authoringFocus.valueKey
-              );
-              setStatusMessage(
-                `Previewing ${focusedMeta.value.valueName}`
-              );
-            }}
-            className="flex h-9 w-full items-center justify-center rounded-xl bg-[#665CFF] text-[12px] font-medium text-white"
-          >
-            Preview in Scene
-          </button>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              type="button"
+              disabled={!editable}
+              onClick={() => {
+                void setChoiceDefault(
+                  focusedMeta.choice.choiceId,
+                  focusedMeta.value.isDefault
+                    ? null
+                    : focusedMeta.value.valueId
+                ).catch(() => undefined);
+              }}
+              className="flex h-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-[12px] font-medium text-white disabled:opacity-40"
+            >
+              {focusedMeta.value.isDefault ? 'Clear default' : 'Make default'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                previewChoiceValue(
+                  authoringFocus.choiceKey,
+                  authoringFocus.valueKey
+                );
+                setStatusMessage(
+                  `Previewing ${focusedMeta.value.valueName} in scene`
+                );
+                onRequestPeek?.();
+              }}
+              className="flex h-9 items-center justify-center rounded-xl bg-[#665CFF] text-[12px] font-medium text-white"
+            >
+              Show Scene
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -159,31 +186,78 @@ export function MobileConfigWorkspace({
         >
           <div className="space-y-1">
             {choice.values.map((value) => (
-              <button
+              <div
                 key={value.valueKey}
-                type="button"
-                onClick={() => {
-                  setAuthoringFocus({
-                    choiceKey: choice.choiceKey,
-                    valueKey: value.valueKey,
-                  });
-                  onRequestExpand?.();
-                }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-[#16171E] px-2.5 py-2 text-left"
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#16171E] px-2.5 py-2"
               >
-                <span className="truncate text-[12px] font-medium text-white">
-                  {value.valueName}
-                </span>
-                <span
-                  className={`shrink-0 text-[10px] ${
-                    value.unbound ? 'text-white/40' : 'text-emerald-400'
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => {
+                    previewChoiceValue(choice.choiceKey, value.valueKey);
+                    onRequestExpand?.();
+                  }}
+                  className="min-w-0 flex-1 text-left"
                 >
-                  {value.unbound
-                    ? 'Unbound'
-                    : `${value.effectCount} effect${value.effectCount === 1 ? '' : 's'}`}
-                </span>
-              </button>
+                  <span className="flex items-center gap-1.5 truncate text-[12px] font-medium text-white">
+                    {value.valueName}
+                    {value.isDefault ? (
+                      <span className="rounded border border-[#665CFF]/40 bg-[#665CFF]/15 px-1 py-0.5 font-mono text-[9px] text-[#9D95FF]">
+                        Default
+                      </span>
+                    ) : null}
+                  </span>
+                  <span
+                    className={`mt-0.5 block text-[10px] ${
+                      value.unbound ? 'text-white/40' : 'text-emerald-400'
+                    }`}
+                  >
+                    {value.unbound
+                      ? 'Unbound'
+                      : `${value.effectCount} effect${value.effectCount === 1 ? '' : 's'}`}
+                  </span>
+                </button>
+                <ValueOptionsMenu
+                  actions={[
+                    {
+                      id: 'preview',
+                      label: 'Preview in scene',
+                      onSelect: () => {
+                        previewChoiceValue(choice.choiceKey, value.valueKey);
+                        onRequestPeek?.();
+                      },
+                    },
+                    {
+                      id: 'default',
+                      label: value.isDefault
+                        ? 'Clear default'
+                        : 'Make default',
+                      tone: 'accent',
+                      disabled: !editable,
+                      onSelect: () => {
+                        void setChoiceDefault(
+                          choice.choiceId,
+                          value.isDefault ? null : value.valueId
+                        ).catch(() => undefined);
+                      },
+                    },
+                    {
+                      id: 'effect',
+                      label: value.unbound
+                        ? 'Add effect'
+                        : 'Add another effect',
+                      disabled: !editable,
+                      onSelect: () => {
+                        setAuthoringFocus({
+                          choiceKey: choice.choiceKey,
+                          valueKey: value.valueKey,
+                        });
+                        beginEffectComposer();
+                        onRequestExpand?.();
+                      },
+                    },
+                  ]}
+                />
+              </div>
             ))}
           </div>
         </MobileAccordion>

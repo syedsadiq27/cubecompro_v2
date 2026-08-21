@@ -175,29 +175,31 @@ describe('normalizeVisualDocument', () => {
     ).toThrow(VisualNormalizeError);
   });
 
-  it('rejects same address + different Choices', () => {
-    expect(() =>
-      normalizeVisualDocument(
-        baseInput({
-          visualEffects: [
-            {
-              id: 'e1',
-              choiceValueId: 'v-walnut',
-              modelTargetId: 't-frame',
-              operation: 'SET_MATERIAL',
-              valueJson: JSON.stringify({ materialAssetRevisionId: 'mat-a' }),
-            },
-            {
-              id: 'e2',
-              choiceValueId: 'v-premium',
-              modelTargetId: 't-frame',
-              operation: 'SET_MATERIAL',
-              valueJson: JSON.stringify({ materialAssetRevisionId: 'mat-b' }),
-            },
-          ],
-        })
-      )
-    ).toThrow(/different Choices/);
+  it('allows same address + different Choices (selection last-wins at derive time)', () => {
+    const doc = normalizeVisualDocument(
+      baseInput({
+        visualEffects: [
+          {
+            id: 'e1',
+            choiceValueId: 'v-walnut',
+            modelTargetId: 't-frame',
+            operation: 'SET_MATERIAL',
+            valueJson: JSON.stringify({ materialAssetRevisionId: 'mat-a' }),
+          },
+          {
+            id: 'e2',
+            choiceValueId: 'v-premium',
+            modelTargetId: 't-frame',
+            operation: 'SET_MATERIAL',
+            valueJson: JSON.stringify({ materialAssetRevisionId: 'mat-b' }),
+          },
+        ],
+      })
+    );
+    const frameMaterials = doc.bindings.filter(
+      (b) => b.operation === 'SET_MATERIAL' && b.targetKey === 'frame'
+    );
+    expect(frameMaterials).toHaveLength(2);
   });
 
   it('rejects targets missing nodePath', () => {

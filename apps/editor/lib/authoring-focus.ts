@@ -79,21 +79,27 @@ export function buildCoverageRows(
   detail: GraphDetail | null,
   document: VisualDocument | null
 ): Array<{
+  choiceId: string;
   choiceKey: string;
   choiceName: string;
+  defaultValueId: string | null;
   values: Array<{
+    valueId: string;
     valueKey: string;
     valueName: string;
     effectCount: number;
     unbound: boolean;
+    isDefault: boolean;
   }>;
 }> {
   if (!detail) return [];
   return [...detail.choices]
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((choice) => ({
+      choiceId: choice.id,
       choiceKey: choice.key,
       choiceName: choice.name?.trim() || choice.key,
+      defaultValueId: choice.defaultValueId ?? null,
       values: [...choice.values]
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map((value) => {
@@ -103,10 +109,12 @@ export function buildCoverageRows(
             value.key
           );
           return {
+            valueId: value.id,
             valueKey: value.key,
             valueName: value.name?.trim() || value.key,
             effectCount,
             unbound: effectCount === 0,
+            isDefault: (choice.defaultValueId ?? null) === value.id,
           };
         }),
     }));

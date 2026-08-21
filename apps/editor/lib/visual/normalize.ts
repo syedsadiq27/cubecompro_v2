@@ -210,27 +210,22 @@ export function normalizeVisualDocument(
       visualAddressForBinding(binding, targetsByKey)
     );
 
-    let hasConflict = false;
+    let isDuplicate = false;
     for (const claim of claims) {
       if (claim.addressKey !== addressKey) continue;
       if (
         claim.choiceKey === binding.choiceKey &&
         claim.valueKey === binding.valueKey
       ) {
-        hasConflict = true;
-        break;
-      } else if (claim.choiceKey !== binding.choiceKey) {
-        unsupported.push({
-          effectId: effect.id,
-          operation: effect.operation,
-          reason: `Conflict: ${addressKey} is already driven by choice "${claim.choiceKey}"`,
-        });
-        hasConflict = true;
+        issues.push(
+          `Duplicate VisualEffect for ${addressKey} under ${binding.choiceKey}=${binding.valueKey}`
+        );
+        isDuplicate = true;
         break;
       }
     }
 
-    if (hasConflict) {
+    if (isDuplicate) {
       continue;
     }
 

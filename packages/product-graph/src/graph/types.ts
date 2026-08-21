@@ -12,6 +12,7 @@ export type GraphChoice = {
   type: string;
   required: boolean;
   sortOrder: number;
+  defaultValueId?: string | null;
   values: GraphChoiceValue[];
 };
 

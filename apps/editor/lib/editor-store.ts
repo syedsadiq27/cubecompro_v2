@@ -19,7 +19,9 @@ import type { GraphDetail, GraphSessionAuth } from '@repo/product-graph';
 import {
   CREATE_DRAFT_PRODUCT_REVISION_MUTATION,
   CREATE_MODEL_TARGET_MUTATION,
+  DELETE_MODEL_TARGET_MUTATION,
   PRODUCT_REVISION_DETAIL_QUERY,
+  SET_CHOICE_DEFAULT_MUTATION,
   graphRequest,
 } from '@repo/product-graph';
 import {
@@ -61,7 +63,6 @@ import {
   captureStructuralBaselines,
   captureVisualBaseline,
   createVisualReplayContext,
-  documentsMatchForSaveProof,
   normalizeVisualDocumentFromGraphDetail,
   persistVisualDocument,
   replayVisualDocument,
@@ -234,7 +235,7 @@ type EditorState = CubeStore & {
   selectedTargetKey: string | null;
   setSelectedTargetKey: (key: string | null) => void;
   updateTarget: (key: string, patch: Partial<VisualTarget>) => void;
-  removeTarget: (key: string) => void;
+  removeTarget: (key: string) => Promise<void>;
   createModelTargetFromSelection: (input?: {
     key?: string;
     targetType?: string;
@@ -245,6 +246,12 @@ type EditorState = CubeStore & {
   setVisualSelection: (choiceKey: string, valueKey: string) => void;
   clearVisualSelection: () => void;
   resetVisualSelection: () => void;
+  ensureLivePreview: () => Promise<void>;
+  previewChoiceValue: (choiceKey: string, valueKey: string) => void;
+  setChoiceDefault: (
+    choiceId: string,
+    defaultValueId: string | null
+  ) => Promise<void>;
   replayActiveVisual: () => Promise<void>;
   setAuthoringFocus: (focus: AuthoringFocus | null) => void;
   setSelectedEffect: (effect: EffectRef | null) => void;
@@ -318,16 +325,72 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       dirty: true,
     });
   },
-  removeTarget: (key: string) => {
-    const visualDocument = get().visualDocument;
+  removeTarget: async (key) => {
+    const { visualDocument, graphAuth, graphDetail } = get();
     if (!visualDocument) return;
-    const nextTargets = visualDocument.targets.filter((t) => t.key !== key);
-    const nextBindings = visualDocument.bindings.filter((b) => b.targetKey !== key);
-    set({
-      visualDocument: { ...visualDocument, targets: nextTargets, bindings: nextBindings },
-      selectedTargetKey: get().selectedTargetKey === key ? null : get().selectedTargetKey,
-      dirty: true,
-    });
+    const target = visualDocument.targets.find((entry) => entry.key === key);
+    if (!target) return;
+
+    if (!target.id) {
+      const nextTargets = visualDocument.targets.filter((t) => t.key !== key);
+      const nextBindings = visualDocument.bindings.filter(
+        (b) => b.targetKey !== key
+      );
+      set({
+        visualDocument: {
+          ...visualDocument,
+          targets: nextTargets,
+          bindings: nextBindings,
+        },
+        selectedTargetKey:
+          get().selectedTargetKey === key ? null : get().selectedTargetKey,
+        dirty: true,
+        statusMessage: `Removed local target “${key}”.`,
+      });
+      return;
+    }
+
+    if (!graphAuth || !graphDetail) {
+      throw new Error('Sign in before deleting a ModelTarget');
+    }
+    if (!isRevisionEditable(graphDetail.status)) {
+      throw new Error('Revision is read-only. Create a new draft to edit.');
+    }
+
+    set({ loading: true, statusMessage: `Deleting target “${key}”…` });
+    try {
+      await graphRequest(
+        DELETE_MODEL_TARGET_MUTATION,
+        { id: target.id },
+        graphAuth.token,
+        graphAuth.apiUrl
+      );
+      const data = await graphRequest<{
+        productRevisionDetail: GraphDetail;
+      }>(
+        PRODUCT_REVISION_DETAIL_QUERY,
+        { id: graphDetail.id },
+        graphAuth.token,
+        graphAuth.apiUrl
+      );
+      await get().hydrateVisualReplay({
+        detail: data.productRevisionDetail,
+        productModelId: visualDocument.productModelId,
+        preserveAuthoring: true,
+      });
+      set({
+        loading: false,
+        dirty: false,
+        selectedTargetKey:
+          get().selectedTargetKey === key ? null : get().selectedTargetKey,
+        statusMessage: `Deleted ModelTarget “${key}”.`,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to delete ModelTarget';
+      set({ loading: false, loadError: message, statusMessage: message });
+      throw error;
+    }
   },
   cameraAnimations: INITIAL_CAMERA_ANIMATIONS,
   activeAnimationId: null,
@@ -486,7 +549,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   setAnimationProgress: (progress: number) => {
     set({ animationProgress: progress });
   },
-  setActiveWorkspace: (activeWorkspace) => set({ activeWorkspace }),
+  setActiveWorkspace: (activeWorkspace) =>
+    set({
+      activeWorkspace:
+        activeWorkspace === 'preview' ? 'product' : activeWorkspace,
+    }),
   setEmbed: ({ embedded, returnTo }) => set({ embedded, returnTo }),
   setSelected: (selected) => {
     const runtime = get().runtime;
@@ -684,18 +751,29 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     const priorFocus = preserveAuthoring ? get().authoringFocus : null;
     const priorEffect = preserveAuthoring ? get().selectedEffect : null;
     const priorComposer = preserveAuthoring ? get().effectComposer : null;
+
+    const seededSelection: Record<string, string> = { ...priorSelection };
+    for (const choice of detail.choices) {
+      if (seededSelection[choice.key]) continue;
+      const preferred = choice.values[0];
+      if (!preferred) continue;
+      seededSelection[choice.key] = preferred.key;
+    }
+
+    const nextWorkspace = preserveAuthoring ? get().activeWorkspace : 'scene';
     set({
       graphDetail: detail,
       visualDocument: document,
       visualBaseline: null,
       visualReplayContext: context,
-      selection: priorSelection,
+      selection: seededSelection,
       visualMaterialCache: materialCache,
       authoringFocus: priorFocus,
       selectedEffect: priorEffect,
       effectComposer: priorComposer,
       pickMode: null,
-      activeWorkspace: preserveAuthoring ? get().activeWorkspace : 'scene',
+      activeWorkspace:
+        nextWorkspace === 'preview' ? 'product' : nextWorkspace,
     });
 
     const baseline = captureVisualBaseline(runtime.productRoot, document);
@@ -712,7 +790,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       root: runtime.productRoot,
       document,
       baseline,
-      selection: priorSelection,
+      selection: seededSelection,
       auth: get().graphAuth,
       materialCache,
       productRevisionId: detail.id,
@@ -967,12 +1045,6 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         desired,
       });
 
-      if (!documentsMatchForSaveProof(desired, result.document)) {
-        throw new Error(
-          'Save proof failed: reloaded VisualDocument does not match'
-        );
-      }
-
       await get().hydrateVisualReplay({
         detail: result.detail,
         productModelId: result.document.productModelId,
@@ -1030,6 +1102,80 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   resetVisualSelection: () => {
     get().clearVisualSelection();
+  },
+  ensureLivePreview: async () => {
+    const { graphDetail, selection } = get();
+    if (!graphDetail) {
+      set({ statusMessage: 'Load a product revision before previewing.' });
+      return;
+    }
+
+    const nextSelection: Record<string, string> = { ...selection };
+    for (const choice of graphDetail.choices) {
+      if (nextSelection[choice.key]) continue;
+      const preferred = choice.values[0];
+      if (!preferred) continue;
+      nextSelection[choice.key] = preferred.key;
+    }
+    get().setSelection(nextSelection);
+    await get().replayActiveVisual();
+    set({
+      statusMessage: 'Live preview — change Config or the bar below to update the scene',
+    });
+  },
+  previewChoiceValue: (choiceKey, valueKey) => {
+    set({
+      authoringFocus: { choiceKey, valueKey },
+      selectedEffect: null,
+      effectComposer: null,
+      pickMode: null,
+      activeWorkspace: 'product',
+    });
+    get().setVisualSelection(choiceKey, valueKey);
+  },
+  setChoiceDefault: async (choiceId, defaultValueId) => {
+    const { graphAuth, graphDetail } = get();
+    if (!graphAuth || !graphDetail) {
+      throw new Error('Load a product revision before setting a default');
+    }
+    if (!isRevisionEditable(graphDetail.status)) {
+      throw new Error('Revision is read-only. Create a new draft to edit.');
+    }
+    set({ statusMessage: 'Updating choice default…' });
+    try {
+      await graphRequest(
+        SET_CHOICE_DEFAULT_MUTATION,
+        {
+          input: {
+            choiceId,
+            defaultValueId,
+          },
+        },
+        graphAuth.token,
+        graphAuth.apiUrl
+      );
+      set((state) => {
+        if (!state.graphDetail) return state;
+        return {
+          graphDetail: {
+            ...state.graphDetail,
+            choices: state.graphDetail.choices.map((choice) =>
+              choice.id === choiceId
+                ? { ...choice, defaultValueId }
+                : choice
+            ),
+          },
+          statusMessage: defaultValueId
+            ? 'Default value updated.'
+            : 'Choice default cleared.',
+        };
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to set choice default';
+      set({ loadError: message, statusMessage: message });
+      throw error;
+    }
   },
   setAuthoringFocus: (focus) => {
     set({

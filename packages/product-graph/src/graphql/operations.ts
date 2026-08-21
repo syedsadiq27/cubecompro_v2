@@ -450,6 +450,7 @@ export const PRODUCT_REVISION_DETAIL_QUERY = `
         type
         required
         sortOrder
+        defaultValueId
         values {
           id
           key
@@ -687,6 +688,12 @@ export const CREATE_MODEL_TARGET_MUTATION = `
       id
       key
     }
+  }
+`;
+
+export const DELETE_MODEL_TARGET_MUTATION = `
+  mutation DeleteModelTarget($id: String!) {
+    deleteModelTarget(id: $id)
   }
 `;
 
