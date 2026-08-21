@@ -64,19 +64,21 @@ async function putJson(keyPath, payload) {
         (0, node_path_1.join)(process.cwd(), '.data', 'documents');
     const body = JSON.stringify(payload, null, 2);
     const sha256 = (0, node_crypto_1.createHash)('sha256').update(body).digest('hex');
-    const absolute = (0, node_path_1.join)(root, keyPath.replace(/^\/+/, ''));
+    const relative = keyPath.replace(/^\/+/, '');
+    const absolute = (0, node_path_1.join)(root, relative);
     await (0, promises_1.mkdir)((0, node_path_1.dirname)(absolute), { recursive: true });
     await (0, promises_1.writeFile)(absolute, body, 'utf8');
-    return { uri: `file://${absolute}`, sha256 };
+    return { uri: relative, sha256 };
 }
 async function putBytes(keyPath, bytes) {
     const root = process.env.DOCUMENT_STORE_PATH ??
         (0, node_path_1.join)(process.cwd(), '.data', 'documents');
     const sha256 = (0, node_crypto_1.createHash)('sha256').update(bytes).digest('hex');
-    const absolute = (0, node_path_1.join)(root, keyPath.replace(/^\/+/, ''));
+    const relative = keyPath.replace(/^\/+/, '');
+    const absolute = (0, node_path_1.join)(root, relative);
     await (0, promises_1.mkdir)((0, node_path_1.dirname)(absolute), { recursive: true });
     await (0, promises_1.writeFile)(absolute, bytes);
-    return { uri: `file://${absolute}`, sha256 };
+    return { uri: relative, sha256 };
 }
 async function seed() {
     for (const code of DEFAULT_PERMISSIONS) {

@@ -1,65 +1,45 @@
 'use client';
 
 import { useEditorStore } from '@/lib/editor-store';
-import { SettingsIcon } from '@/components/editor/icons';
-import { SceneInspector } from './scene-inspector';
-import { ObjectInspector } from './object-inspector';
-import { MaterialInspector } from './material-inspector';
-import { MappingInspector } from './mapping-inspector';
-import { CameraInspector } from './camera-inspector';
-import { LightInspector } from './light-inspector';
-import { EnvironmentInspector } from './environment-inspector';
+import { TargetDetailsInspector } from './target-details-inspector';
 import { BehaviorInspector } from './behavior-inspector';
 import { PreviewInspector } from './preview-inspector';
+import { SceneMaterialInspector } from './scene-material-inspector';
+import { CameraInspector } from './camera-inspector';
 
 export function InspectorHost() {
   const activeWorkspace = useEditorStore((state) => state.activeWorkspace);
-  const setStatusMessage = useEditorStore((state) => state.setStatusMessage);
+  const selectedTargetKey = useEditorStore((state) => state.selectedTargetKey);
+  const selected = useEditorStore((state) => state.selected);
+
+  const isCamera =
+    activeWorkspace === 'cameras' || (activeWorkspace as string) === 'camera';
+
+  const isScene = activeWorkspace === 'scene';
+  const isAssets = activeWorkspace === 'assets' || activeWorkspace === 'materials';
 
   const renderActiveInspector = () => {
-    switch (activeWorkspace) {
-      case 'scene':
-        return <SceneInspector />;
-      case 'objects':
-        return <ObjectInspector />;
-      case 'materials':
-        return <MaterialInspector />;
-      case 'mappings':
-        return <MappingInspector />;
-      case 'cameras':
-        return <CameraInspector />;
-      case 'lights':
-        return <LightInspector />;
-      case 'environment':
-        return <EnvironmentInspector />;
-      case 'behaviors':
-        return <BehaviorInspector />;
-      case 'preview':
-        return <PreviewInspector />;
-      default:
-        return <SceneInspector />;
+    if (isCamera) {
+      return <CameraInspector />;
     }
+    if (isScene) {
+      if (selectedTargetKey || !selected) {
+        return <TargetDetailsInspector />;
+      }
+      return <SceneMaterialInspector />;
+    }
+    if (isAssets) {
+      return <SceneMaterialInspector />;
+    }
+    if (activeWorkspace === 'preview') {
+      return <PreviewInspector />;
+    }
+    return <BehaviorInspector />;
   };
 
   return (
-    <aside className="flex h-full w-[var(--suite-inspector-width,330px)] shrink-0 flex-col border-l border-[var(--line)] bg-[var(--surface-pure)] select-none z-10">
-      {/* Inspector Header */}
-      <div className="flex h-10 items-center justify-between border-b border-[var(--line)] px-4">
-        <span className="text-[10px] font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-          {activeWorkspace} Inspector
-        </span>
-        <button
-          type="button"
-          aria-label="Inspector settings"
-          className="text-[var(--text-muted)] hover:text-[var(--ink)]"
-          onClick={() => setStatusMessage('Inspector preferences')}
-        >
-          <SettingsIcon size={14} />
-        </button>
-      </div>
-
-      {/* Dynamic Contextual Content */}
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+    <aside className="flex h-full w-full min-w-0 flex-col border-l border-white/10 bg-[#121318] text-white select-none z-10">
+      <div className="flex-1 overflow-y-auto p-4 min-h-0">
         {renderActiveInspector()}
       </div>
     </aside>

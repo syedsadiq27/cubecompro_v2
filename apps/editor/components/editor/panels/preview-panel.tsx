@@ -38,7 +38,7 @@ function visualRole(label: VisualStatusLabel) {
 export function PreviewPanel() {
   const graphDetail = useEditorStore((state) => state.graphDetail);
   const visualDocument = useEditorStore((state) => state.visualDocument);
-  const visualSelection = useEditorStore((state) => state.visualSelection);
+  const visualSelection = useEditorStore((state) => state.selection);
   const loadError = useEditorStore((state) => state.loadError);
   const setVisualSelection = useEditorStore((state) => state.setVisualSelection);
   const clearVisualSelection = useEditorStore(
@@ -254,11 +254,11 @@ export function PreviewPanel() {
           type="button"
           onClick={() => {
             clearVisualSelection();
-            setStatusMessage('Selection = {} → baseline');
+            setStatusMessage('Selection = {} → ProductModel default');
           }}
           className="w-full rounded border border-[var(--line)] px-3 py-2 text-[11px] font-medium text-[var(--ink)] hover:bg-[var(--canvas)]"
         >
-          Clear Selection (baseline)
+          Clear Selection (model default)
         </button>
       </div>
     </div>

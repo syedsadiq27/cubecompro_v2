@@ -12,25 +12,25 @@
       "default": "./dist/index.js"
     },
     "./client": {
-      "types": "./dist/client.d.ts",
-      "default": "./dist/client.js"
+      "types": "./dist/graphql/client.d.ts",
+      "default": "./dist/graphql/client.js"
     },
     "./operations": {
-      "types": "./dist/operations.d.ts",
-      "default": "./dist/operations.js"
+      "types": "./dist/graphql/operations.d.ts",
+      "default": "./dist/graphql/operations.js"
     },
     "./types": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/types.js"
+      "types": "./dist/graph/types.d.ts",
+      "default": "./dist/graph/types.js"
     },
     "./embed": {
-      "types": "./dist/embed.d.ts",
-      "default": "./dist/embed.js"
+      "types": "./dist/editor/embed.d.ts",
+      "default": "./dist/editor/embed.js"
     }
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/materials && cp src/materials/material-properties.json dist/materials/material-properties.json",
     "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
     "lint": "eslint src --max-warnings 0",

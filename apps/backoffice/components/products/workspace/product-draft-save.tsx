@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@repo/ui';
+import { useBackofficeStore } from '@/lib/backoffice-store';
 import {
   createConstraintAction,
   createModelTargetAction,
@@ -88,8 +89,18 @@ export function ProductDraftSaveProvider({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const markDirty = useBackofficeStore((state) => state.markDirty);
+  const markClean = useBackofficeStore((state) => state.markClean);
   const [pending, setPending] = useState<DraftPendingOp[]>([]);
   const [saving, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (pending.length > 0) {
+      markDirty();
+      return;
+    }
+    markClean();
+  }, [markClean, markDirty, pending.length]);
 
   const queue = useCallback(
     (op: QueueableDraftOp & { id?: string }) => {

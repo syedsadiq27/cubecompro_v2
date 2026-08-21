@@ -2,6 +2,7 @@ import {
   Field,
   ID,
   InputType,
+  Int,
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';
@@ -252,6 +253,27 @@ export class ProductModelLinkedAssetModel {
 }
 
 @ObjectType()
+export class VisualSetupModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  productModelId: string;
+
+  @Field()
+  modelTargetId: string;
+
+  @Field(() => VisualOperation)
+  operation: VisualOperation;
+
+  @Field()
+  valueJson: string;
+
+  @Field()
+  sortOrder: number;
+}
+
+@ObjectType()
 export class ProductModelAssetModel {
   @Field(() => ID)
   id: string;
@@ -278,6 +300,9 @@ export class ProductModelAssetModel {
 
   @Field(() => [ModelTargetModel], { nullable: true })
   targets?: ModelTargetModel[];
+
+  @Field(() => [VisualSetupModel], { nullable: true })
+  visualSetups?: VisualSetupModel[];
 }
 
 @ObjectType()
@@ -485,6 +510,21 @@ export class MaterialAssetModel {
 
   @Field(() => String, { nullable: true })
   documentUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  currentRevisionId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  publishedRevisionId?: string | null;
+
+  @Field(() => Boolean, { nullable: true })
+  hasDraft?: boolean | null;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
 }
 
 @ObjectType()
@@ -512,6 +552,24 @@ export class TextureAssetModel {
 
   @Field()
   fileSha256: string;
+
+  @Field(() => String, { nullable: true })
+  fileUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  currentRevisionId?: string | null;
+
+  @Field(() => Number, { nullable: true })
+  sizeBytes?: number | null;
+
+  @Field(() => String, { nullable: true })
+  mimeType?: string | null;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
 }
 
 @ObjectType()
@@ -581,6 +639,60 @@ export class ObjectAssetModel {
 
   @Field(() => String, { nullable: true })
   currentRevisionId?: string | null;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class MaterialTextureUsageModel {
+  @Field()
+  slot: string;
+
+  @Field()
+  textureAssetRevisionId: string;
+
+  @Field(() => String, { nullable: true })
+  textureName?: string | null;
+
+  @Field(() => String, { nullable: true })
+  wrapS?: string | null;
+
+  @Field(() => String, { nullable: true })
+  wrapT?: string | null;
+}
+
+@ObjectType()
+export class MaterialAssetRevisionModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  materialAssetId: string;
+
+  @Field(() => Number)
+  version: number;
+
+  @Field()
+  status: string;
+
+  @Field()
+  definitionUri: string;
+
+  @Field()
+  contentHash: string;
+
+  @Field()
+  frozenAt: Date;
+
+  @Field(() => String, { nullable: true })
+  documentUrl?: string | null;
+
+  @Field(() => [MaterialTextureUsageModel])
+  textureUsages: MaterialTextureUsageModel[];
 }
 
 @ObjectType()
@@ -593,6 +705,9 @@ export class ObjectAssetRevisionModel {
 
   @Field(() => Number)
   version: number;
+
+  @Field()
+  status: string;
 
   @Field()
   runtimeArtifactUri: string;
@@ -654,6 +769,9 @@ export class ResolvedVisualEffectModel {
   @Field(() => String, { nullable: true })
   nodePath?: string | null;
 
+  @Field(() => String, { nullable: true })
+  materialSlot?: string | null;
+
   @Field(() => VisualOperation)
   operation: VisualOperation;
 
@@ -661,7 +779,7 @@ export class ResolvedVisualEffectModel {
   valueJson: string;
 
   @Field(() => String, { nullable: true })
-  materialAssetId?: string | null;
+  materialAssetRevisionId?: string | null;
 
   @Field(() => String, { nullable: true })
   objectAssetRevisionId?: string | null;
@@ -683,6 +801,12 @@ export class Resolved3DStateModel {
 
   @Field(() => [String])
   activeObjectAssetRevisionIds: string[];
+
+  @Field(() => [String])
+  activeMaterialAssetRevisionIds: string[];
+
+  @Field(() => [String])
+  activeTextureAssetRevisionIds: string[];
 
   @Field(() => [ResolvedVisualEffectModel])
   effects: ResolvedVisualEffectModel[];
@@ -990,6 +1114,39 @@ export class CreateVisualEffectInput {
 
   @Field()
   valueJson: string;
+}
+
+@InputType()
+export class CreateVisualSetupInput {
+  @Field()
+  productModelId: string;
+
+  @Field()
+  modelTargetId: string;
+
+  @Field(() => VisualOperation)
+  operation: VisualOperation;
+
+  @Field()
+  valueJson: string;
+
+  @Field(() => Int, { nullable: true })
+  sortOrder?: number;
+}
+
+@InputType()
+export class UpdateVisualSetupInput {
+  @Field()
+  id: string;
+
+  @Field(() => VisualOperation, { nullable: true })
+  operation?: VisualOperation;
+
+  @Field(() => String, { nullable: true })
+  valueJson?: string;
+
+  @Field(() => Int, { nullable: true })
+  sortOrder?: number;
 }
 
 @InputType()
@@ -1431,6 +1588,12 @@ export class CreateTextureAssetInput {
 
   @Field(() => String, { nullable: true })
   metadataJson?: string;
+
+  @Field(() => String, { nullable: true })
+  fileBase64?: string;
+
+  @Field(() => String, { nullable: true })
+  fileName?: string;
 }
 
 @InputType()

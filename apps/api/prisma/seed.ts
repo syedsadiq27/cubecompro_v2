@@ -43,10 +43,11 @@ async function putJson(keyPath: string, payload: unknown) {
     join(process.cwd(), '.data', 'documents');
   const body = JSON.stringify(payload, null, 2);
   const sha256 = createHash('sha256').update(body).digest('hex');
-  const absolute = join(root, keyPath.replace(/^\/+/, ''));
+  const relative = keyPath.replace(/^\/+/, '');
+  const absolute = join(root, relative);
   await mkdir(dirname(absolute), { recursive: true });
   await writeFile(absolute, body, 'utf8');
-  return { uri: `file://${absolute}`, sha256 };
+  return { uri: relative, sha256 };
 }
 
 async function putBytes(keyPath: string, bytes: Buffer) {
@@ -54,10 +55,11 @@ async function putBytes(keyPath: string, bytes: Buffer) {
     process.env.DOCUMENT_STORE_PATH ??
     join(process.cwd(), '.data', 'documents');
   const sha256 = createHash('sha256').update(bytes).digest('hex');
-  const absolute = join(root, keyPath.replace(/^\/+/, ''));
+  const relative = keyPath.replace(/^\/+/, '');
+  const absolute = join(root, relative);
   await mkdir(dirname(absolute), { recursive: true });
   await writeFile(absolute, bytes);
-  return { uri: `file://${absolute}`, sha256 };
+  return { uri: relative, sha256 };
 }
 
 async function seed() {
@@ -339,28 +341,44 @@ async function seed() {
     const existing = await prisma.materialAsset.findFirst({
       where: { projectId: project.id, code: input.code },
     });
-    if (existing) {
-      return prisma.materialAsset.update({
-        where: { id: existing.id },
-        data: {
-          folderId: materialsFolder.id,
-          name: input.name,
-          documentUri: input.documentUri,
-          documentSha256: input.documentSha256,
-        },
-      });
-    }
-    return prisma.materialAsset.create({
-      data: {
-        organizationId: organization.id,
-        projectId: project.id,
-        folderId: materialsFolder.id,
-        name: input.name,
-        code: input.code,
-        documentUri: input.documentUri,
-        documentSha256: input.documentSha256,
-      },
+    const asset = existing
+      ? await prisma.materialAsset.update({
+          where: { id: existing.id },
+          data: {
+            folderId: materialsFolder.id,
+            name: input.name,
+            documentUri: input.documentUri,
+            documentSha256: input.documentSha256,
+          },
+        })
+      : await prisma.materialAsset.create({
+          data: {
+            organizationId: organization.id,
+            projectId: project.id,
+            folderId: materialsFolder.id,
+            name: input.name,
+            code: input.code,
+            documentUri: input.documentUri,
+            documentSha256: input.documentSha256,
+          },
+        });
+
+    const tip = await prisma.materialAssetRevision.findFirst({
+      where: { materialAssetId: asset.id },
+      orderBy: { version: 'desc' },
     });
+    const revision =
+      tip ??
+      (await prisma.materialAssetRevision.create({
+        data: {
+          materialAssetId: asset.id,
+          version: 1,
+          definitionUri: asset.documentUri,
+          contentHash: asset.documentSha256,
+        },
+      }));
+
+    return { asset, revision };
   }
 
   await upsertMaterial({
@@ -726,7 +744,7 @@ async function seed() {
         choiceValueId: frameWalnut.id,
         modelTargetId: target.id,
         operation: VisualOperation.SET_MATERIAL,
-        value: { materialAssetId: walnutMaterial.id },
+        value: { materialAssetRevisionId: walnutMaterial.revision.id },
       },
     });
     await prisma.visualEffect.create({
@@ -734,7 +752,7 @@ async function seed() {
         choiceValueId: frameOak.id,
         modelTargetId: target.id,
         operation: VisualOperation.SET_MATERIAL,
-        value: { materialAssetId: oakMaterial.id },
+        value: { materialAssetRevisionId: oakMaterial.revision.id },
       },
     });
   }
@@ -760,7 +778,7 @@ async function seed() {
       choiceValueId: colorBlack.id,
       modelTargetId: seatTarget.id,
       operation: VisualOperation.SET_MATERIAL,
-      value: { materialAssetId: blackMaterial.id },
+      value: { materialAssetRevisionId: blackMaterial.revision.id },
     },
   });
   await prisma.visualEffect.create({
@@ -768,7 +786,7 @@ async function seed() {
       choiceValueId: colorWhite.id,
       modelTargetId: seatTarget.id,
       operation: VisualOperation.SET_MATERIAL,
-      value: { materialAssetId: whiteMaterial.id },
+      value: { materialAssetRevisionId: whiteMaterial.revision.id },
     },
   });
 

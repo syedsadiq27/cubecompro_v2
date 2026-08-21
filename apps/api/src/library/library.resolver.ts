@@ -7,6 +7,7 @@ import {
   CreateTextureAssetInput,
   LibraryFolderModel,
   MaterialAssetModel,
+  MaterialAssetRevisionModel,
   ObjectAssetModel,
   ObjectAssetRevisionModel,
   TextureAssetModel,
@@ -42,9 +43,19 @@ export class LibraryResolver {
     return this.library.updateMaterial(input);
   }
 
+  @Mutation(() => MaterialAssetModel)
+  publishMaterialAsset(@Args('id') id: string) {
+    return this.library.publishMaterial(id);
+  }
+
   @Query(() => [MaterialAssetModel])
   materialAssets(@Args('projectId') projectId: string) {
     return this.library.listMaterials(projectId);
+  }
+
+  @Query(() => [MaterialAssetRevisionModel])
+  materialAssetRevisions(@Args('materialAssetId') materialAssetId: string) {
+    return this.library.listMaterialRevisions(materialAssetId);
   }
 
   @Mutation(() => TextureAssetModel)
@@ -72,6 +83,11 @@ export class LibraryResolver {
     @Args('input') input: CreateObjectAssetRevisionInput
   ) {
     return this.library.createObjectRevision(input);
+  }
+
+  @Mutation(() => ObjectAssetRevisionModel)
+  publishObjectAsset(@Args('id') id: string) {
+    return this.library.publishObject(id);
   }
 
   @Mutation(() => ObjectAssetModel)

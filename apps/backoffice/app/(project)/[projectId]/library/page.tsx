@@ -5,6 +5,7 @@ import type {
   LibraryFolderItem,
   LibraryScope,
 } from '@/components/library/types';
+import { formatBytes } from '@/components/library/types';
 import { EmptyState } from '@/components/bo';
 import { graphRequest } from '@repo/product-graph';
 import {
@@ -14,6 +15,26 @@ import {
   TEXTURE_ASSETS_QUERY,
 } from '@repo/product-graph';
 import { getProjectSession } from '@/lib/session-server';
+
+function formatAssetDate(value?: string | Date | null): {
+  date: string | null;
+  time: string | null;
+} {
+  if (!value) return { date: null, time: null };
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) return { date: null, time: null };
+  return {
+    date: parsed.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }),
+    time: parsed.toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    }),
+  };
+}
 
 export default async function LibraryPage({
   params,
@@ -48,6 +69,8 @@ export default async function LibraryPage({
             code?: string | null;
             folderId?: string | null;
             documentUrl?: string | null;
+            createdAt?: string | null;
+            updatedAt?: string | null;
           }>;
         }>(MATERIAL_ASSETS_QUERY, { projectId }, project.projectToken),
         graphRequest<{
@@ -63,6 +86,8 @@ export default async function LibraryPage({
             materialCount?: number | null;
             nodeCount?: number | null;
             sizeBytes?: number | null;
+            createdAt?: string | null;
+            updatedAt?: string | null;
           }>;
         }>(OBJECT_ASSETS_QUERY, { projectId }, project.projectToken),
         graphRequest<{
@@ -71,29 +96,63 @@ export default async function LibraryPage({
             name: string;
             code?: string | null;
             folderId?: string | null;
+            fileUrl?: string | null;
+            sizeBytes?: number | null;
+            mimeType?: string | null;
+            createdAt?: string | null;
+            updatedAt?: string | null;
           }>;
         }>(TEXTURE_ASSETS_QUERY, { projectId }, project.projectToken),
       ]);
 
     folders = folderData.libraryFolders;
+    const folderNameById = new Map(
+      folders.map((folder) => [folder.id, folder.name] as const)
+    );
+
     assets = [
-      ...materialData.materialAssets.map(
-        (asset): LibraryAssetItem => ({
+      ...materialData.materialAssets.map((asset): LibraryAssetItem => {
+        const updated = formatAssetDate(asset.updatedAt);
+        const created = formatAssetDate(asset.createdAt);
+        return {
           id: asset.id,
           type: 'material',
           name: asset.name,
           code: asset.code,
+          detail: asset.code || 'Material',
           folderId: asset.folderId,
+          folderName: asset.folderId
+            ? folderNameById.get(asset.folderId) || null
+            : null,
           documentUrl: asset.documentUrl,
-        })
-      ),
-      ...objectData.objectAssets.map(
-        (asset): LibraryAssetItem => ({
+          status: 'READY',
+          format: 'PBR',
+          updatedDate: updated.date,
+          updatedTime: updated.time,
+          createdDate: created.date,
+        };
+      }),
+      ...objectData.objectAssets.map((asset): LibraryAssetItem => {
+        const updated = formatAssetDate(asset.updatedAt);
+        const created = formatAssetDate(asset.createdAt);
+        const size = formatBytes(asset.sizeBytes);
+        return {
           id: asset.id,
           type: 'model',
           name: asset.name,
           code: asset.code,
+          detail:
+            [
+              asset.format?.toUpperCase(),
+              asset.meshCount != null ? `${asset.meshCount} meshes` : null,
+              size,
+            ]
+              .filter(Boolean)
+              .join(' · ') || 'Model',
           folderId: asset.folderId,
+          folderName: asset.folderId
+            ? folderNameById.get(asset.folderId) || null
+            : null,
           fileUrl: asset.fileUrl,
           format: asset.format,
           status: libraryAssetStatusLabel(asset.status),
@@ -101,17 +160,40 @@ export default async function LibraryPage({
           materialCount: asset.materialCount,
           nodeCount: asset.nodeCount,
           sizeBytes: asset.sizeBytes,
-        })
-      ),
-      ...textureData.textureAssets.map(
-        (asset): LibraryAssetItem => ({
+          fileSize: size,
+          fileName: asset.code
+            ? `${asset.code}.${asset.format || 'glb'}`
+            : null,
+          updatedDate: updated.date,
+          updatedTime: updated.time,
+          createdDate: created.date,
+        };
+      }),
+      ...textureData.textureAssets.map((asset): LibraryAssetItem => {
+        const updated = formatAssetDate(asset.updatedAt);
+        const created = formatAssetDate(asset.createdAt);
+        const size = formatBytes(asset.sizeBytes);
+        return {
           id: asset.id,
           type: 'texture',
           name: asset.name,
           code: asset.code,
+          detail: [asset.mimeType, size].filter(Boolean).join(' · ') || 'Texture',
           folderId: asset.folderId,
-        })
-      ),
+          folderName: asset.folderId
+            ? folderNameById.get(asset.folderId) || null
+            : null,
+          fileUrl: asset.fileUrl,
+          imageUrl: asset.fileUrl,
+          format: asset.mimeType,
+          status: 'READY',
+          sizeBytes: asset.sizeBytes,
+          fileSize: size,
+          updatedDate: updated.date,
+          updatedTime: updated.time,
+          createdDate: created.date,
+        };
+      }),
     ].sort((a, b) => a.name.localeCompare(b.name));
   } catch (err) {
     error = err instanceof Error ? err.message : 'Failed to load library.';

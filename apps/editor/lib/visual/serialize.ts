@@ -1,3 +1,4 @@
+import { replaceComponentValueJson } from '@repo/product-graph';
 import type { VisualBinding } from './types';
 
 export function bindingSemanticKey(binding: {
@@ -11,7 +12,12 @@ export function bindingSemanticKey(binding: {
 
 export function serializeBindingValueJson(binding: VisualBinding): string {
   if (binding.operation === 'SET_MATERIAL') {
-    return JSON.stringify({ materialAssetId: binding.materialAssetId });
+    return JSON.stringify({
+      materialAssetRevisionId: binding.materialAssetRevisionId,
+    });
+  }
+  if (binding.operation === 'REPLACE_COMPONENT') {
+    return replaceComponentValueJson(binding.linkedAssetKey);
   }
   return JSON.stringify(binding.visible);
 }
@@ -22,10 +28,16 @@ export function bindingsEqualForPersist(
 ): boolean {
   if (a.operation !== b.operation) return false;
   if (a.operation === 'SET_MATERIAL' && b.operation === 'SET_MATERIAL') {
-    return a.materialAssetId === b.materialAssetId;
+    return a.materialAssetRevisionId === b.materialAssetRevisionId;
   }
   if (a.operation === 'SET_VISIBILITY' && b.operation === 'SET_VISIBILITY') {
     return a.visible === b.visible;
+  }
+  if (
+    a.operation === 'REPLACE_COMPONENT' &&
+    b.operation === 'REPLACE_COMPONENT'
+  ) {
+    return a.linkedAssetKey === b.linkedAssetKey;
   }
   return false;
 }

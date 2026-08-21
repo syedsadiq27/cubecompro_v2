@@ -5,12 +5,14 @@ import { cn } from '@repo/ui';
 export function RailItem({
   active = false,
   label,
+  title,
   icon,
   onClick,
   compact = false,
 }: {
   active?: boolean;
   label: string;
+  title?: string;
   icon: React.ReactNode;
   onClick: () => void;
   compact?: boolean;
@@ -19,20 +21,22 @@ export function RailItem({
     <button
       type="button"
       onClick={onClick}
-      title={label}
+      title={title || label}
       className={cn(
-        'relative flex w-full flex-col items-center justify-center rounded-lg font-medium transition-colors',
-        compact ? 'py-2' : 'py-1.5',
+        'group relative flex w-full flex-col items-center justify-center rounded-xl font-medium transition-all duration-150',
+        compact ? 'h-10 w-10 mx-auto' : 'py-2 px-1',
         active
-          ? 'bg-white/[0.12] text-white shadow-xs'
-          : 'text-white/65 hover:bg-white/[0.06] hover:text-white'
+          ? 'bg-[#5B50EC] text-white shadow-md shadow-[#5B50EC]/30'
+          : 'text-white/60 hover:bg-white/10 hover:text-white'
       )}
     >
-      <span className={cn('shrink-0', active ? 'text-white' : 'text-white/50')}>
+      <span className={cn('shrink-0 transition-transform group-hover:scale-105', active ? 'text-white' : 'text-white/60 group-hover:text-white')}>
         {icon}
       </span>
       {!compact ? (
-        <span className="mt-0.5 text-[9px] leading-tight">{label}</span>
+        <span className={cn('mt-1 text-[10px] font-medium leading-none tracking-tight', active ? 'text-white' : 'text-white/60 group-hover:text-white')}>
+          {label}
+        </span>
       ) : null}
     </button>
   );

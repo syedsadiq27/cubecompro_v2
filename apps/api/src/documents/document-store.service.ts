@@ -2,11 +2,12 @@ import { createHash } from 'node:crypto';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 export type StoredDocument = {
+  /** Store-relative key (never file://, gs://, or host absolute path). */
   uri: string;
   sha256: string;
 };
@@ -25,8 +26,61 @@ export class DocumentStoreService {
       : resolve(process.cwd(), configured);
   }
 
-  private toFileUri(absolute: string): string {
-    return pathToFileURL(absolute).href;
+  private normalizeRelativeKey(relative: string): string {
+    return relative.replace(/^\/+/, '').replace(/\\/g, '/');
+  }
+
+  /**
+   * Convert a DB store key or legacy absolute/file URI into a store-relative key.
+   * Rejects path traversal and unresolved remote schemes.
+   */
+  toRelativeStoreKey(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    if (/^(gs|s3|https?):\/\//i.test(trimmed)) {
+      return null;
+    }
+
+    if (trimmed.startsWith('file://') || isAbsolute(trimmed)) {
+      let absolute: string;
+      if (trimmed.startsWith('file://')) {
+        try {
+          absolute = fileURLToPath(trimmed);
+        } catch {
+          absolute = trimmed.slice('file://'.length);
+        }
+      } else {
+        absolute = trimmed;
+      }
+      if (!isAbsolute(absolute)) {
+        absolute = resolve(process.cwd(), absolute);
+      }
+      const root = this.rootDir();
+      const resolved = resolve(absolute);
+      if (resolved === root || resolved.startsWith(root + sep)) {
+        return this.normalizeRelativeKey(resolved.slice(root.length));
+      }
+      const assetsMatch = resolved.match(
+        /(?:^|[/\\])(assets[/\\]sha256[/\\][^/\\?#]+)$/
+      );
+      if (assetsMatch) {
+        return this.normalizeRelativeKey(assetsMatch[1]);
+      }
+      const documentsMatch = resolved.match(
+        /[/\\](?:\.data[/\\])?documents[/\\](.+)$/
+      );
+      if (documentsMatch) {
+        return this.normalizeRelativeKey(documentsMatch[1]);
+      }
+      return null;
+    }
+
+    const normalized = this.normalizeRelativeKey(trimmed);
+    if (!normalized || normalized.split('/').includes('..')) {
+      return null;
+    }
+    return normalized;
   }
 
   async putJson(
@@ -35,12 +89,12 @@ export class DocumentStoreService {
   ): Promise<StoredDocument> {
     const body = JSON.stringify(payload);
     const sha256 = createHash('sha256').update(body).digest('hex');
-    const relative = keyPath.replace(/^\/+/, '');
+    const relative = this.normalizeRelativeKey(keyPath);
     const absolute = join(this.rootDir(), relative);
     await mkdir(dirname(absolute), { recursive: true });
     await writeFile(absolute, body, 'utf8');
     return {
-      uri: this.toFileUri(absolute),
+      uri: relative,
       sha256,
     };
   }
@@ -50,12 +104,12 @@ export class DocumentStoreService {
     bytes: Buffer
   ): Promise<StoredDocument> {
     const sha256 = createHash('sha256').update(bytes).digest('hex');
-    const relative = keyPath.replace(/^\/+/, '');
+    const relative = this.normalizeRelativeKey(keyPath);
     const absolute = join(this.rootDir(), relative);
     await mkdir(dirname(absolute), { recursive: true });
     await writeFile(absolute, bytes);
     return {
-      uri: this.toFileUri(absolute),
+      uri: relative,
       sha256,
     };
   }
@@ -93,32 +147,24 @@ export class DocumentStoreService {
       await writeFile(absolute, bytes);
     }
     return {
-      uri: this.toFileUri(absolute),
+      uri: relative,
       sha256,
     };
   }
 
-  resolveAbsolutePath(fileUri: string): string | null {
-    if (!fileUri.startsWith('file://')) return null;
-    let absolute: string;
-    try {
-      absolute = fileURLToPath(fileUri);
-    } catch {
-      absolute = fileUri.slice('file://'.length);
-    }
-    if (!isAbsolute(absolute)) {
-      absolute = resolve(process.cwd(), absolute);
-    }
+  resolveAbsolutePath(storeKeyOrLegacyUri: string): string | null {
+    const relative = this.toRelativeStoreKey(storeKeyOrLegacyUri);
+    if (!relative) return null;
     const root = this.rootDir();
-    const resolved = resolve(absolute);
-    if (resolved !== root && !resolved.startsWith(root + sep)) {
+    const absolute = resolve(root, relative);
+    if (absolute !== root && !absolute.startsWith(root + sep)) {
       return null;
     }
-    return resolved;
+    return absolute;
   }
 
-  async readBytes(fileUri: string): Promise<Buffer | null> {
-    const absolute = this.resolveAbsolutePath(fileUri);
+  async readBytes(storeKeyOrLegacyUri: string): Promise<Buffer | null> {
+    const absolute = this.resolveAbsolutePath(storeKeyOrLegacyUri);
     if (!absolute) return null;
     try {
       return await readFile(absolute);

@@ -49,10 +49,12 @@ async function resolveSelection(productId: string, selections: Record<string, st
         threeD {
           rootObjectAssetRevisionId
           activeObjectAssetRevisionIds
+          activeMaterialAssetRevisionIds
+          activeTextureAssetRevisionIds
           effects {
             operation
             targetKey
-            materialAssetId
+            materialAssetRevisionId
             linkedAssetKey
           }
         }

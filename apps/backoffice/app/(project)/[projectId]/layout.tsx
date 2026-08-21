@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { CubeStoreHydrator } from '@/components/shell/cube-store-hydrator';
 import { ProjectShell } from '@/components/shell/project-shell';
 import { requireAuthenticatedUser } from '@/lib/require-auth';
 import { getProjectSession } from '@/lib/session-server';
@@ -22,12 +23,11 @@ export default async function ProjectLayout({
     [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
   return (
-    <ProjectShell
-      projectId={projectId}
-      projectName={project.projectName}
-      userName={userName}
+    <CubeStoreHydrator
+      session={{ userName, email: user.email, role: user.role }}
+      workspace={{ projectId, projectName: project.projectName }}
     >
-      {children}
-    </ProjectShell>
+      <ProjectShell>{children}</ProjectShell>
+    </CubeStoreHydrator>
   );
 }

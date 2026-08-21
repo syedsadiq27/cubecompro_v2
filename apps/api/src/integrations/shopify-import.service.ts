@@ -19,6 +19,7 @@ import {
 } from '@repo/product-graph';
 import { PrismaService } from '../prisma/prisma.service';
 import { CommerceMappingService } from '../product/commerce-mapping.service';
+import { ProductService } from '../product/product.service';
 import { ShopifyAdminClient } from './shopify-admin.client';
 import {
   buildShopifyAuthorizeUrl,
@@ -34,7 +35,8 @@ const PROVIDER_SHOPIFY = 'shopify';
 export class ShopifyImportService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly commerceMappings: CommerceMappingService
+    private readonly commerceMappings: CommerceMappingService,
+    private readonly products: ProductService
   ) {}
 
   async listConnections(organizationId: string) {
@@ -238,15 +240,33 @@ export class ShopifyImportService {
     const requestedId = String(input.shopifyProductId).trim();
     const existingImports = await this.prisma.productProviderImport.findMany({
       where: { integrationConnectionId: connection.id },
-      select: { productId: true, externalProductId: true },
+      select: { id: true, productId: true, externalProductId: true },
     });
     const existingImport = existingImports.find((row) =>
       sameShopifyResourceId(row.externalProductId, requestedId)
     );
     if (existingImport) {
-      throw new BadRequestException(
-        `Shopify product ${input.shopifyProductId} was already imported as CubeCom product ${existingImport.productId}. Discard/delete that product before re-importing.`
-      );
+      const existingProduct = await this.prisma.product.findUnique({
+        where: { id: existingImport.productId },
+        select: { id: true, status: true },
+      });
+
+      if (
+        !existingProduct ||
+        existingProduct.status === ProductStatus.ARCHIVED
+      ) {
+        if (existingProduct) {
+          await this.products.delete(existingProduct.id);
+        } else {
+          await this.prisma.productProviderImport.delete({
+            where: { id: existingImport.id },
+          });
+        }
+      } else {
+        throw new BadRequestException(
+          `Shopify product ${input.shopifyProductId} was already imported as CubeCom product ${existingImport.productId}. Archive or permanently delete that product before re-importing.`
+        );
+      }
     }
 
     let dto: ShopifyProductDto;
@@ -275,6 +295,25 @@ export class ShopifyImportService {
           ? error.message
           : 'Shopify import plan failed'
       );
+    }
+
+    const keyConflict = await this.prisma.product.findUnique({
+      where: {
+        projectId_key: {
+          projectId: project.id,
+          key: plan.productKey,
+        },
+      },
+      select: { id: true, status: true },
+    });
+    if (keyConflict) {
+      if (keyConflict.status === ProductStatus.ARCHIVED) {
+        await this.products.delete(keyConflict.id);
+      } else {
+        throw new BadRequestException(
+          `Product key "${plan.productKey}" is already used by CubeCom product ${keyConflict.id}. Archive or permanently delete that product before re-importing.`
+        );
+      }
     }
 
     const created = await this.prisma.$transaction(async (tx) => {

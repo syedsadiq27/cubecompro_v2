@@ -77,7 +77,7 @@ ROADMAP (APPROVED)
 4A ✅ Immutable exact root asset
 4B ✅ Typed multi-asset model graph (frozen)
 4C ✅ REPLACE_COMPONENT (this slice)
-4D — Material + Texture revisions + SET_MATERIAL → exact MaterialAssetRevision
+4D ✅ Material + Texture revisions + SET_MATERIAL
 4E — Integrated multi-asset authoring / replay
 4F — Attachment points + ATTACH_OBJECT + transforms
 4G — Decorations

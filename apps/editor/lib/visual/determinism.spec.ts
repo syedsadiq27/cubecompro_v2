@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { captureVisualBaseline } from './baseline';
 import {
-  deriveBaselineVisualState,
-  deriveVisualState,
-} from './derive';
+  projectBaselineRuntimeVisualState,
+  projectRuntimeVisualState,
+} from './desired-state';
+import { ObjectRuntimeRegistry } from './object-runtime';
 import { reconcileScene } from './reconcile';
 import { resolveTargetObject } from './resolve-target';
-import type { VisualDocument } from './types';
+import type { VisualDocument, VisualState } from './types';
 
 function mesh(name: string, color: string, visible = true): THREE.Mesh {
   const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -35,6 +36,14 @@ function documentFixture(): VisualDocument {
     productRevisionId: 'rev-1',
     productModelId: 'model-1',
     assetId: 'asset-1',
+    rootObjectAssetRevisionId: 'oar_root',
+    linkedAssets: [
+      {
+        role: 'OBJECT',
+        key: 'root',
+        assetRevisionId: 'oar_root',
+      },
+    ],
     targets: [
       {
         id: 't-frame',
@@ -54,6 +63,7 @@ function documentFixture(): VisualDocument {
         nodePath: 'Chair/Backrest',
       },
     ],
+    setups: [],
     bindings: [
       {
         choiceKey: 'frame',
@@ -61,7 +71,7 @@ function documentFixture(): VisualDocument {
         targetKey: 'frame',
         materialSlot: 'frame',
         operation: 'SET_MATERIAL',
-        materialAssetId: 'mat-walnut',
+        materialAssetRevisionId: 'mat-walnut',
       },
       {
         choiceKey: 'frame',
@@ -69,7 +79,7 @@ function documentFixture(): VisualDocument {
         targetKey: 'frame',
         materialSlot: 'frame',
         operation: 'SET_MATERIAL',
-        materialAssetId: 'mat-oak',
+        materialAssetRevisionId: 'mat-oak',
       },
       {
         choiceKey: 'color',
@@ -77,7 +87,7 @@ function documentFixture(): VisualDocument {
         targetKey: 'body',
         materialSlot: 'body',
         operation: 'SET_MATERIAL',
-        materialAssetId: 'mat-black',
+        materialAssetRevisionId: 'mat-black',
       },
       {
         choiceKey: 'back',
@@ -110,6 +120,25 @@ function materialName(object: THREE.Object3D): string {
   return mat.name;
 }
 
+function apply(
+  root: THREE.Object3D,
+  document: VisualDocument,
+  state: VisualState,
+  baseline: ReturnType<typeof captureVisualBaseline>,
+  materials: Record<string, THREE.Material>
+) {
+  reconcileScene({
+    root,
+    document,
+    state,
+    surfaceBaseline: baseline,
+    structuralBaselines: new Map(),
+    materials,
+    objectRegistry: new ObjectRuntimeRegistry(),
+    mountedInstances: new Map(),
+  });
+}
+
 describe('visual determinism', () => {
   it('fresh(A) == A → B → A for materials and visibility', () => {
     const { root, frame, backrest } = buildChairScene();
@@ -121,27 +150,27 @@ describe('visual determinism', () => {
       'mat-black': material('Black', '#000000'),
     };
 
-    const stateA = deriveVisualState(baseline, document, {
+    const stateA = projectRuntimeVisualState(baseline, document, {
       frame: 'walnut',
       color: 'black',
       back: 'on',
     });
-    reconcileScene(root, document, stateA, baseline, materials);
+    apply(root, document, stateA, baseline, materials);
     const snapA = {
       frame: materialName(frame),
       backVisible: backrest.visible,
     };
 
-    const stateB = deriveVisualState(baseline, document, {
+    const stateB = projectRuntimeVisualState(baseline, document, {
       frame: 'oak',
       color: 'black',
       back: 'off',
     });
-    reconcileScene(root, document, stateB, baseline, materials);
+    apply(root, document, stateB, baseline, materials);
     expect(materialName(frame)).toBe('Oak');
     expect(backrest.visible).toBe(false);
 
-    reconcileScene(root, document, stateA, baseline, materials);
+    apply(root, document, stateA, baseline, materials);
     expect(materialName(frame)).toBe(snapA.frame);
     expect(backrest.visible).toBe(snapA.backVisible);
   });
@@ -157,16 +186,16 @@ describe('visual determinism', () => {
       'mat-black': material('Black', '#000000'),
     };
 
-    const altered = deriveVisualState(baseline, document, {
+    const altered = projectRuntimeVisualState(baseline, document, {
       frame: 'oak',
       back: 'off',
     });
-    reconcileScene(root, document, altered, baseline, materials);
+    apply(root, document, altered, baseline, materials);
     expect(materialName(frame)).toBe('Oak');
     expect(backrest.visible).toBe(false);
 
-    const restored = deriveBaselineVisualState(baseline, document);
-    reconcileScene(root, document, restored, baseline, materials);
+    const restored = projectBaselineRuntimeVisualState(baseline, document);
+    apply(root, document, restored, baseline, materials);
     expect(materialName(frame)).toBe(baselineFrameName);
     expect(backrest.visible).toBe(true);
   });
@@ -221,7 +250,7 @@ describe('visual determinism', () => {
     const document = documentFixture();
     const baseline = captureVisualBaseline(root, document);
     expect(() =>
-      deriveVisualState(
+      projectRuntimeVisualState(
         baseline,
         document,
         { frame: 'walnut' },

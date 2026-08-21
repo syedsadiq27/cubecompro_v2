@@ -173,4 +173,81 @@ export class DocumentsController {
     res.setHeader('Cache-Control', 'private, max-age=60');
     return new StreamableFile(createReadStream(absolute));
   }
+
+  @Get('material-revisions/:id')
+  async getMaterialRevision(
+    @Param('id') id: string,
+    @Req()
+    req: { headers: { authorization?: string } },
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const user = this.requireUser(req);
+
+    const revision = await this.prisma.materialAssetRevision.findUnique({
+      where: { id },
+      include: { materialAsset: true },
+    });
+    if (
+      !revision ||
+      revision.materialAsset.organizationId !== user.organizationId
+    ) {
+      throw new NotFoundException('Material asset revision not found');
+    }
+
+    const absolute = this.documents.resolveAbsolutePath(revision.definitionUri);
+    if (!absolute) {
+      throw new NotFoundException('Material revision document missing');
+    }
+
+    const bytes = await readFile(absolute);
+    const hash = createHash('sha256').update(bytes).digest('hex');
+    if (hash !== revision.contentHash) {
+      throw new BadRequestException('Material revision content hash mismatch');
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
+    res.setHeader('X-Content-Hash', revision.contentHash);
+    return new StreamableFile(bytes);
+  }
+
+  @Get('texture-revisions/:id')
+  async getTextureRevision(
+    @Param('id') id: string,
+    @Req()
+    req: { headers: { authorization?: string } },
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const user = this.requireUser(req);
+
+    const revision = await this.prisma.textureAssetRevision.findUnique({
+      where: { id },
+      include: { textureAsset: true },
+    });
+    if (
+      !revision ||
+      revision.textureAsset.organizationId !== user.organizationId
+    ) {
+      throw new NotFoundException('Texture asset revision not found');
+    }
+
+    const absolute = this.documents.resolveAbsolutePath(revision.artifactUri);
+    if (!absolute) {
+      throw new NotFoundException('Texture revision artifact missing');
+    }
+
+    const bytes = await readFile(absolute);
+    const hash = createHash('sha256').update(bytes).digest('hex');
+    if (hash !== revision.contentHash) {
+      throw new BadRequestException('Texture revision content hash mismatch');
+    }
+
+    res.setHeader(
+      'Content-Type',
+      revision.mimeType ?? 'application/octet-stream'
+    );
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
+    res.setHeader('X-Content-Hash', revision.contentHash);
+    return new StreamableFile(bytes);
+  }
 }

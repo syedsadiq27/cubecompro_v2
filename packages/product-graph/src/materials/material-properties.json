@@ -1,0 +1,124 @@
+{
+  "shaderModel": "PBR",
+  "description": "CubeCom library material contract. Factors are scalar PBR fields. Texture slots pin TextureAssetRevisions. Wrap and UV live on the material usage, not the texture file.",
+  "factors": [
+    {
+      "key": "baseColor",
+      "label": "Base color",
+      "type": "color",
+      "three": "color",
+      "default": "#8A6040"
+    },
+    {
+      "key": "emissive",
+      "label": "Emissive",
+      "type": "color",
+      "three": "emissive",
+      "default": "#000000",
+      "omitIf": "#000000"
+    },
+    {
+      "key": "metallic",
+      "label": "Metalness",
+      "type": "number",
+      "three": "metalness",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0
+    },
+    {
+      "key": "roughness",
+      "label": "Roughness",
+      "type": "number",
+      "three": "roughness",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.55
+    },
+    {
+      "key": "opacity",
+      "label": "Opacity",
+      "type": "number",
+      "three": "opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 1,
+      "transparentBelow": 1
+    },
+    {
+      "key": "doubleSided",
+      "label": "Double sided",
+      "type": "boolean",
+      "three": "side",
+      "default": false
+    }
+  ],
+  "textureSlots": [
+    {
+      "slot": "BASE_COLOR",
+      "label": "Base color",
+      "three": ["map"],
+      "colorSpace": "srgb",
+      "legacyIds": ["baseColorTextureId"]
+    },
+    {
+      "slot": "NORMAL",
+      "label": "Normal",
+      "three": ["normalMap"],
+      "colorSpace": "linear",
+      "legacyIds": ["normalTextureId"]
+    },
+    {
+      "slot": "METALLIC_ROUGHNESS",
+      "label": "Metallic / roughness",
+      "three": ["metalnessMap", "roughnessMap"],
+      "colorSpace": "linear",
+      "legacyIds": ["metallicTextureId", "roughnessTextureId"]
+    },
+    {
+      "slot": "OCCLUSION",
+      "label": "Occlusion",
+      "three": ["aoMap"],
+      "colorSpace": "linear",
+      "legacyIds": ["aoTextureId"]
+    },
+    {
+      "slot": "EMISSIVE",
+      "label": "Emissive",
+      "three": ["emissiveMap"],
+      "colorSpace": "srgb",
+      "legacyIds": ["emissiveTextureId"]
+    }
+  ],
+  "legacyTextureIdFields": ["opacityTextureId"],
+  "wrapModes": [
+    {
+      "id": "repeat",
+      "label": "Repeat",
+      "three": "RepeatWrapping"
+    },
+    {
+      "id": "clamp",
+      "label": "Clamp",
+      "three": "ClampToEdgeWrapping"
+    },
+    {
+      "id": "mirror",
+      "label": "Mirror",
+      "three": "MirroredRepeatWrapping"
+    }
+  ],
+  "textureFiles": {
+    "extensions": [".png", ".jpg", ".jpeg", ".webp", ".gif", ".ktx2"],
+    "mimeTypes": [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/gif",
+      "image/ktx2"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { logoutAction } from '@/actions/auth';
+import { useAdminStore } from '@/lib/admin-store';
 import {
   AccountFooter,
   Sidebar,
@@ -169,11 +169,15 @@ const NAV_STRUCTURE = [
   },
 ];
 
-export function AdminNav({ userName = 'Demo Owner' }: { userName?: string }) {
+export function AdminNav() {
+  const userName = useAdminStore((state) => state.userName) ?? 'Owner';
+  const role = useAdminStore((state) => state.role) ?? 'Super Admin';
+  const organizationName =
+    useAdminStore((state) => state.organizationName) ?? 'CubeCom Global';
   return (
     <Sidebar brandHref="/organizations" product="admin">
       <WorkspaceSwitcher
-        name="CubeCom Global"
+        name={organizationName}
         label="Production Cluster"
         status={<span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
       />
@@ -195,7 +199,7 @@ export function AdminNav({ userName = 'Demo Owner' }: { userName?: string }) {
       </SidebarNav>
       <AccountFooter
         userName={userName}
-        subtitle="Super Admin"
+        subtitle={role}
         signOutAction={logoutAction}
       />
     </Sidebar>

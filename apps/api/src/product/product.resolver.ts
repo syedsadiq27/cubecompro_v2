@@ -18,9 +18,11 @@ import {
   CreateProductVariantInput,
   CreateVariantSelectionInput,
   CreateVisualEffectInput,
+  CreateVisualSetupInput,
   UpdateProductModelLinkedAssetInput,
   UpdateProductModelRevisionInput,
   UpdateVisualEffectInput,
+  UpdateVisualSetupInput,
   ModelTargetModel,
   ProductModel,
   ProductModelAssetModel,
@@ -34,6 +36,7 @@ import {
   UpdateProductInput,
   VariantSelectionModel,
   VisualEffectModel,
+  VisualSetupModel,
 } from '../graphql/models';
 import { CommerceMappingService } from './commerce-mapping.service';
 import { ConstraintService } from './constraint.service';
@@ -336,6 +339,29 @@ export class ProductResolver {
     return this.products.deleteVisualEffect(id);
   }
 
+  @Mutation(() => VisualSetupModel)
+  async createVisualSetup(@Args('input') input: CreateVisualSetupInput) {
+    const setup = await this.products.createVisualSetup(input);
+    return {
+      ...setup,
+      valueJson: JSON.stringify(setup.value),
+    };
+  }
+
+  @Mutation(() => VisualSetupModel)
+  async updateVisualSetup(@Args('input') input: UpdateVisualSetupInput) {
+    const setup = await this.products.updateVisualSetup(input);
+    return {
+      ...setup,
+      valueJson: JSON.stringify(setup.value),
+    };
+  }
+
+  @Mutation(() => Boolean)
+  deleteVisualSetup(@Args('id') id: string) {
+    return this.products.deleteVisualSetup(id);
+  }
+
   @Mutation(() => ProductVariantModel)
   createProductVariant(@Args('input') input: CreateProductVariantInput) {
     return this.products.createVariant(input);
@@ -458,6 +484,14 @@ function mapVersionDetail(
         assetRevisionId: link.assetRevisionId,
       })),
       targets: model.targets,
+      visualSetups: (model.visualSetups ?? []).map((setup) => ({
+        id: setup.id,
+        productModelId: setup.productModelId,
+        modelTargetId: setup.modelTargetId,
+        operation: setup.operation,
+        valueJson: JSON.stringify(setup.value),
+        sortOrder: setup.sortOrder,
+      })),
     })),
     visualEffects: detail.visualEffects.map((effect) => ({
       ...effect,

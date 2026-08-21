@@ -48,7 +48,9 @@ For selectable choices, values are value keys. Required choices can be absent in
 | Field | Type | Description |
 | --- | --- | --- |
 | `rootObjectAssetRevisionId` | `String` | ID of root GLB revision to render. |
-| `activeObjectAssetRevisionIds` | `[String!]!` | List of all active asset revisions (root + components). |
+| `activeObjectAssetRevisionIds` | `[String!]!` | List of all active object asset revisions (root + components). |
+| `activeMaterialAssetRevisionIds` | `[String!]!` | Material revisions activated by `SET_MATERIAL` for the selection. |
+| `activeTextureAssetRevisionIds` | `[String!]!` | Texture revisions referenced by those active materials. |
 | `effects` | `[ResolvedVisualEffectModel!]!` | List of active visual effects to apply. |
 | `modelId` | `String` | Parent ProductModel ID. |
 
@@ -63,7 +65,7 @@ For selectable choices, values are value keys. Required choices can be absent in
 | `targetType` | `String!` | Authored target category. |
 | `nodePath` | `String` | Optional scene path for locating the target. |
 | `valueJson` | `String!` | JSON-encoded operation data. |
-| `materialAssetId` | `String` | Material ID for `SET_MATERIAL`, otherwise null. |
+| `materialAssetRevisionId` | `String` | Material revision for `SET_MATERIAL`, otherwise null. |
 | `objectAssetRevisionId` | `String` | Object revision for `REPLACE_COMPONENT`, otherwise null. |
 | `linkedAssetKey` | `String` | Linked object key for `REPLACE_COMPONENT`, otherwise null. |
 | `documentUrl` | `String` | Relative document URL when the resolver exposes one. |
@@ -71,7 +73,7 @@ For selectable choices, values are value keys. Required choices can be absent in
 Known `valueJson` shapes emitted by the current resolver:
 
 ```json
-{ "materialAssetId": "mat_velvet_green" }
+{ "materialAssetRevisionId": "mar_velvet_green_v1" }
 ```
 
 ```json

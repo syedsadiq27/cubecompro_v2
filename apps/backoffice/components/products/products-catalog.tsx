@@ -47,7 +47,7 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState, useTransition } from 'react';
-import { setProductStatusAction } from '@/actions/products';
+import { setProductStatusAction, softDeleteProductAction } from '@/actions/products';
 import { ImportModal } from './import-modal';
 
 export type CatalogProduct = {
@@ -539,7 +539,9 @@ export function ProductsCatalog({
   };
 
   const handleBulkDelete = () => {
-    const count = selectedIds.size;
+    const ids = [...selectedIds];
+    const count = ids.length;
+    if (count === 0) return;
     setConfirmDialog({
       open: true,
       title: `Delete ${count} product${count === 1 ? '' : 's'}?`,
@@ -547,11 +549,22 @@ export function ProductsCatalog({
       confirmLabel: 'Delete',
       danger: true,
       onConfirm: () => {
-        setCatalog((prev) => prev.filter((p) => !selectedIds.has(p.id)));
-        if (inspectId && selectedIds.has(inspectId)) setInspectId(null);
-        setSelectedIds(new Set());
-        setConfirmDialog((d) => ({ ...d, open: false }));
-        toast.success(`Deleted ${count} product${count === 1 ? '' : 's'}`);
+        startTransition(async () => {
+          const results = await Promise.all(
+            ids.map((id) => softDeleteProductAction(projectId, id))
+          );
+          const failed = results.find((result) => !result.ok);
+          if (failed) {
+            toast.error(failed.error || 'Delete failed.');
+            return;
+          }
+          setCatalog((prev) => prev.filter((p) => !ids.includes(p.id)));
+          if (inspectId && ids.includes(inspectId)) setInspectId(null);
+          setSelectedIds(new Set());
+          setConfirmDialog((d) => ({ ...d, open: false }));
+          toast.success(`Deleted ${count} product${count === 1 ? '' : 's'}`);
+          router.refresh();
+        });
       },
     });
   };
@@ -634,10 +647,18 @@ export function ProductsCatalog({
       confirmLabel: 'Delete',
       danger: true,
       onConfirm: () => {
-        setCatalog((prev) => prev.filter((p) => p.id !== product.id));
-        if (inspectId === product.id) setInspectId(null);
-        setConfirmDialog((d) => ({ ...d, open: false }));
-        toast.success(`Deleted ${product.name}`);
+        startTransition(async () => {
+          const result = await softDeleteProductAction(projectId, product.id);
+          if (!result.ok) {
+            toast.error(result.error || 'Delete failed.');
+            return;
+          }
+          setCatalog((prev) => prev.filter((p) => p.id !== product.id));
+          if (inspectId === product.id) setInspectId(null);
+          setConfirmDialog((d) => ({ ...d, open: false }));
+          toast.success(`Deleted ${product.name}`);
+          router.refresh();
+        });
       },
     });
   };

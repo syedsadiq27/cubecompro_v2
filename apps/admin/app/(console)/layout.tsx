@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
+import { CubeStoreHydrator } from '@/components/cube-store-hydrator';
 import { getSessionUser } from '@/lib/session-server';
 
 export default async function ConsoleLayout({
@@ -10,6 +11,14 @@ export default async function ConsoleLayout({
   const user = await getSessionUser();
   if (!user) redirect('/login');
   return (
-    <AdminShell userName={user.name || user.email}>{children}</AdminShell>
+    <CubeStoreHydrator
+      session={{
+        userName: user.name || user.email,
+        email: user.email,
+        role: user.role,
+      }}
+    >
+      <AdminShell>{children}</AdminShell>
+    </CubeStoreHydrator>
   );
 }

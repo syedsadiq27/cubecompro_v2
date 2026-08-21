@@ -4,8 +4,13 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Field, Input, Typography } from '@repo/ui';
 import {
+  MATERIAL_FACTORS,
+  textureFileAccept,
+} from '@repo/product-graph';
+import {
   createMaterialAction,
   createObjectAction,
+  createTextureAction,
 } from '@/actions/assets';
 import type { LibraryAssetType } from './types';
 
@@ -27,7 +32,13 @@ export function CreateAssetDialog({
 
   useEffect(() => {
     if (!open) return;
-    setType(initialType === 'texture' ? 'material' : initialType);
+    if (initialType === 'texture' || initialType === 'image') {
+      setType('texture');
+    } else if (initialType === 'model') {
+      setType('model');
+    } else {
+      setType('material');
+    }
     setMessage(null);
   }, [open, initialType]);
 
@@ -65,6 +76,7 @@ export function CreateAssetDialog({
             [
               ['material', 'Material'],
               ['model', 'Model'],
+              ['texture', 'Texture'],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -118,42 +130,58 @@ export function CreateAssetDialog({
                 placeholder="WOOD-WALNUT"
               />
             </Field>
-            <Field label="Base color" htmlFor="create-material-color">
-              <Input
-                id="create-material-color"
-                name="baseColor"
-                type="color"
-                defaultValue="#8A6040"
-                className="h-10"
-              />
-            </Field>
+            {MATERIAL_FACTORS.filter((factor) => factor.type === 'color').map(
+              (factor) => (
+                <Field
+                  key={factor.key}
+                  label={factor.label}
+                  htmlFor={`create-material-${factor.key}`}
+                >
+                  <Input
+                    id={`create-material-${factor.key}`}
+                    name={factor.key}
+                    type="color"
+                    defaultValue={String(factor.default)}
+                    className="h-10"
+                  />
+                </Field>
+              )
+            )}
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Metalness" htmlFor="create-material-metallic">
-                <Input
-                  id="create-material-metallic"
-                  name="metallic"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  defaultValue="0"
-                />
-              </Field>
-              <Field label="Roughness" htmlFor="create-material-roughness">
-                <Input
-                  id="create-material-roughness"
-                  name="roughness"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  defaultValue="0.55"
-                />
-              </Field>
+              {MATERIAL_FACTORS.filter((factor) => factor.type === 'number').map(
+                (factor) => (
+                  <Field
+                    key={factor.key}
+                    label={factor.label}
+                    htmlFor={`create-material-${factor.key}`}
+                  >
+                    <Input
+                      id={`create-material-${factor.key}`}
+                      name={factor.key}
+                      type="number"
+                      step={factor.step}
+                      min={factor.min}
+                      max={factor.max}
+                      defaultValue={String(factor.default)}
+                    />
+                  </Field>
+                )
+              )}
             </div>
+            {MATERIAL_FACTORS.filter((factor) => factor.type === 'boolean').map(
+              (factor) => (
+                <label
+                  key={factor.key}
+                  className="flex items-center gap-2 text-[13px] text-[var(--ink)]"
+                >
+                  <input type="checkbox" name={factor.key} />
+                  {factor.label}
+                </label>
+              )
+            )}
             <Typography variant="support">
-              Texture maps can be linked later. Prefer authoring in 3D Studio
-              when applying to a product.
+              Pin texture maps (base color, normal, etc.) after create via Edit.
+              Wrap modes are set on the material usage.
             </Typography>
             {message ? (
               <Typography variant="support" className="text-[var(--danger)]">
@@ -166,6 +194,66 @@ export function CreateAssetDialog({
               </Button>
               <Button type="submit" size="sm" disabled={pending}>
                 {pending ? 'Creating…' : 'Create'}
+              </Button>
+            </div>
+          </form>
+        ) : type === 'texture' ? (
+          <form
+            className="grid gap-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              startTransition(async () => {
+                const result = await createTextureAction(projectId, formData);
+                if (result.ok) {
+                  setMessage(null);
+                  onClose();
+                  router.refresh();
+                } else {
+                  setMessage(result.error || 'Failed.');
+                }
+              });
+            }}
+          >
+            <Field label="Name" htmlFor="create-texture-name">
+              <Input
+                id="create-texture-name"
+                name="name"
+                required
+                placeholder="Walnut Albedo"
+              />
+            </Field>
+            <Field label="Key" htmlFor="create-texture-code">
+              <Input
+                id="create-texture-code"
+                name="code"
+                placeholder="TEX-WALNUT-ALBEDO"
+              />
+            </Field>
+            <Field label="Image file" htmlFor="create-texture-file">
+              <Input
+                id="create-texture-file"
+                name="file"
+                type="file"
+                accept={textureFileAccept()}
+                required
+                className="file:mr-2"
+              />
+            </Field>
+            <Typography variant="support">
+              Upload PNG, JPEG, WebP, or KTX2. Bind to material slots in Studio.
+            </Typography>
+            {message ? (
+              <Typography variant="support" className="text-[var(--danger)]">
+                {message}
+              </Typography>
+            ) : null}
+            <div className="mt-1 flex justify-end gap-2">
+              <Button type="button" size="sm" variant="secondary" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={pending}>
+                {pending ? 'Uploading…' : 'Upload'}
               </Button>
             </div>
           </form>

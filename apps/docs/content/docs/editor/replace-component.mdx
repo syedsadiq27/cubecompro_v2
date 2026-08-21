@@ -7,7 +7,7 @@ Use component replacement when an option swaps a substantial piece of geometry, 
 
 ## Current Editor status
 
-`REPLACE_COMPONENT` is supported by the API schema and runtime resolver. The current Editor mappings panel does not edit this operation; it lists hydrated replacement bindings as unsupported. Do not expect an **Add replacement** control in that panel.
+`REPLACE_COMPONENT` is activated by resolve and reconciled in the Editor preview runtime (structure before root surfaces). The mappings panel still focuses on material/visibility bindings; replacement bindings are authored via Backoffice / API and hydrate into the visual document for replay.
 
 Where your authoring workflow creates the binding through another supported surface or the GraphQL API, it must identify:
 
@@ -16,9 +16,11 @@ Where your authoring workflow creates the binding through another supported surf
 - the linked asset key for the replacement;
 - an object asset revision registered on the same product model.
 
+`SET_MATERIAL` targets must not live inside a replaceable structural subtree (rejected at authoring/publish).
+
 ## Runtime behavior
 
-For a valid matching selection, resolution adds the replacement object revision to `activeObjectAssetRevisionIds` and returns a replacement action with its linked asset key and document URL. The renderer reconciles that full list and removes the previously active part.
+For a valid matching selection, resolution adds the replacement object revision to `activeObjectAssetRevisionIds` / `structure` and returns a replacement action with its linked asset key and document URL. The Editor reconciler instantiates an independent object instance into the structural slot and restores the original root GLB subtree when the replacement is inactive.
 
 ## Common mistakes
 

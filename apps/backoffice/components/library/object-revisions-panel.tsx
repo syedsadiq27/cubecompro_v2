@@ -2,12 +2,16 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { Button, useToast } from '@repo/ui';
-import { listObjectRevisionsAction } from '@/actions/assets';
+import {
+  listObjectRevisionsAction,
+  publishObjectAction,
+} from '@/actions/assets';
 import { formatBytes } from './types';
 
 type RevisionRow = {
   id: string;
   version: number;
+  status?: string;
   contentHash: string;
   format?: string | null;
   sizeBytes?: number | null;
@@ -28,6 +32,18 @@ export function ObjectRevisionsPanel({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [revisions, setRevisions] = useState<RevisionRow[]>([]);
+
+  const reload = () => {
+    startTransition(async () => {
+      const result = await listObjectRevisionsAction(projectId, objectAssetId);
+      if (!result.ok) {
+        toast.error(result.error || 'Could not load revisions');
+        setRevisions([]);
+        return;
+      }
+      setRevisions(result.revisions);
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +67,7 @@ export function ObjectRevisionsPanel({
         row.version > best.version ? row : best
       )
     : null;
+  const hasDraft = revisions.some((row) => row.status === 'DRAFT');
 
   return (
     <section className="space-y-2 border-t border-[var(--line)]/60 pt-4">
@@ -58,13 +75,39 @@ export function ObjectRevisionsPanel({
         <h3 className="text-[11px] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
           Revisions
         </h3>
-        <Button type="button" size="sm" variant="secondary" onClick={onUpload}>
-          Upload new
-        </Button>
+        <div className="flex items-center gap-1.5">
+          {hasDraft ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => {
+                startTransition(async () => {
+                  const result = await publishObjectAction(
+                    projectId,
+                    objectAssetId
+                  );
+                  if (!result.ok) {
+                    toast.error(result.error || 'Publish failed');
+                    return;
+                  }
+                  toast.success('Object revision published');
+                  reload();
+                });
+              }}
+            >
+              Publish draft
+            </Button>
+          ) : null}
+          <Button type="button" size="sm" variant="secondary" onClick={onUpload}>
+            Upload draft
+          </Button>
+        </div>
       </div>
       <p className="text-[11px] text-[var(--text-secondary)]">
-        Library tip is the latest revision. Product pins keep their frozen
-        revision until changed on a draft.
+        Re-uploads overwrite the draft tip until publish. Product pins stay on
+        published revisions.
       </p>
       {pending && revisions.length === 0 ? (
         <p className="text-[12px] text-[var(--text-muted)]">Loading…</p>
@@ -73,7 +116,9 @@ export function ObjectRevisionsPanel({
       ) : (
         <ul className="space-y-1.5">
           {[...revisions].reverse().map((row) => {
-            const isTip = tip?.id === row.id;
+            const isDraft = row.status === 'DRAFT';
+            const isPublished = row.status === 'PUBLISHED';
+            const isWorkingTip = tip?.id === row.id;
             const frozen = new Date(row.frozenAt);
             return (
               <li
@@ -83,8 +128,18 @@ export function ObjectRevisionsPanel({
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[12px] font-semibold text-[var(--ink)]">
                     v{row.version}
-                    {isTip ? (
+                    {isDraft ? (
+                      <span className="ml-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-900">
+                        Draft
+                      </span>
+                    ) : null}
+                    {isPublished ? (
                       <span className="ml-1.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                        Published
+                      </span>
+                    ) : null}
+                    {isWorkingTip && !isDraft ? (
+                      <span className="ml-1.5 rounded bg-[var(--canvas)] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-[var(--text-muted)]">
                         Tip
                       </span>
                     ) : null}

@@ -82,7 +82,7 @@ export function useEditorProductLoad() {
               /* Preview can still show choices from graphDetail */
             }
           }
-          useEditorStore.setState({ activeWorkspace: 'preview' });
+          useEditorStore.setState({ activeWorkspace: 'scene' });
           setLoadError(
             visualError instanceof Error
               ? visualError.message

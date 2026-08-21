@@ -14,9 +14,12 @@ import {
   CREATE_VARIANT_SELECTION_MUTATION,
   CREATE_VISUAL_EFFECT_MUTATION,
   DELETE_CONSTRAINT_MUTATION,
+  DELETE_VISUAL_EFFECT_MUTATION,
   DISCARD_DRAFT_GRAPH_VERSION_MUTATION,
   PUBLISH_GRAPH_VERSION_MUTATION,
   UPDATE_PRODUCT_MODEL_REVISION_MUTATION,
+  UPDATE_VISUAL_EFFECT_MUTATION,
+  replaceComponentValueJson,
 } from '@repo/product-graph';
 import { getProjectSession } from '@/lib/session-server';
 
@@ -352,32 +355,64 @@ export async function createModelTargetAction(
   });
 }
 
+function encodeVisualEffectValue(formData: FormData): {
+  ok: true;
+  operation: string;
+  valueJson: string;
+} | {
+  ok: false;
+  error: string;
+} {
+  const operation = String(formData.get('operation') ?? 'SET_MATERIAL');
+  const rawValue = String(formData.get('value') ?? '').trim();
+  if (operation === 'SET_VISIBILITY') {
+    const visible =
+      rawValue === 'true' || rawValue === 'Show' || rawValue === 'Visible';
+    return { ok: true, operation, valueJson: JSON.stringify(visible) };
+  }
+  if (operation === 'SET_MATERIAL') {
+    const materialAssetRevisionId = String(
+      formData.get('materialAssetRevisionId') ?? rawValue
+    ).trim();
+    if (!materialAssetRevisionId) {
+      return { ok: false, error: 'materialAssetRevisionId is required.' };
+    }
+    return {
+      ok: true,
+      operation,
+      valueJson: JSON.stringify({ materialAssetRevisionId }),
+    };
+  }
+  if (operation === 'REPLACE_COMPONENT') {
+    const linkedAssetKey = String(
+      formData.get('linkedAssetKey') ?? rawValue
+    ).trim();
+    if (!linkedAssetKey) {
+      return { ok: false, error: 'linkedAssetKey is required.' };
+    }
+    return {
+      ok: true,
+      operation,
+      valueJson: replaceComponentValueJson(linkedAssetKey),
+    };
+  }
+  let valueJson = rawValue;
+  try {
+    JSON.parse(rawValue);
+  } catch {
+    valueJson = JSON.stringify(rawValue);
+  }
+  return { ok: true, operation, valueJson };
+}
+
 export async function createVisualEffectAction(
   projectId: string,
   productId: string,
   formData: FormData
 ): Promise<GraphMutationResult> {
   return withProject(projectId, async (token) => {
-    const operation = String(formData.get('operation') ?? 'SET_MATERIAL');
-    const rawValue = String(formData.get('value') ?? '').trim();
-    let valueJson = rawValue;
-    if (operation === 'SET_VISIBILITY') {
-      valueJson = JSON.stringify(rawValue === 'true' || rawValue === 'Show');
-    } else if (operation === 'SET_MATERIAL') {
-      const materialAssetId = String(
-        formData.get('materialAssetId') ?? rawValue
-      ).trim();
-      if (!materialAssetId) {
-        return { ok: false, error: 'materialAssetId is required.' };
-      }
-      valueJson = JSON.stringify({ materialAssetId });
-    } else {
-      try {
-        JSON.parse(rawValue);
-      } catch {
-        valueJson = JSON.stringify(rawValue);
-      }
-    }
+    const encoded = encodeVisualEffectValue(formData);
+    if (!encoded.ok) return encoded;
 
     const data = await graphRequest<{
       createVisualEffect: { id: string };
@@ -391,14 +426,61 @@ export async function createVisualEffectAction(
               ''
           ),
           modelTargetId: String(formData.get('modelTargetId') ?? ''),
-          operation,
-          valueJson,
+          operation: encoded.operation,
+          valueJson: encoded.valueJson,
         },
       },
       token
     );
     revalidateProduct(projectId, productId);
     return { ok: true, id: data.createVisualEffect.id };
+  });
+}
+
+export async function updateVisualEffectAction(
+  projectId: string,
+  productId: string,
+  formData: FormData
+): Promise<GraphMutationResult> {
+  return withProject(projectId, async (token) => {
+    const encoded = encodeVisualEffectValue(formData);
+    if (!encoded.ok) return encoded;
+
+    const data = await graphRequest<{
+      updateVisualEffect: { id: string };
+    }>(
+      UPDATE_VISUAL_EFFECT_MUTATION,
+      {
+        input: {
+          id: String(formData.get('id') ?? ''),
+          operation: encoded.operation,
+          valueJson: encoded.valueJson,
+        },
+      },
+      token
+    );
+    revalidateProduct(projectId, productId);
+    return { ok: true, id: data.updateVisualEffect.id };
+  });
+}
+
+export async function deleteVisualEffectAction(
+  projectId: string,
+  productId: string,
+  formData: FormData
+): Promise<GraphMutationResult> {
+  return withProject(projectId, async (token) => {
+    const id = String(formData.get('id') ?? '');
+    if (!id) {
+      return { ok: false, error: 'Visual effect id is required.' };
+    }
+    await graphRequest<{ deleteVisualEffect: boolean }>(
+      DELETE_VISUAL_EFFECT_MUTATION,
+      { id },
+      token
+    );
+    revalidateProduct(projectId, productId);
+    return { ok: true, id };
   });
 }
 

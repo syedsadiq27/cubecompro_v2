@@ -2,13 +2,17 @@ import {
   formatVisualAddress,
   visualAddressForBinding,
 } from './address';
+import { parseReplaceComponentValue } from '@repo/product-graph';
 import type {
   MaterialBinding,
   NormalizeVisualDocumentInput,
+  ReplaceComponentBinding,
   UnsupportedVisualEffect,
   VisibilityBinding,
   VisualBinding,
   VisualDocument,
+  VisualLinkedAsset,
+  VisualSetupOp,
   VisualTarget,
 } from './types';
 
@@ -37,19 +41,21 @@ function parseVisibility(value: unknown): boolean {
   ]);
 }
 
-function parseMaterialAssetId(value: unknown): string {
+function parseMaterialAssetRevisionId(value: unknown): string {
   if (
     typeof value === 'object' &&
     value !== null &&
-    'materialAssetId' in value &&
-    typeof (value as { materialAssetId: unknown }).materialAssetId ===
-      'string' &&
-    (value as { materialAssetId: string }).materialAssetId.length > 0
+    'materialAssetRevisionId' in value &&
+    typeof (value as { materialAssetRevisionId: unknown })
+      .materialAssetRevisionId === 'string' &&
+    (value as { materialAssetRevisionId: string }).materialAssetRevisionId
+      .length > 0
   ) {
-    return (value as { materialAssetId: string }).materialAssetId;
+    return (value as { materialAssetRevisionId: string })
+      .materialAssetRevisionId;
   }
   throw new VisualNormalizeError([
-    'SET_MATERIAL value must be { materialAssetId: string }',
+    'SET_MATERIAL value must be { materialAssetRevisionId: string }',
   ]);
 }
 
@@ -80,6 +86,7 @@ export function normalizeVisualDocument(
       id: raw.id,
       key: raw.key,
       nodePath: raw.nodePath,
+      ...(raw.targetType ? { targetType: raw.targetType } : {}),
       ...(raw.materialSlot ? { materialSlot: raw.materialSlot } : {}),
     };
     targets.push(target);
@@ -143,7 +150,8 @@ export function normalizeVisualDocument(
 
     if (
       effect.operation !== 'SET_MATERIAL' &&
-      effect.operation !== 'SET_VISIBILITY'
+      effect.operation !== 'SET_VISIBILITY' &&
+      effect.operation !== 'REPLACE_COMPONENT'
     ) {
       unsupported.push({
         effectId: effect.id,
@@ -157,17 +165,29 @@ export function normalizeVisualDocument(
     try {
       const parsed = parseValueJson(effect.valueJson);
       if (effect.operation === 'SET_MATERIAL') {
-        const materialAssetId = parseMaterialAssetId(parsed);
+        const materialAssetRevisionId = parseMaterialAssetRevisionId(parsed);
         const materialBinding: MaterialBinding = {
           choiceKey: choiceValue.choiceKey,
           valueKey: choiceValue.valueKey,
           targetKey: target.key,
           operation: 'SET_MATERIAL',
-          materialAssetId,
+          materialAssetRevisionId,
           effectId: effect.id,
           ...(target.materialSlot ? { materialSlot: target.materialSlot } : {}),
         };
         binding = materialBinding;
+      } else if (effect.operation === 'REPLACE_COMPONENT') {
+        const replaceValue = parseReplaceComponentValue(parsed);
+        const replaceBinding: ReplaceComponentBinding = {
+          choiceKey: choiceValue.choiceKey,
+          valueKey: choiceValue.valueKey,
+          targetKey: target.key,
+          operation: 'REPLACE_COMPONENT',
+          linkedAssetKey: replaceValue.linkedAssetKey,
+          expectedRole: 'OBJECT',
+          effectId: effect.id,
+        };
+        binding = replaceBinding;
       } else {
         const visibilityBinding: VisibilityBinding = {
           choiceKey: choiceValue.choiceKey,
@@ -190,20 +210,28 @@ export function normalizeVisualDocument(
       visualAddressForBinding(binding, targetsByKey)
     );
 
+    let hasConflict = false;
     for (const claim of claims) {
       if (claim.addressKey !== addressKey) continue;
       if (
         claim.choiceKey === binding.choiceKey &&
         claim.valueKey === binding.valueKey
       ) {
-        issues.push(
-          `same VisualAddress + same ChoiceValue duplicated (${addressKey})`
-        );
+        hasConflict = true;
+        break;
       } else if (claim.choiceKey !== binding.choiceKey) {
-        issues.push(
-          `same VisualAddress + different Choices rejected (${addressKey}: ${claim.choiceKey} vs ${binding.choiceKey})`
-        );
+        unsupported.push({
+          effectId: effect.id,
+          operation: effect.operation,
+          reason: `Conflict: ${addressKey} is already driven by choice "${claim.choiceKey}"`,
+        });
+        hasConflict = true;
+        break;
       }
+    }
+
+    if (hasConflict) {
+      continue;
     }
 
     claims.push({
@@ -215,15 +243,75 @@ export function normalizeVisualDocument(
     bindings.push(binding);
   }
 
+  const setups: VisualSetupOp[] = [];
+  for (const setup of input.visualSetups ?? []) {
+    const target = targetsById.get(setup.modelTargetId);
+    if (!target) {
+      issues.push(`VisualSetup ${setup.id}: unknown modelTargetId`);
+      continue;
+    }
+    const op = setup.operation.toUpperCase();
+    try {
+      const value = parseValueJson(setup.valueJson);
+      if (op === 'SET_MATERIAL') {
+        setups.push({
+          id: setup.id,
+          targetKey: target.key,
+          operation: 'SET_MATERIAL',
+          materialAssetRevisionId: parseMaterialAssetRevisionId(value),
+          ...(target.materialSlot ? { materialSlot: target.materialSlot } : {}),
+        });
+      } else if (op === 'SET_VISIBILITY') {
+        setups.push({
+          id: setup.id,
+          targetKey: target.key,
+          operation: 'SET_VISIBILITY',
+          visible: parseVisibility(value),
+        });
+      } else if (op === 'REPLACE_COMPONENT') {
+        const parsed = parseReplaceComponentValue(value);
+        setups.push({
+          id: setup.id,
+          targetKey: target.key,
+          operation: 'REPLACE_COMPONENT',
+          linkedAssetKey: parsed.linkedAssetKey,
+          expectedRole: 'OBJECT',
+        });
+      } else {
+        unsupported.push({
+          effectId: setup.id,
+          operation: setup.operation,
+          reason: 'Unsupported VisualSetup operation',
+        });
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Invalid setup value';
+      issues.push(`VisualSetup ${setup.id}: ${message}`);
+    }
+  }
+
   if (issues.length > 0) {
     throw new VisualNormalizeError(issues);
   }
+
+  const linkedAssets: VisualLinkedAsset[] = (input.model.linkedAssets ?? []).map(
+    (asset) => ({
+      ...(asset.id ? { id: asset.id } : {}),
+      role: asset.role,
+      key: asset.key,
+      assetRevisionId: asset.assetRevisionId,
+    })
+  );
 
   return {
     productRevisionId: input.productRevisionId,
     productModelId: input.model.id,
     assetId: input.model.assetId,
+    rootObjectAssetRevisionId: input.model.objectAssetRevisionId ?? '',
+    linkedAssets,
     targets,
+    setups,
     bindings,
     unsupported,
   };

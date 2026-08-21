@@ -15,15 +15,17 @@ The `threeD` result tells a renderer which immutable assets are active and which
     "assetrev_chair_root_01",
     "assetrev_legs_brass_02"
   ],
+  "activeMaterialAssetRevisionIds": ["mar_velvet_emerald_v1"],
+  "activeTextureAssetRevisionIds": ["tar_velvet_base_v1"],
   "effects": [
     {
       "operation": "SET_MATERIAL",
       "targetKey": "seat-cushion-material",
       "targetType": "MATERIAL_SLOT",
       "nodePath": "Chair/Seat/Cushion",
-      "materialAssetId": "mat_velvet_emerald",
-      "documentUrl": "/documents/materials/mat_velvet_emerald",
-      "valueJson": "{\"materialAssetId\":\"mat_velvet_emerald\"}"
+      "materialAssetRevisionId": "mar_velvet_emerald_v1",
+      "documentUrl": "/documents/material-revisions/mar_velvet_emerald_v1",
+      "valueJson": "{\"materialAssetRevisionId\":\"mar_velvet_emerald_v1\"}"
     }
   ]
 }
@@ -45,7 +47,7 @@ The renderer must reconcile complete resolved state. Applying only additions cau
 
 ## Operation behavior
 
-- `SET_MATERIAL` points to the material asset to apply to a material-slot target.
+- `SET_MATERIAL` points to the exact `MaterialAssetRevision` to apply to a material-slot target.
 - `REPLACE_COMPONENT` identifies a linked object asset revision for a replaceable scene target.
 - `SET_VISIBILITY` and `SET_MODEL` carry operation-specific data in `valueJson`; document and validate the expected shape in your renderer before enabling those authoring actions.
 
