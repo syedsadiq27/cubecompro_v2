@@ -6,7 +6,7 @@ steps:
       - gcr.io/$PROJECT_ID/github.com/syedsadiq27/cubecompro_v2:$COMMIT_SHA
       - -f
       - apps/api/Dockerfile
-      - apps/api
+      - .
 
   - name: gcr.io/cloud-builders/docker
     args:
