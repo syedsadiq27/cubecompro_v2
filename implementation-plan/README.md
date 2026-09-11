@@ -25,6 +25,7 @@ Status through 4E:
 | Hosted CubeComPro Commerce contract | ✅ Frozen (Phase 0) |
 | `@repo/commerce-core` skeleton | ✅ Phase 1 (runtime ports; publisher stub only) |
 | `apps/commerce` Medusa runtime | ✅ Phase 2 (isolated scaffold; no CubeCom wiring) |
+| `@repo/commerce-medusa` fetchState adapter | ✅ Phase 3 (HTTP live-state only; cart stubbed) |
 | Immutable root 3D pin | ✅ 4A frozen |
 | Multi-asset model registry | ✅ 4B frozen |
 | REPLACE_COMPONENT activation | ✅ 4C narrow |

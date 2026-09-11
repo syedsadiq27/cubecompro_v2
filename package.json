@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
+    "expect": "30.4.1",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "turbo": "^2.10.9"
@@ -36,11 +37,14 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/commerce",
       "**/commerce/**"
     ]
   },
   "resolutions": {
-    "graphql": "16.11.0"
+    "graphql": "16.11.0",
+    "expect": "30.4.1",
+    "jest-runtime": "30.4.1",
+    "jest-util": "30.4.1",
+    "jest-mock": "30.4.1"
   }
 }

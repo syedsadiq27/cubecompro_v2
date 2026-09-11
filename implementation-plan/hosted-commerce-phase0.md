@@ -356,7 +356,7 @@ Architecture work **stops here**. Next commits implement in order:
 1. Phase 0 doc (this file) — **done when merged**
 2. `packages/commerce-core` skeleton — implement `FetchCommerceState` + minimal `CommerceRuntime` + connection resolution; **declare only** `CommerceCatalogPublisher` placeholder (no publish behavior until after checkpoint)
 3. `apps/commerce` Medusa **application** scaffold (extend published `@medusajs/*`; do not vendor core) — **done when Phase 2 merged**
-4. `packages/commerce-medusa` adapter
+4. `packages/commerce-medusa` adapter — **Phase 3: `fetchState` over HTTP only; cart/checkout stubbed**
 5. **Checkpoint:** API resolve → live state → `canPurchase` via core → medusa
 6. Cart / checkout vertical slice
 7. Backoffice read views over `commerce-core`
@@ -372,7 +372,20 @@ exposes /health
 runs Medusa Admin for internal/dev
 imports nothing from product-graph or commerce-core
 no CubeCom app imports apps/commerce
-@medusajs/* only in apps/commerce (and later commerce-medusa)
+@medusajs/* only in apps/commerce (Phase 3 adapter uses HTTP; no @medusajs/*)
+```
+
+Phase 3 acceptance (`@repo/commerce-medusa`):
+
+```text
+only this package talks to Medusa (via HTTP)
+input: ResolvedCommerce + connection config resolver
+output: CommerceState
+Medusa variant/product IDs never escape in CommerceState
+missing/errors → normalized sellability (not Medusa-shaped errors)
+no catalog publishing
+cart/checkout stubbed until after live-state checkpoint
+disappearance: delete package → commerce-core / product-graph / apps/api unchanged
 ```
 
 Explicit non-goals until checkpoint passes:

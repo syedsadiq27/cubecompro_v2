@@ -45,6 +45,7 @@ packages/
   graphql/             shared GraphQL schema/types/contracts
   product-graph/       product configuration graph domain
   commerce-core/       provider-neutral commerce runtime / catalog ports
+  commerce-medusa/     Medusa HTTP adapter (fetchState; cart/checkout later)
   store/               suite Zustand store slices (session, workspace, product, selection, status)
   configurator-core/   configurator runtime/core logic
   customizer-ui/       shared customizer UI building blocks
@@ -64,7 +65,7 @@ apps/
   customizer/          storefront customizer app
 ```
 
-`apps/commerce` is an isolated Medusa application. Do not import `@repo/product-graph` or `@repo/commerce-core` into it until a later phase explicitly wires the adapter. Do not import `apps/commerce` from other apps. `@medusajs/*` belongs only in `apps/commerce` and (later) `packages/commerce-medusa`.
+`apps/commerce` is an isolated Medusa application. Do not import `@repo/product-graph` or `@repo/commerce-core` into it until a later phase explicitly wires the adapter. Do not import `apps/commerce` from other apps. Prefer HTTP to `apps/commerce` from `@repo/commerce-medusa` — do not import Medusa server internals into adapters. `@medusajs/*` belongs only in `apps/commerce` (Phase 3 adapter uses HTTP only, no `@medusajs/*`).
 
 Apps compose shared packages.
 Apps should not become parallel design systems or duplicate shared contracts.
