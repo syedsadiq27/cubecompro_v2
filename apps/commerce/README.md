@@ -31,14 +31,29 @@ Out of scope for Phase 2: CubeCom modules, tenancy, catalog sync, `commerce-core
 
 Contract: [`implementation-plan/hosted-commerce-phase0.md`](../../implementation-plan/hosted-commerce-phase0.md)
 
+## Database
+
+Local docker uses **one Postgres instance**, two databases:
+
+```text
+cubecom-pg:5433
+├── cubecom   (CubeCom API / Prisma)
+└── commerce  (Medusa — own user, schema, migrations)
+```
+
+`docker/postgres/init.sql` creates the `commerce` role + database on first volume init. For an existing volume, run `yarn db:commerce:ensure` once.
+
+Host URL: `postgres://commerce:commerce@localhost:5433/commerce`
+
 ## Prerequisites
 
 - Node `>=20`
-- Docker (commerce Postgres + shared Redis)
+- Docker (shared Postgres + Redis)
 
 ```bash
 # from repo root
-docker compose up -d postgres-commerce redis
+docker compose up -d postgres redis
+yarn db:commerce:ensure
 ```
 
 ## Setup
@@ -46,7 +61,8 @@ docker compose up -d postgres-commerce redis
 ```bash
 cp apps/commerce/.env.template apps/commerce/.env
 yarn install
-yarn db:commerce:up
+yarn db:up
+yarn db:commerce:ensure
 yarn workspace commerce db:migrate
 yarn workspace commerce dev
 ```
@@ -71,5 +87,6 @@ yarn workspace commerce seed
 | `yarn workspace commerce start` | Run built server |
 | `yarn workspace commerce db:migrate` | Run Medusa migrations |
 | `yarn workspace commerce seed` | Seed demo data (optional) |
+| `yarn db:commerce:ensure` | Idempotent create `commerce` DB/user on shared Postgres |
 
 Do **not** rely on root `yarn dev` as the commerce workflow; prefer the workspace commands above so the engine stays an explicit, independent runtime.

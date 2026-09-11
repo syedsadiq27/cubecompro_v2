@@ -18,8 +18,7 @@
     "db:seed": "yarn workspace api prisma db seed",
     "db:setup": "yarn workspace api run db:setup",
     "dev:commerce": "yarn workspace commerce dev",
-    "db:commerce:up": "docker compose up -d postgres-commerce redis",
-    "db:commerce:down": "docker compose stop postgres-commerce"
+    "db:commerce:ensure": "docker compose exec -T postgres psql -U cubecom -d postgres -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/init.sql"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
