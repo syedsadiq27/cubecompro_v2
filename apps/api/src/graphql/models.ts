@@ -1,5 +1,6 @@
 import {
   Field,
+  Float,
   ID,
   InputType,
   Int,
@@ -1516,6 +1517,69 @@ export class CommerceResolutionModel {
 
   @Field()
   identityJson: string;
+}
+
+@InputType()
+export class ResolveCommerceLiveInput {
+  @Field()
+  productRevisionId: string;
+
+  @Field()
+  organizationId: string;
+
+  @Field({ defaultValue: 'cubecom' })
+  provider: string;
+
+  @Field()
+  selectionJson: string;
+
+  @Field(() => String, { nullable: true })
+  integrationConnectionId?: string;
+
+  @Field(() => String, { nullable: true })
+  projectDefaultConnectionId?: string;
+}
+
+@ObjectType()
+export class CommerceLiveStateModel {
+  @Field()
+  sellabilityStatus: string;
+
+  @Field(() => String, { nullable: true })
+  unsellableReason?: string | null;
+
+  @Field(() => String, { nullable: true })
+  priceAmount?: string | null;
+
+  @Field(() => String, { nullable: true })
+  priceCurrencyCode?: string | null;
+
+  @Field(() => Float, { nullable: true })
+  inventoryAvailable?: number | null;
+
+  @Field(() => Boolean, { nullable: true })
+  inventoryTracked?: boolean | null;
+}
+
+@ObjectType()
+export class CommerceLiveResolutionModel {
+  @Field(() => CommerceResolutionModel)
+  resolution: CommerceResolutionModel;
+
+  @Field(() => String, { nullable: true })
+  connectionRef?: string | null;
+
+  @Field()
+  evaluationValid: boolean;
+
+  @Field()
+  evaluationComplete: boolean;
+
+  @Field()
+  canPurchase: boolean;
+
+  @Field(() => CommerceLiveStateModel, { nullable: true })
+  commerceState?: CommerceLiveStateModel | null;
 }
 
 @InputType()

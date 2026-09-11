@@ -22,6 +22,11 @@ Status through 4E:
 | Product meaning (kernel) | ✅ Frozen |
 | Visual projection (materials / visibility) | ✅ Frozen |
 | Commerce mapping + Shopify import | ✅ Frozen (3A–3C) |
+| Hosted CubeComPro Commerce contract | ✅ Frozen (Phase 0) |
+| `@repo/commerce-core` skeleton | ✅ Phase 1 (runtime ports; publisher stub only) |
+| `apps/commerce` Medusa runtime | ✅ Phase 2 (isolated scaffold; no CubeCom wiring) |
+| `@repo/commerce-medusa` fetchState adapter | ✅ Phase 3 (HTTP live-state only; cart stubbed) |
+| Live-state checkpoint (`resolveCommerceLive`) | ✅ PR #5 spine via `createCommerceRuntime` |
 | Immutable root 3D pin | ✅ 4A frozen |
 | Multi-asset model registry | ✅ 4B frozen |
 | REPLACE_COMPONENT activation | ✅ 4C narrow |
@@ -221,8 +226,9 @@ ProductRevision + Selection
 - Kernel / visual do not invent SKUs.
 - Shopify connection + import prove the provider boundary (3C).
 - Live price / inventory / checkout execution are later than mapping fidelity.
+- **Hosted CubeComPro Commerce** (`provider: "cubecom"`, Medusa as private engine) is frozen in Phase 0 — logical org tenancy, connection precedence, package purity. Physical Medusa isolation is deferred.
 
-Docs: [`3-commerce-resolutions.md`](./3-commerce-resolutions.md) · [`3c-commerce-altered.md`](./3c-commerce-altered.md)
+Docs: [`hosted-commerce-phase0.md`](./hosted-commerce-phase0.md) · [`3-commerce-resolutions.md`](./3-commerce-resolutions.md) · [`3c-commerce-altered.md`](./3c-commerce-altered.md)
 
 ---
 
@@ -291,6 +297,7 @@ Use when implementing or debugging a specific handoff. Prefer §§1–7 above fo
 | [`2-visual-commerce-domain.md`](./2-visual-commerce-domain.md) | Visual domain + commerce domain framing |
 | [`3-commerce-resolutions.md`](./3-commerce-resolutions.md) | Commerce architecture freeze |
 | [`3c-commerce-altered.md`](./3c-commerce-altered.md) | Shopify connection + import |
+| [`hosted-commerce-phase0.md`](./hosted-commerce-phase0.md) | Hosted CubeComPro Commerce contract (Phase 0) |
 | [`4A-immutable-asset-pinning.md`](./4A-immutable-asset-pinning.md) | Immutable root pin |
 | [`4B-multi-asset-model-graph.md`](./4B-multi-asset-model-graph.md) | Multi-asset registry |
 | [`4B-implementation.md`](./4B-implementation.md) | 4B shipping notes |

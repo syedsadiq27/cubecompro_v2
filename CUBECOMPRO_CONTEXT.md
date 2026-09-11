@@ -575,6 +575,25 @@ A resolved configuration may project into commerce using fields such as:
 
 Do not treat a commerce mapping as part of the logical constraint model.
 
+### Hosted CubeComPro Commerce (Phase 0)
+
+CubeComPro may offer **hosted commerce** as a first-class product capability. Public provider string is `cubecom`. The engine (currently Medusa) is private to the integration connection and must not appear in ProductGraph mappings or suite domain types.
+
+Ownership:
+
+```text
+Organization owns the commerce relationship
+ProductGraph owns sellable identity
+Connection chooses the engine
+Engine remains replaceable
+```
+
+Logical tenancy is **Organization** (one default `cubecom` connection per org in v1). Physical engine isolation (shared vs store-per-org vs instance-per-org) is intentionally undecided until hardening.
+
+Connection resolution precedence: mapping override → project default (future) → organization default → fail. Never “pick the first connection.”
+
+Canonical contract: [`implementation-plan/hosted-commerce-phase0.md`](./implementation-plan/hosted-commerce-phase0.md).
+
 ---
 
 ## 8. Shopify
@@ -1249,6 +1268,7 @@ Customizer
 → potentially multiple delivery modes only when intentionally supported
 
 Commerce
+→ hosted CubeComPro Commerce (`provider: "cubecom"`) per Phase 0 contract; engine private to connection
 → mature Shopify integration
 → commercetools integration when genuinely implemented
 → generic custom commerce pattern
@@ -1269,4 +1289,4 @@ Docs
 
 ## 21. One-paragraph canonical summary
 
-CubeCom Pro is a configurable-commerce platform whose core is a product-local configuration graph of choices, values, and constraints. A shopper manipulates a Selection; resolution determines logical validity, derived availability, visual state, and commerce state without silently defaulting or repairing the selection. Product revisions provide the freeze boundary for reproducible published behavior, including configuration and revision-owned visual authoring state; publishing and activation are separate concepts unless implementation explicitly combines them. Backoffice authors the configurable product, the 3D Editor authors how configuration affects the scene, Customizer consumes resolution at runtime, and the API/integrations expose the same underlying product semantics to developers and commerce systems. Shopify is the first real commerce integration; commercetools remains a strategic pattern/future integration until implemented. Public docs and UI should use stable product language, keep internal schema names mostly in API reference, and never claim capabilities that cannot be traced to current repository behavior.
+CubeCom Pro is a configurable-commerce platform whose core is a product-local configuration graph of choices, values, and constraints. A shopper manipulates a Selection; resolution determines logical validity, derived availability, visual state, and commerce state without silently defaulting or repairing the selection. Product revisions provide the freeze boundary for reproducible published behavior, including configuration and revision-owned visual authoring state; publishing and activation are separate concepts unless implementation explicitly combines them. Backoffice authors the configurable product, the 3D Editor authors how configuration affects the scene, Customizer consumes resolution at runtime, and the API/integrations expose the same underlying product semantics to developers and commerce systems. Shopify is the first real commerce integration; hosted CubeComPro Commerce (`provider: "cubecom"`, engine private to the connection) is architecturally frozen in Phase 0 and not yet claimed as shipped; commercetools remains a strategic pattern/future integration until implemented. Public docs and UI should use stable product language, keep internal schema names mostly in API reference, and never claim capabilities that cannot be traced to current repository behavior.
