@@ -26,6 +26,7 @@ Status through 4E:
 | `@repo/commerce-core` skeleton | ✅ Phase 1 (runtime ports; publisher stub only) |
 | `apps/commerce` Medusa runtime | ✅ Phase 2 (isolated scaffold; no CubeCom wiring) |
 | `@repo/commerce-medusa` fetchState adapter | ✅ Phase 3 (HTTP live-state only; cart stubbed) |
+| Live-state checkpoint (`resolveCommerceLive`) | ✅ PR #5 spine via `createCommerceRuntime` |
 | Immutable root 3D pin | ✅ 4A frozen |
 | Multi-asset model registry | ✅ 4B frozen |
 | REPLACE_COMPONENT activation | ✅ 4C narrow |

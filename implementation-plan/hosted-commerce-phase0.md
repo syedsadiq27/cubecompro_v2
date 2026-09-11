@@ -357,7 +357,7 @@ Architecture work **stops here**. Next commits implement in order:
 2. `packages/commerce-core` skeleton — implement `FetchCommerceState` + minimal `CommerceRuntime` + connection resolution; **declare only** `CommerceCatalogPublisher` placeholder (no publish behavior until after checkpoint)
 3. `apps/commerce` Medusa **application** scaffold (extend published `@medusajs/*`; do not vendor core) — **done when Phase 2 merged**
 4. `packages/commerce-medusa` adapter — **Phase 3: `fetchState` over HTTP only; cart/checkout stubbed**
-5. **Checkpoint:** API resolve → live state → `canPurchase` via core → medusa
+5. **Checkpoint:** API `resolveCommerceLive` → connection resolve → `createCommerceRuntime` → fetchState → `canPurchase` — **done when PR #5 merged**
 6. Cart / checkout vertical slice
 7. Backoffice read views over `commerce-core`
 8. Hardening: physical isolation choice, entitlements, sync jobs
@@ -386,6 +386,16 @@ missing/errors → normalized sellability (not Medusa-shaped errors)
 no catalog publishing
 cart/checkout stubbed until after live-state checkpoint
 disappearance: delete package → commerce-core / product-graph / apps/api unchanged
+```
+
+PR #5 acceptance (`apps/api` live spine):
+
+```text
+resolveCommerce → resolveCommerceConnection → createCommerceRuntime(connection)
+  → fetchState → CommerceState → canPurchase
+apps/api never reads medusaBaseUrl / medusa client types outside createCommerceRuntime
+Shopify resolveCommerce + resolveConfiguration paths unchanged
+proved cases: SELLABLE, OUT_OF_STOCK, PROVIDER_BLOCKED, UNMAPPED, mapping>org default, no connection fails
 ```
 
 Explicit non-goals until checkpoint passes:
