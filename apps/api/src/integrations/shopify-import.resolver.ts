@@ -111,6 +111,7 @@ function mapConnection(connection: {
   externalAccountId: string;
   displayName?: string | null;
   accessToken: string;
+  configJson?: unknown;
   apiVersion: string;
 }): IntegrationConnectionModel {
   return {
@@ -121,5 +122,8 @@ function mapConnection(connection: {
     displayName: connection.displayName ?? connection.externalAccountId,
     apiVersion: connection.apiVersion,
     hasAccessToken: connection.accessToken.length > 0,
+    hasConfig:
+      connection.configJson != null &&
+      typeof connection.configJson === 'object',
   };
 }

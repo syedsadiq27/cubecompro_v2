@@ -847,6 +847,47 @@ async function seed() {
     },
   });
 
+  const commerceBaseUrl = process.env.CUBECOM_COMMERCE_BASE_URL?.trim();
+  const commercePublishableKey =
+    process.env.CUBECOM_COMMERCE_PUBLISHABLE_KEY?.trim();
+  const commerceStoreId =
+    process.env.CUBECOM_COMMERCE_STORE_ID?.trim() || 'store_demo';
+  const commerceRegionId = process.env.CUBECOM_COMMERCE_REGION_ID?.trim();
+
+  if (commerceBaseUrl && commercePublishableKey) {
+    await prisma.integrationConnection.upsert({
+      where: {
+        organizationId_provider_externalAccountId: {
+          organizationId: organization.id,
+          provider: 'cubecom',
+          externalAccountId: commerceStoreId,
+        },
+      },
+      create: {
+        organizationId: organization.id,
+        provider: 'cubecom',
+        externalAccountId: commerceStoreId,
+        displayName: 'CubeComPro Commerce',
+        accessToken: '',
+        configJson: {
+          baseUrl: commerceBaseUrl,
+          publishableApiKey: commercePublishableKey,
+          ...(commerceRegionId ? { regionId: commerceRegionId } : {}),
+        },
+        apiVersion: '2026-07',
+      },
+      update: {
+        displayName: 'CubeComPro Commerce',
+        accessToken: '',
+        configJson: {
+          baseUrl: commerceBaseUrl,
+          publishableApiKey: commercePublishableKey,
+          ...(commerceRegionId ? { regionId: commerceRegionId } : {}),
+        },
+      },
+    });
+  }
+
   const apiUrl = process.env.API_PUBLIC_URL ?? 'http://localhost:3005';
   const platformDefaults: Array<{ app: string; key: string; value: string }> = [
     { app: 'api', key: 'publicUrl', value: apiUrl },

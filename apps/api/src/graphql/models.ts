@@ -1295,6 +1295,9 @@ export class IntegrationConnectionModel {
 
   @Field()
   hasAccessToken: boolean;
+
+  @Field()
+  hasConfig: boolean;
 }
 
 @ObjectType()

@@ -21,8 +21,39 @@ import {
   createCommerceRuntime,
   type CommerceConnectionRecord,
   type CreateCommerceRuntimeOptions,
+  type CubecomConnectionConfig,
   UnsupportedCommerceProviderError,
 } from './create-commerce-runtime';
+
+function parseCubecomConfigJson(
+  value: unknown
+): CubecomConnectionConfig | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const baseUrl =
+    typeof record.baseUrl === 'string' ? record.baseUrl.trim() : '';
+  const publishableApiKey =
+    typeof record.publishableApiKey === 'string'
+      ? record.publishableApiKey.trim()
+      : '';
+  if (!baseUrl || !publishableApiKey) {
+    return null;
+  }
+  return {
+    baseUrl,
+    publishableApiKey,
+    regionId:
+      typeof record.regionId === 'string' && record.regionId.trim()
+        ? record.regionId.trim()
+        : undefined,
+    currencyCode:
+      typeof record.currencyCode === 'string' && record.currencyCode.trim()
+        ? record.currencyCode.trim()
+        : undefined,
+  };
+}
 
 export type ResolveCommerceLiveInput = {
   productRevisionId: string;
@@ -158,6 +189,7 @@ export class LiveCommerceService {
       accessToken: connection.accessToken,
       externalAccountId: connection.externalAccountId,
       apiVersion: connection.apiVersion,
+      config: parseCubecomConfigJson(connection.configJson),
     };
 
     let runtime;

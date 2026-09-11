@@ -561,7 +561,12 @@ model IntegrationConnection {
   provider          String
   externalAccountId String
   displayName       String?
-  accessToken       String
+  /// Provider OAuth / privileged credentials only (e.g. Shopify Admin token).
+  /// Do not store cubecom publishable engine config here.
+  accessToken       String   @default("")
+  /// Non-secret / engine connection config (cubecom: baseUrl, publishableApiKey, regionId).
+  /// Privileged admin credentials must never share this field.
+  configJson        Json?
   apiVersion        String   @default("2026-07")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

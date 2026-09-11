@@ -67,6 +67,8 @@ apps/
 
 `apps/commerce` is an isolated Medusa application. Do not import `@repo/product-graph` or `@repo/commerce-core` into it until a later phase explicitly wires the adapter. Do not import `apps/commerce` from other apps. Prefer HTTP to `apps/commerce` from `@repo/commerce-medusa` — do not import Medusa server internals into adapters. `@medusajs/*` belongs only in `apps/commerce` (Phase 3 adapter uses HTTP only, no `@medusajs/*`).
 
+**Merchant commerce path (enforce):** `Browser → CubeCom API → commerce-core → adapter → engine`. No merchant browser → Medusa path. Backoffice is the merchant commerce surface; Medusa Admin (`/app`) is engineering/ops only. CubeCom connections store engine config in `IntegrationConnection.configJson` — never overload Shopify `accessToken` with publishable/admin engine credentials.
+
 Apps compose shared packages.
 Apps should not become parallel design systems or duplicate shared contracts.
 

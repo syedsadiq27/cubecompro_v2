@@ -81,11 +81,13 @@ describe('LiveCommerceService.resolveLive', () => {
     id,
     organizationId,
     provider: 'cubecom',
-    accessToken: JSON.stringify({
+    accessToken: '',
+    configJson: {
       baseUrl: 'http://localhost:9000',
       publishableApiKey: 'pk_test',
-    }),
-    externalAccountId: 'default',
+      regionId: 'reg_test',
+    },
+    externalAccountId: 'store_demo',
     apiVersion: '2026-07',
   });
 

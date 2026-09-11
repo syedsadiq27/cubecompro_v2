@@ -57,12 +57,14 @@ describe('createCommerceRuntime', () => {
       {
         id: 'conn_1',
         provider: 'cubecom',
-        accessToken: JSON.stringify({
+        accessToken: '',
+        externalAccountId: 'store_demo',
+        apiVersion: '2026-07',
+        config: {
           baseUrl: 'http://localhost:9000',
           publishableApiKey: 'pk_test',
-        }),
-        externalAccountId: 'default',
-        apiVersion: '2026-07',
+          regionId: 'reg_test',
+        },
       },
       { fetchImpl }
     );
@@ -89,5 +91,42 @@ describe('createCommerceRuntime', () => {
         apiVersion: '2026-07',
       })
     ).toThrow(UnsupportedCommerceProviderError);
+  });
+
+  it('prefers explicit config over legacy accessToken JSON', async () => {
+    const fetchImpl = jest.fn(async () => {
+      return { ok: true, status: 200, json: async () => ({}) } as Response;
+    });
+
+    const runtime = createCommerceRuntime(
+      {
+        id: 'conn_2',
+        provider: 'cubecom',
+        accessToken: JSON.stringify({
+          baseUrl: 'http://legacy:9000',
+          publishableApiKey: 'pk_legacy',
+        }),
+        externalAccountId: 'default',
+        apiVersion: '2026-07',
+        config: {
+          baseUrl: 'http://explicit:9000',
+          publishableApiKey: 'pk_explicit',
+        },
+      },
+      { fetchImpl }
+    );
+
+    await runtime.fetchState({
+      provider: 'cubecom',
+      integrationConnectionId: 'conn_2',
+      externalReference: { type: 'VARIANT', id: 'variant_1' },
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://explicit:9000/store/product-variants?id=variant_1',
+      expect.objectContaining({
+        headers: { 'x-publishable-api-key': 'pk_explicit' },
+      })
+    );
   });
 });
