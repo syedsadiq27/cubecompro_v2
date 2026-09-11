@@ -226,6 +226,22 @@ interface CommerceCatalogPublisher {
 
 Do not let `commerce-core` become a generic “everything commerce” bag. Do not put `CatalogSync` / publisher APIs into the first skeleton as if they were the same flow as live resolve.
 
+### Phase 1 package rule
+
+```text
+Phase 1 implements:
+- FetchCommerceState
+- CommerceRuntime minimal surface
+- resolveCommerceConnection (deterministic precedence)
+
+Phase 1 declares only:
+- CommerceCatalogPublisher placeholder / contract boundary
+
+Catalog publishing behavior starts after the live-state checkpoint.
+```
+
+`CommerceCatalogPublisher` belonging in `commerce-core` and being stub-only in Phase 1 is intentional: the package owns the boundary; Phase 1 must not implement publish behavior.
+
 Spine:
 
 ```text
@@ -311,8 +327,11 @@ product-graph owns
 commerce-core owns
   FetchCommerceState
   CommerceRuntime
-  CommerceCatalogPublisher
+  CommerceCatalogPublisher (Phase 1: declare placeholder only)
   provider-neutral execution contracts
+  resolveCommerceConnection
+
+Phase 1 implements runtime spine only; catalog publish after checkpoint
 
 commerce-medusa owns
   all Medusa translation / DTO / ID knowledge
@@ -335,7 +354,7 @@ Boundary checkpoint
 Architecture work **stops here**. Next commits implement in order:
 
 1. Phase 0 doc (this file) — **done when merged**
-2. `packages/commerce-core` skeleton (`CommerceRuntime` + `FetchCommerceState`; publisher interface stub only)
+2. `packages/commerce-core` skeleton — implement `FetchCommerceState` + minimal `CommerceRuntime` + connection resolution; **declare only** `CommerceCatalogPublisher` placeholder (no publish behavior until after checkpoint)
 3. `apps/commerce` Medusa **application** scaffold (extend published `@medusajs/*`; do not vendor core)
 4. `packages/commerce-medusa` adapter
 5. **Checkpoint:** API resolve → live state → `canPurchase` via core → medusa

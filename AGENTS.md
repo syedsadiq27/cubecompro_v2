@@ -44,6 +44,7 @@ packages/
   fonts/               shared font assets + licenses
   graphql/             shared GraphQL schema/types/contracts
   product-graph/       product configuration graph domain
+  commerce-core/       provider-neutral commerce runtime / catalog ports
   store/               suite Zustand store slices (session, workspace, product, selection, status)
   configurator-core/   configurator runtime/core logic
   customizer-ui/       shared customizer UI building blocks

@@ -23,6 +23,7 @@ Status through 4E:
 | Visual projection (materials / visibility) | ✅ Frozen |
 | Commerce mapping + Shopify import | ✅ Frozen (3A–3C) |
 | Hosted CubeComPro Commerce contract | ✅ Frozen (Phase 0) |
+| `@repo/commerce-core` skeleton | ✅ Phase 1 (runtime ports; publisher stub only) |
 | Immutable root 3D pin | ✅ 4A frozen |
 | Multi-asset model registry | ✅ 4B frozen |
 | REPLACE_COMPONENT activation | ✅ 4C narrow |

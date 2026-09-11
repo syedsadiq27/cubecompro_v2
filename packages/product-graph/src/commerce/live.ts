@@ -113,7 +113,8 @@ export function canPurchase(input: {
 }
 
 /**
- * Adapter contract for live provider I/O. Implement outside this package.
+ * Adapter contract for live provider I/O. Implement in @repo/commerce-core
+ * adapters (e.g. @repo/commerce-medusa), not in this package.
  * Call only after toResolvedCommerce succeeds.
  */
 export type FetchCommerceState = (
