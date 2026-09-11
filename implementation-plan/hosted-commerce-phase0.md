@@ -355,12 +355,25 @@ Architecture work **stops here**. Next commits implement in order:
 
 1. Phase 0 doc (this file) — **done when merged**
 2. `packages/commerce-core` skeleton — implement `FetchCommerceState` + minimal `CommerceRuntime` + connection resolution; **declare only** `CommerceCatalogPublisher` placeholder (no publish behavior until after checkpoint)
-3. `apps/commerce` Medusa **application** scaffold (extend published `@medusajs/*`; do not vendor core)
+3. `apps/commerce` Medusa **application** scaffold (extend published `@medusajs/*`; do not vendor core) — **done when Phase 2 merged**
 4. `packages/commerce-medusa` adapter
 5. **Checkpoint:** API resolve → live state → `canPurchase` via core → medusa
 6. Cart / checkout vertical slice
 7. Backoffice read views over `commerce-core`
 8. Hardening: physical isolation choice, entitlements, sync jobs
+
+Phase 2 acceptance (scaffold only):
+
+```text
+apps/commerce starts independently
+uses published @medusajs/*
+owns DB/config/migrations/runtime
+exposes /health
+runs Medusa Admin for internal/dev
+imports nothing from product-graph or commerce-core
+no CubeCom app imports apps/commerce
+@medusajs/* only in apps/commerce (and later commerce-medusa)
+```
 
 Explicit non-goals until checkpoint passes:
 

@@ -32,6 +32,10 @@ yarn-error.log*
 # turbo
 .turbo
 
+# medusa (apps/commerce)
+.medusa
+apps/commerce/uploads
+
 # fumadocs
 .source/
 

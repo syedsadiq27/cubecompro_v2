@@ -60,8 +60,11 @@ apps/
   admin/               admin orchestration UI
   docs/                documentation
   api/                 backend / API
+  commerce/            hosted CubeComPro Commerce runtime (Medusa engine)
   customizer/          storefront customizer app
 ```
+
+`apps/commerce` is an isolated Medusa application. Do not import `@repo/product-graph` or `@repo/commerce-core` into it until a later phase explicitly wires the adapter. Do not import `apps/commerce` from other apps. `@medusajs/*` belongs only in `apps/commerce` and (later) `packages/commerce-medusa`.
 
 Apps compose shared packages.
 Apps should not become parallel design systems or duplicate shared contracts.

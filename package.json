@@ -16,7 +16,10 @@
     "db:migrate": "yarn workspace api prisma migrate deploy",
     "db:migrate:dev": "yarn workspace api prisma migrate dev",
     "db:seed": "yarn workspace api prisma db seed",
-    "db:setup": "yarn workspace api run db:setup"
+    "db:setup": "yarn workspace api run db:setup",
+    "dev:commerce": "yarn workspace commerce dev",
+    "db:commerce:up": "docker compose up -d postgres-commerce redis",
+    "db:commerce:down": "docker compose stop postgres-commerce"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
@@ -28,10 +31,16 @@
   "engines": {
     "node": ">=18"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/commerce",
+      "**/commerce/**"
+    ]
+  },
   "resolutions": {
     "graphql": "16.11.0"
   }

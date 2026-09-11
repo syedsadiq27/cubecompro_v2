@@ -60,7 +60,26 @@ services:
       postgres:
         condition: service_healthy
 
+  postgres-commerce:
+    image: postgres:16-alpine
+    container_name: cubecom-commerce-pg
+    restart: unless-stopped
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_USER: commerce
+      POSTGRES_PASSWORD: commerce
+      POSTGRES_DB: commerce
+    volumes:
+      - cubecom_commerce_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U commerce -d commerce']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   cubecom_pg_data:
   cubecom_redis_data:
   cubecom_pgadmin_data:
+  cubecom_commerce_pg_data:
