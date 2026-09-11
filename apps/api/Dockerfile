@@ -36,6 +36,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
+ENV PORT=8080
 
 COPY --from=build /app/package.json /app/package.json
 COPY --from=build /app/node_modules /app/node_modules
@@ -46,7 +47,10 @@ COPY --from=build /app/apps/api/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/apps/api/package.json ./package.json
 COPY apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
 
-RUN chmod +x ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh \
+  && test -x /app/node_modules/.bin/prisma \
+  && test -f ./dist/main.js \
+  && test -f ./dist/prepare-environment.js
 
 EXPOSE 8080
 ENTRYPOINT ["./docker-entrypoint.sh"]

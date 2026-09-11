@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { PrismaClient } from '@prisma/client';
 import { AppModule } from './app.module';
@@ -20,43 +20,69 @@ function kernelMigrateMode(): 'off' | 'on' {
   return flag(raw) === 'off' ? 'off' : 'on';
 }
 
-function prismaCmd(root: string) {
-  const bin = join(root, 'node_modules', '.bin', 'prisma');
+function resolveAppRoot(): string {
+  return join(__dirname, '..');
+}
+
+function resolveWorkspaceRoot(appRoot: string): string {
+  let current = appRoot;
+  for (let i = 0; i < 5; i++) {
+    if (existsSync(join(current, 'node_modules', '.bin', 'prisma'))) {
+      return current;
+    }
+    const parent = dirname(current);
+    if (
+      existsSync(join(parent, 'node_modules', '.bin', 'prisma')) ||
+      existsSync(join(parent, 'packages'))
+    ) {
+      return parent;
+    }
+    if (parent === current) break;
+    current = parent;
+  }
+  return appRoot;
+}
+
+function prismaCmd(workspaceRoot: string) {
+  const bin = join(workspaceRoot, 'node_modules', '.bin', 'prisma');
   if (existsSync(bin)) {
     return { cmd: bin, prefix: [] as string[] };
   }
-  return { cmd: 'npx', prefix: ['prisma'] };
+  throw new Error(
+    `Prisma CLI not found at ${bin}. Ensure production image copies workspace node_modules.`
+  );
 }
 
-function runPrisma(root: string, args: string[]) {
-  const { cmd, prefix } = prismaCmd(root);
+function runPrisma(appRoot: string, workspaceRoot: string, args: string[]) {
+  const { cmd, prefix } = prismaCmd(workspaceRoot);
   execFileSync(cmd, [...prefix, ...args], {
-    cwd: root,
+    cwd: appRoot,
     stdio: 'inherit',
     env: process.env,
   });
 }
 
-function runSeed(root: string) {
-  const compiled = join(root, 'dist', 'seed', 'prisma', 'seed.js');
-  const legacy = join(root, 'prisma', 'seed.js');
+function runSeed(appRoot: string) {
+  const compiled = join(appRoot, 'dist', 'seed', 'prisma', 'seed.js');
+  const legacy = join(appRoot, 'prisma', 'seed.js');
   const seedJs = existsSync(compiled)
     ? compiled
     : existsSync(legacy)
       ? legacy
       : null;
-  if (seedJs) {
-    execFileSync(process.execPath, [seedJs], {
-      cwd: root,
-      stdio: 'inherit',
-      env: process.env,
-    });
-    return;
+  if (!seedJs) {
+    throw new Error(
+      `Seed script not found (looked for ${compiled} and ${legacy})`
+    );
   }
-  runPrisma(root, ['db', 'seed']);
+  execFileSync(process.execPath, [seedJs], {
+    cwd: appRoot,
+    stdio: 'inherit',
+    env: process.env,
+  });
 }
 
-async function maybeSeed(root: string) {
+async function maybeSeed(appRoot: string) {
   const prisma = new PrismaClient();
   try {
     const existing = await prisma.user.findUnique({
@@ -75,11 +101,11 @@ async function maybeSeed(root: string) {
 
   console.log('[prestart] seeding database…');
   try {
-    runSeed(root);
+    runSeed(appRoot);
   } catch (error) {
-    const prisma = new PrismaClient();
+    const client = new PrismaClient();
     try {
-      const existing = await prisma.user.findUnique({
+      const existing = await client.user.findUnique({
         where: { email: 'owner@demo.cubecom.dev' },
       });
       if (existing) {
@@ -89,7 +115,7 @@ async function maybeSeed(root: string) {
         return;
       }
     } finally {
-      await prisma.$disconnect();
+      await client.$disconnect();
     }
     throw error;
   }
@@ -147,16 +173,19 @@ export async function prepareEnvironment(): Promise<void> {
   }
 
   if (!process.env.DATABASE_URL) {
-    console.warn('[prestart] DATABASE_URL not set — skipping prepare');
-    return;
+    throw new Error(
+      '[prestart] DATABASE_URL is required (set Cloud Run env / Secret Manager)'
+    );
   }
 
-  const root = join(__dirname, '..');
+  const appRoot = resolveAppRoot();
+  const workspaceRoot = resolveWorkspaceRoot(appRoot);
+  console.log('[prestart] appRoot=', appRoot, 'workspaceRoot=', workspaceRoot);
 
   console.log('[prestart] prisma migrate deploy…');
-  runPrisma(root, ['migrate', 'deploy']);
+  runPrisma(appRoot, workspaceRoot, ['migrate', 'deploy']);
 
-  await maybeSeed(root);
+  await maybeSeed(appRoot);
   await migrateLegacyRules();
 
   console.log('[prestart] environment ready');
