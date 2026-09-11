@@ -8,12 +8,22 @@ export class UnsupportedCommerceProviderError extends Error {
   }
 }
 
+export type CubecomConnectionConfig = {
+  baseUrl: string;
+  publishableApiKey: string;
+  regionId?: string;
+  currencyCode?: string;
+};
+
 export type CommerceConnectionRecord = {
   id: string;
   provider: string;
+  /** Shopify OAuth / privileged secrets only — not cubecom engine config. */
   accessToken: string;
   externalAccountId: string;
   apiVersion: string;
+  /** Explicit engine config for provider "cubecom". */
+  config?: CubecomConnectionConfig | null;
 };
 
 export type CreateCommerceRuntimeOptions = {
@@ -44,28 +54,55 @@ type CubecomEngineConfigJson = {
   currencyCode?: string;
 };
 
+function asCubecomConfig(
+  value: unknown
+): CubecomEngineConfigJson | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return value as CubecomEngineConfigJson;
+}
+
 function decodeCubecomEngineConnection(
   connection: CommerceConnectionRecord,
   defaultBaseUrl?: string
-): {
-  baseUrl: string;
-  publishableApiKey: string;
-  regionId?: string;
-  currencyCode?: string;
-} {
+): CubecomConnectionConfig {
+  const fromConfig = asCubecomConfig(connection.config);
+  if (fromConfig) {
+    const baseUrl =
+      fromConfig.baseUrl?.trim() ||
+      defaultBaseUrl?.trim() ||
+      process.env.CUBECOM_COMMERCE_BASE_URL?.trim() ||
+      '';
+    const publishableApiKey = fromConfig.publishableApiKey?.trim() || '';
+    if (!baseUrl || !publishableApiKey) {
+      throw new Error(
+        'cubecom connection config requires baseUrl and publishableApiKey'
+      );
+    }
+    return {
+      baseUrl,
+      publishableApiKey,
+      regionId: fromConfig.regionId?.trim() || undefined,
+      currencyCode: fromConfig.currencyCode?.trim() || undefined,
+    };
+  }
+
   const trimmed = connection.accessToken.trim();
   if (trimmed.startsWith('{')) {
     let parsed: CubecomEngineConfigJson;
     try {
       parsed = JSON.parse(trimmed) as CubecomEngineConfigJson;
     } catch {
-      throw new Error('Invalid cubecom connection config JSON');
+      throw new Error(
+        'Invalid legacy cubecom accessToken JSON; migrate to configJson'
+      );
     }
     const baseUrl = parsed.baseUrl?.trim() || defaultBaseUrl?.trim();
     const publishableApiKey = parsed.publishableApiKey?.trim();
     if (!baseUrl || !publishableApiKey) {
       throw new Error(
-        'cubecom connection config requires baseUrl and publishableApiKey'
+        'legacy cubecom accessToken JSON requires baseUrl and publishableApiKey'
       );
     }
     return {
@@ -80,9 +117,9 @@ function decodeCubecomEngineConnection(
     defaultBaseUrl?.trim() ||
     process.env.CUBECOM_COMMERCE_BASE_URL?.trim() ||
     '';
-  if (!baseUrl) {
+  if (!baseUrl || !trimmed) {
     throw new Error(
-      'cubecom connection requires CUBECOM_COMMERCE_BASE_URL or JSON accessToken.baseUrl'
+      'cubecom connection requires configJson { baseUrl, publishableApiKey } (or CUBECOM_COMMERCE_BASE_URL + legacy publishable accessToken)'
     );
   }
 

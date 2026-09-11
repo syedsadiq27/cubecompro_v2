@@ -261,6 +261,7 @@ type IntegrationConnectionModel {
   displayName: String
   externalAccountId: String!
   hasAccessToken: Boolean!
+  hasConfig: Boolean!
   id: ID!
   organizationId: String!
   provider: String!

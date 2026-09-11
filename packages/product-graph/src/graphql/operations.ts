@@ -823,6 +823,36 @@ export const RESOLVE_COMMERCE_QUERY = `
   }
 `;
 
+export const RESOLVE_COMMERCE_LIVE_QUERY = `
+  query ResolveCommerceLive($input: ResolveCommerceLiveInput!) {
+    resolveCommerceLive(input: $input) {
+      resolution {
+        status
+        provider
+        externalReference {
+          type
+          id
+          sku
+        }
+        identitySignature
+        identityJson
+      }
+      connectionRef
+      evaluationValid
+      evaluationComplete
+      canPurchase
+      commerceState {
+        sellabilityStatus
+        unsellableReason
+        priceAmount
+        priceCurrencyCode
+        inventoryAvailable
+        inventoryTracked
+      }
+    }
+  }
+`;
+
 export const SHOPIFY_CONNECTIONS_QUERY = `
   query ShopifyConnections($organizationId: String!) {
     shopifyConnections(organizationId: $organizationId) {
@@ -833,6 +863,7 @@ export const SHOPIFY_CONNECTIONS_QUERY = `
       displayName
       apiVersion
       hasAccessToken
+      hasConfig
     }
   }
 `;

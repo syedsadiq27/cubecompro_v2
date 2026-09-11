@@ -23,7 +23,8 @@ import { createMedusaCommerceRuntime } from '@repo/commerce-medusa';
 
 const runtime = createMedusaCommerceRuntime({
   resolveConnection: async (connectionRef) => {
-    // Load engine-private fields from IntegrationConnection for connectionRef
+    // Load engine-private fields from IntegrationConnection.configJson
+    // for connectionRef (provider: "cubecom"). Never from Shopify accessToken.
     return {
       baseUrl: 'http://localhost:9000',
       publishableApiKey: 'pk_...',
@@ -34,6 +35,14 @@ const runtime = createMedusaCommerceRuntime({
 
 const state = await runtime.fetchState(resolvedCommerce);
 ```
+
+Merchant UIs call CubeCom GraphQL (`resolveCommerceLive`) only:
+
+```text
+Browser → CubeCom API → commerce-core → commerce-medusa → Medusa HTTP
+```
+
+No merchant browser → Medusa path.
 
 ## Tests
 

@@ -347,6 +347,42 @@ Boundary checkpoint
 
 **One-line rule:** Organization owns the commerce relationship; ProductGraph owns sellable identity; the connection chooses the engine; Medusa remains replaceable.
 
+### Merchant path rule (enforce)
+
+```text
+Browser → CubeCom API → commerce-core → adapter → engine
+```
+
+No merchant browser → Medusa path. `backoffice.cubecompro.com` is the merchant commerce surface; `commerce.cubecompro.com/app` is engineering/ops only.
+
+### Connection config shape
+
+```ts
+{
+  provider: "cubecom",
+  externalAccountId: "store_xxx",
+  configJson: {
+    baseUrl: "https://commerce.cubecompro.com",
+    publishableApiKey: "pk_...",
+    regionId: "reg_..."
+  },
+  accessToken: "" // Shopify OAuth / privileged secrets only — never cubecom engine config
+}
+```
+
+Publishable Store keys live in `configJson`. Privileged admin credentials must use a separate secret field when introduced — never collapse into `accessToken` alongside Shopify OAuth.
+
+### First Backoffice proof order
+
+```text
+1. Product live commerce state (resolveCommerceLive)
+2. Add to cart
+3. Checkout
+4. Orders
+5. Inventory
+6. Customers
+```
+
 ---
 
 ## 10. Implementation sequence (after Phase 0)
