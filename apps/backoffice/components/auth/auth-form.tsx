@@ -82,7 +82,8 @@ export function EmailField({
           placeholder="name@company.com"
           value={value}
           onChange={onChange}
-          className="ui:h-11 ui:rounded-xl ui:pl-10"
+          insetStart
+          className="ui:h-11 ui:rounded-xl"
         />
       </div>
     </Field>
@@ -123,7 +124,9 @@ export function PasswordField({
           placeholder="Enter your password"
           value={value}
           onChange={onChange}
-          className="ui:h-11 ui:rounded-xl ui:pl-10 ui:pr-10"
+          insetStart
+          insetEnd
+          className="ui:h-11 ui:rounded-xl"
         />
         <button
           type="button"
