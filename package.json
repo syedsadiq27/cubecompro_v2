@@ -45,6 +45,14 @@
     "expect": "30.4.1",
     "jest-runtime": "30.4.1",
     "jest-util": "30.4.1",
-    "jest-mock": "30.4.1"
+    "jest-mock": "30.4.1",
+    "dotenv": "17.4.1",
+    "rxjs": "7.8.2",
+    "@nestjs/common": "11.1.29",
+    "@nestjs/core": "11.1.29",
+    "@nestjs/config": "4.0.4",
+    "@nestjs/platform-express": "11.1.29",
+    "@nestjs/graphql": "13.4.4",
+    "@nestjs/apollo": "13.4.4"
   }
 }
