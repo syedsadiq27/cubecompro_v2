@@ -13,3 +13,17 @@
 out
 .cursor
 .agent-transcripts
+apps/admin
+apps/backoffice
+apps/commerce
+apps/customizer
+apps/docs
+apps/editor
+apps/landing
+**/*.webp
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.mp4
+**/*.glb
+**/*.gltf

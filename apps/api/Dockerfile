@@ -2,15 +2,12 @@ FROM node:22-bookworm-slim AS pruner
 WORKDIR /app
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm install -g turbo@2.10.9
 
 COPY . .
-
-RUN yarn install --frozen-lockfile --network-timeout 600000
-RUN yarn turbo prune api --docker
+RUN turbo prune api --docker
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
@@ -22,10 +19,10 @@ RUN apt-get update \
 RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
 COPY --from=pruner /app/out/json/ .
-RUN yarn install --frozen-lockfile --network-timeout 600000
+RUN --mount=type=cache,target=/root/.cache/yarn \
+  yarn install --frozen-lockfile --network-timeout 600000
 
 COPY --from=pruner /app/out/full/ .
-
 RUN yarn turbo build --filter=api \
   && node -e "console.log('[docker] @nestjs/config', require.resolve('@nestjs/config', { paths: ['/app', '/app/apps/api'] }))"
 
