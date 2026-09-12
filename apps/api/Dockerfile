@@ -24,7 +24,21 @@ RUN --mount=type=cache,target=/root/.cache/yarn \
 
 COPY --from=pruner /app/out/full/ .
 RUN yarn turbo build --filter=api \
-  && node -e "console.log('[docker] @nestjs/config', require.resolve('@nestjs/config', { paths: ['/app', '/app/apps/api'] }))"
+  && node -e "\
+const path = require('path');\
+const core = require.resolve('@nestjs/core', { paths: ['/app/apps/api'] });\
+const apollo = require.resolve('@nestjs/apollo', { paths: ['/app/apps/api'] });\
+const config = require.resolve('@nestjs/config', { paths: ['/app/apps/api'] });\
+const root = path.join('/app', 'node_modules', '@nestjs');\
+if (!core.startsWith(root) || !apollo.startsWith(root) || !config.startsWith(root)) {\
+  throw new Error(\
+    'Nest packages are not hoisted to /app/node_modules/@nestjs. ' +\
+    'Fix package.json resolutions / lockfile. ' +\
+    JSON.stringify({ core, apollo, config })\
+  );\
+}\
+console.log('[docker] hoisted @nestjs tree ok');\
+"
 
 FROM node:22-bookworm-slim AS production
 WORKDIR /app/apps/api
@@ -39,14 +53,27 @@ ENV PORT=8080
 COPY --from=build /app/package.json /app/package.json
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/packages /app/packages
-COPY --from=build /app/apps/api ./
+COPY --from=build /app/apps/api/dist ./dist
+COPY --from=build /app/apps/api/prisma ./prisma
+COPY --from=build /app/apps/api/prisma.config.ts ./prisma.config.ts
+COPY --from=build /app/apps/api/package.json ./package.json
 COPY apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
 
 RUN chmod +x ./docker-entrypoint.sh \
   && test -x /app/node_modules/.bin/prisma \
   && test -f ./dist/main.js \
   && test -f ./dist/prepare-environment.js \
-  && node -e "require('@nestjs/config')"
+  && node -e "\
+const path = require('path');\
+const core = require.resolve('@nestjs/core');\
+const apollo = require.resolve('@nestjs/apollo');\
+const config = require.resolve('@nestjs/config');\
+const root = path.join('/app', 'node_modules', '@nestjs');\
+if (!core.startsWith(root) || !apollo.startsWith(root) || !config.startsWith(root)) {\
+  throw new Error(JSON.stringify({ core, apollo, config }));\
+}\
+console.log('[docker] runtime @nestjs ok');\
+"
 
 EXPOSE 8080
 ENTRYPOINT ["./docker-entrypoint.sh"]
