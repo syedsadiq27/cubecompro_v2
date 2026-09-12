@@ -1,22 +1,28 @@
-FROM node:22-bookworm-slim AS pruner
+ARG NODE_VERSION=22-bookworm-slim
+ARG TURBO_VERSION=2.10.9
+ARG YARN_VERSION=1.22.22
+
+FROM node:${NODE_VERSION} AS pruner
+ARG TURBO_VERSION
 WORKDIR /app
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
-  && npm install -g turbo@2.10.9
+  && npm install -g turbo@${TURBO_VERSION}
 
 COPY . .
 RUN turbo prune api --docker
 
-FROM node:22-bookworm-slim AS build
-WORKDIR /app
-
+FROM node:${NODE_VERSION} AS base
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+FROM base AS build
+ARG YARN_VERSION
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
 
 COPY --from=pruner /app/out/json/ .
 RUN --mount=type=cache,target=/root/.cache/yarn \
@@ -24,56 +30,47 @@ RUN --mount=type=cache,target=/root/.cache/yarn \
 
 COPY --from=pruner /app/out/full/ .
 RUN yarn turbo build --filter=api \
-  && node -e "\
-const path = require('path');\
-const core = require.resolve('@nestjs/core', { paths: ['/app/apps/api'] });\
-const apollo = require.resolve('@nestjs/apollo', { paths: ['/app/apps/api'] });\
-const config = require.resolve('@nestjs/config', { paths: ['/app/apps/api'] });\
-const root = path.join('/app', 'node_modules', '@nestjs');\
-if (!core.startsWith(root) || !apollo.startsWith(root) || !config.startsWith(root)) {\
-  throw new Error(\
-    'Nest packages are not hoisted to /app/node_modules/@nestjs. ' +\
-    'Fix package.json resolutions / lockfile. ' +\
-    JSON.stringify({ core, apollo, config })\
-  );\
-}\
-console.log('[docker] hoisted @nestjs tree ok');\
-"
+  && node apps/api/scripts/verify-nest-resolution.js /app/apps/api
 
-FROM node:22-bookworm-slim AS production
-WORKDIR /app/apps/api
+FROM base AS prod-deps
+ARG YARN_VERSION
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/full/apps/api/scripts/verify-nest-resolution.js /tmp/verify-nest-resolution.js
+RUN --mount=type=cache,target=/root/.cache/yarn \
+  yarn install \
+    --frozen-lockfile \
+    --production=true \
+    --network-timeout 600000 \
+  && node /tmp/verify-nest-resolution.js /app/apps/api
 
+FROM base AS production
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --from=build /app/package.json /app/package.json
-COPY --from=build /app/node_modules /app/node_modules
-COPY --from=build /app/packages /app/packages
-COPY --from=build /app/apps/api/dist ./dist
-COPY --from=build /app/apps/api/prisma ./prisma
-COPY --from=build /app/apps/api/prisma.config.ts ./prisma.config.ts
-COPY --from=build /app/apps/api/package.json ./package.json
-COPY apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
+WORKDIR /app/apps/api
 
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/node_modules/.prisma /app/node_modules/.prisma
+COPY --from=build /app/node_modules/@prisma/client /app/node_modules/@prisma/client
+COPY --from=build /app/packages /app/packages
+COPY --chown=node:node --from=build /app/apps/api/dist ./dist
+COPY --chown=node:node --from=build /app/apps/api/prisma ./prisma
+COPY --chown=node:node --from=build /app/apps/api/prisma.config.ts ./prisma.config.ts
+COPY --chown=node:node --from=build /app/apps/api/package.json ./package.json
+COPY --chown=node:node apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
+
+COPY --from=build /app/apps/api/scripts/verify-nest-resolution.js /tmp/verify-nest-resolution.js
 RUN chmod +x ./docker-entrypoint.sh \
+  && chown node:node /app/apps/api \
   && test -x /app/node_modules/.bin/prisma \
   && test -f ./dist/main.js \
   && test -f ./dist/prepare-environment.js \
-  && node -e "\
-const path = require('path');\
-const core = require.resolve('@nestjs/core');\
-const apollo = require.resolve('@nestjs/apollo');\
-const config = require.resolve('@nestjs/config');\
-const root = path.join('/app', 'node_modules', '@nestjs');\
-if (!core.startsWith(root) || !apollo.startsWith(root) || !config.startsWith(root)) {\
-  throw new Error(JSON.stringify({ core, apollo, config }));\
-}\
-console.log('[docker] runtime @nestjs ok');\
-"
+  && node /tmp/verify-nest-resolution.js /app/apps/api \
+  && rm /tmp/verify-nest-resolution.js
+
+USER node
 
 EXPOSE 8080
 ENTRYPOINT ["./docker-entrypoint.sh"]
