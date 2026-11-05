@@ -9,13 +9,13 @@ export function ShopifyIntegrationProof() {
     <Section id="proof" tone="soft" spacing="default">
       <Section.Header
         eyebrow="Intended shopper loop"
-        title="Ship the shopper loop before the App Store listing."
-        description="Early-access pattern: configure beside a Shopify PDP, resolve to a variant Shopify already sells, hand the line item to Shopify cart — checkout stays Shopify."
+        title="The shopper loop we are building toward."
+        description="Illustrative example with sample data. In early access today: resolve a configuration to a mapped Shopify variant. Planned: hand it to Shopify cart, with checkout staying on Shopify."
       />
 
       <Section.Body gap="lg">
         <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
-          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-pure)] p-5 lg:col-span-7">
+          <div className="rounded-2xl border border-[var(--line)] min-w-0 bg-[var(--surface-pure)] p-5 lg:col-span-7">
             <Typography variant="mono" tone="muted">
               Shopify PDP · configuration surface
             </Typography>
@@ -48,13 +48,13 @@ export function ShopifyIntegrationProof() {
             </DescriptionList>
 
             <Typography variant="support" className="mt-4">
-              Constraint example: leather fabric blocks black frame before the
-              look reaches cart.
+              Constraint example: leather fabric blocks black frame during
+              configuration.
             </Typography>
           </div>
 
           <div
-            className="rounded-2xl border border-white/10 bg-[var(--ink)] p-5 lg:col-span-5"
+            className="rounded-2xl border border-white/10 min-w-0 bg-[var(--ink)] p-5 lg:col-span-5"
             data-surface-tone="ink"
           >
             <Typography
@@ -62,7 +62,7 @@ export function ShopifyIntegrationProof() {
               tone="accent"
               className="text-[var(--stage-violet-light)]"
             >
-              Shopify cart line · resolved
+              Planned cart line · sample data
             </Typography>
             <DescriptionList gap="none" className="mt-4">
               {[
@@ -83,7 +83,7 @@ export function ShopifyIntegrationProof() {
                     as="dd"
                     variant="code"
                     tone="inverse"
-                    className="max-w-[60%] text-right normal-case tracking-normal"
+                    className="min-w-0 max-w-[60%] break-all text-right normal-case tracking-normal"
                   >
                     {value}
                   </Typography>
@@ -94,8 +94,8 @@ export function ShopifyIntegrationProof() {
               variant="support"
               className="mt-4 text-white/55"
             >
-              Intended handoff via theme cart AJAX or Storefront API — not a
-              published App Store connector yet.
+              Planned handoff via theme cart AJAX or Storefront API — not
+              available yet, and not a published App Store connector.
             </Typography>
           </div>
         </div>

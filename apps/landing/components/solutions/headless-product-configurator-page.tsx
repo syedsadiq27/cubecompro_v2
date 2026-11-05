@@ -153,7 +153,7 @@ export function HeadlessProductConfiguratorPage() {
         <Section.Header
           eyebrow="Deterministic Handoff Proof"
           title="See the runtime state pipeline in action."
-          description="How customer intent translates from a custom Next.js storefront to verified line items in Shopify checkout."
+          description="How customer intent moves from a custom storefront through validation to a resolved commerce state."
         />
         <Section.Body>
           <div className="mx-auto max-w-4xl">

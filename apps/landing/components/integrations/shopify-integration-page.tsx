@@ -20,18 +20,18 @@ const MECHANISM_STEPS = [
   {
     label: 'Shopper choice',
     detail:
-      'Options and constraints run beside the Shopify PDP — not as an unbounded variant matrix.',
+      'Options and constraints are modeled in CubeCom, separate from fragile theme logic.',
   },
   {
     label: 'CubeCom resolve',
     detail:
-      'Configuration state validates and resolves to a sellable Shopify variant id / SKU you already sell.',
+      'Valid configuration state resolves to the Shopify variant ID and SKU you have mapped.',
     accent: true,
   },
   {
-    label: 'Shopify cart',
+    label: 'Shopify cart (planned)',
     detail:
-      'Line item handoff via theme cart AJAX or Storefront API. Checkout, payments, and orders stay on Shopify.',
+      'Handoff to Shopify cart is planned, not available yet. Checkout, payments, and orders stay on Shopify.',
   },
 ];
 
@@ -46,40 +46,40 @@ const CAPABILITIES = [
     number: '02',
     tag: 'RULES RUNTIME',
     title: 'Configuration rules in CubeCom',
-    body: 'Dependencies, exclusions, and grades live on the product graph so illegal looks never reach cart.',
+    body: 'Dependencies, exclusions, and grades live on the product graph so invalid combinations are blocked during configuration.',
   },
   {
     number: '03',
     tag: 'OPTIONAL 3D',
     title: 'Visual when it helps',
-    body: 'Add 3D or decoration experiences where they improve certainty — still resolving to the same Shopify line item.',
+    body: 'Add 3D or decoration experiences where they improve certainty — still resolving to the same mapped Shopify variant.',
   },
   {
     number: '04',
     tag: 'CART HANDOFF',
     title: 'Checkout stays Shopify',
-    body: 'Resolved configuration becomes a cart line Shopify already understands. No parallel checkout.',
+    body: 'Checkout, payments, and orders stay on Shopify, with no parallel checkout. Automated cart handoff is planned, not available yet.',
   },
 ];
 
 const OUTCOMES = [
   {
     tag: 'CATALOG SCALE',
-    title: 'Avoid variant explosion',
+    title: 'Keep option rules in one place',
     description:
-      'Model constrained combinations once instead of photographing and stocking every flat Shopify option matrix.',
+      'Model dependencies and exclusions once instead of encoding them in theme logic. Today, each sellable configuration still maps to a Shopify variant.',
   },
   {
     tag: 'CHECKOUT TRUST',
-    title: 'Preserve Shopify checkout',
+    title: 'Keep Shopify checkout',
     description:
-      'Shoppers finish on the checkout and payment stack you already run — CubeCom stops at the sellable line item.',
+      'CubeCom stops at the sellable variant, so once cart handoff ships, shoppers finish on the checkout and payment stack you already run.',
   },
   {
     tag: 'ONE STATE',
     title: 'One resolved configuration state',
     description:
-      'PDP, share links, and cart agree on the same configuration identity before an App Store listing exists.',
+      'Rules and variant mapping live on one product graph, so a valid selection always resolves to the same mapped variant.',
   },
 ];
 
@@ -131,23 +131,23 @@ export function ShopifyIntegrationPage() {
         traditionalBody="Complex furniture or soft-goods rules overflow native Shopify options. Merchants explode variants, photograph every combination, or encode fragile theme logic that drifts from inventory truth."
         cubecomLabel="Beside the PDP"
         cubecomTitle="Intended CubeCom pattern"
-        cubecomBody="Configure beside Shopify, resolve to a variant id / SKU you already sell, hand off to Shopify cart. Early access architecture — not an installable App Store listing yet."
+        cubecomBody="Configure in CubeCom and resolve to a variant ID / SKU you already sell. Store connection, import, and mapping are in early access; cart handoff is planned. Not an installable App Store listing yet."
         tone="soft"
       />
 
       <FullWidthVisual
         src="/images/mechanism-state-pipeline-v2.jpg"
         alt="Shopper choice flowing through CubeCom resolution into a Shopify cart line while checkout stays on Shopify"
-        eyebrow="Integration flow"
+        eyebrow="Intended integration flow"
         title="Shopify PDP → CubeCom configuration runtime → Shopify cart."
-        description="Storefront presentation and checkout remain Shopify. CubeCom owns the configuration decision in the middle."
+        description="Storefront presentation and checkout remain Shopify. CubeCom owns the configuration decision in the middle. The cart step is planned."
         tone="canvas"
       />
 
       <SignatureMechanism
         eyebrow="Shopper loop"
-        title="Shopper choice → CubeCom resolve → Shopify variant / line item → Cart."
-        description="Ship this loop with your theme or headless storefront before a first-party App Store listing exists."
+        title="Shopper choice → CubeCom resolve → Shopify variant → Cart (planned)."
+        description="Connecting a store, importing products, and resolving to mapped variants work in early access. Cart handoff is the remaining step."
         steps={MECHANISM_STEPS}
       />
 

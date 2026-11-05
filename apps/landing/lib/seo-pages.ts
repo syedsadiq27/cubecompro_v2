@@ -113,7 +113,7 @@ export const seoPages: SeoPageDef[] = [
       {
         href: '/integrations/shopify',
         label: 'Shopify integration',
-        blurb: 'Headless or theme-embedded experiences that still use Shopify cart.',
+        blurb: 'Early-access store connection, product import, and variant mapping.',
       },
       {
         href: '/integrations/commercetools',
@@ -159,13 +159,13 @@ export const seoPages: SeoPageDef[] = [
     path: '/integrations/shopify',
     title: `Shopify 3D Product Configurator | ${SITE_NAME}`,
     description:
-      'Early-access Shopify product configurator pattern: resolve configuration to Shopify variants while cart and checkout stay on Shopify.',
+      'Early-access Shopify product configurator: connect a store, import products, and resolve configurations to mapped Shopify variants. Cart handoff is planned; checkout stays on Shopify.',
     eyebrow: 'Shopify integration',
     badge: 'Integration preview · Early access',
     h1: 'Shopify 3D Product Configurator',
-    lead: 'Add configuration and 3D experiences to Shopify without ripping out cart, checkout, or inventory — as an early-access architecture, not a finished App Store listing.',
+    lead: 'Connect a Shopify store, import products, and map configurations to the variants you already sell. In early access: cart handoff is planned, and there is no App Store listing yet.',
     reframe:
-      'CubeCom Pro sits beside Shopify: your catalog and checkout stay Shopify; CubeCom enforces configuration rules and resolves configuration state to the Shopify variant or line item you can actually sell.',
+      'CubeCom Pro sits beside Shopify: your catalog and checkout stay Shopify; CubeCom enforces configuration rules and resolves configuration state to a mapped Shopify variant. Handoff to Shopify cart is planned.',
     primaryCta: { href: '/#contact', label: 'Book a solution session' },
     secondaryCta: { href: '/demo', label: 'Open live demo' },
     related: [
@@ -206,7 +206,7 @@ export const seoPages: SeoPageDef[] = [
       {
         href: '/integrations/shopify',
         label: 'Shopify integration',
-        blurb: 'Configuration and 3D with Shopify cart.',
+        blurb: 'Early-access store connection, product import, and variant mapping.',
       },
       {
         href: '/product-configuration-api',
@@ -246,7 +246,7 @@ export const seoPages: SeoPageDef[] = [
       {
         href: '/integrations/shopify',
         label: 'Shopify integration',
-        blurb: 'Furniture PDPs that still check out on Shopify.',
+        blurb: 'Map furniture configurations to Shopify variants in early access.',
       },
     ],
   },
@@ -276,7 +276,7 @@ export const seoPages: SeoPageDef[] = [
       {
         href: '/integrations/shopify',
         label: 'Shopify integration',
-        blurb: 'Apparel configuration that lands in Shopify cart.',
+        blurb: 'Map apparel configurations to Shopify variants in early access.',
       },
     ],
   },

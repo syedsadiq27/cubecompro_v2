@@ -36,6 +36,9 @@ change the product → CubeCom understands the state → commerce updates correc
 - 3d.cubecompro.com — editor application
 - api.cubecompro.com — machine API
 
+## Integration status
+- Shopify (early access): store OAuth, product import, and mapping configurations to existing variants. Cart handoff is planned. No App Store listing.
+
 ## Surfaces
 - Backoffice — catalog & rules
 - 3D Editor — scene authoring

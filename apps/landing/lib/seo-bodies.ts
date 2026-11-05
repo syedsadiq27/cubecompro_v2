@@ -156,7 +156,7 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'How is this different from Shopify options or variant matrices?',
         answer:
-          'Variant matrices explode and still miss cross-option constraints. CubeCom encodes dependencies and exclusions, resolves a valid state at runtime, then projects SKU, price, and inventory — without publishing every combination.',
+          'Variant matrices explode and still miss cross-option constraints. CubeCom encodes dependencies and exclusions, and resolves a valid state at runtime. On Shopify today, each sellable configuration still maps to an existing variant.',
       },
       {
         question: 'What kinds of rules can we model?',
@@ -266,12 +266,22 @@ export const seoBodies: SeoBody[] = [
       {
         question: 'Is there a Shopify App Store listing?',
         answer:
-          'Not yet. Integration is available as an architecture and early access engagement — not a one-click public app.',
+          'Not yet. Store connection, product import, and variant mapping are available as an early access engagement — not a one-click public app.',
+      },
+      {
+        question: 'Can shoppers add a configuration to the Shopify cart today?',
+        answer:
+          'Not yet. CubeCom resolves a valid configuration to a mapped Shopify variant today. Handoff to the Shopify cart is planned, and checkout will stay on Shopify.',
+      },
+      {
+        question: 'What if a product has more combinations than Shopify variants?',
+        answer:
+          'Today, a configuration needs a matching Shopify variant to become sellable. Combinations without one are reported as unmapped. Support for configurations without a pre-created variant is planned.',
       },
       {
         question: 'Does CubeCom replace Shopify?',
         answer:
-          'No. It sits beside Shopify and resolves configuration into sellable line items Shopify already understands.',
+          'No. It sits beside Shopify and resolves configuration to variants you already sell in Shopify.',
       },
       {
         question: 'What about Shopify’s native options?',
